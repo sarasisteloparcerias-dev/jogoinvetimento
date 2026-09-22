@@ -73,3 +73,19 @@ export interface GameEvent {
   weight: (state: PlayerState) => number
   choices: GameEventChoice[]
 }
+
+export interface DialogoTopico {
+  id: string
+  titulo: string
+  linhas: string[]
+}
+
+export interface NPCDef {
+  id: string
+  nome: string
+  avatar: AvatarConfig
+  gx: number
+  gy: number
+  saudacao: string
+  topicos: DialogoTopico[]
+}

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ACOES, podeExecutar } from '../game/engine'
+import { MENTOR } from '../game/mentor'
 import type { ActionId, PlayerState } from '../game/types'
 import { CharacterSVG } from './CharacterSVG'
+import { DialogueBox } from './DialogueBox'
 
 export interface ActionFeedback {
   key: number
@@ -45,6 +47,15 @@ const ZONES: ZoneDef[] = [
   { id: 'amigos', emoji: '🎈', label: 'Amigos', gx: 1, gy: 3, action: 'socializar' },
 ]
 
+const ARVORES = [
+  { gx: 0, gy: 0 },
+  { gx: 6, gy: 0 },
+  { gx: 0, gy: 6 },
+  { gx: 6, gy: 6 },
+  { gx: 2, gy: 6 },
+  { gx: 4, gy: 0 },
+]
+
 const INICIO = { x: 3, y: 3 }
 
 type Direcao = 'cima' | 'baixo' | 'esquerda' | 'direita'
@@ -86,6 +97,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   const [facing, setFacing] = useState<Direcao>('baixo')
   const [busy, setBusy] = useState(false)
   const [popover, setPopover] = useState<string | null>(null)
+  const [dialogoAberto, setDialogoAberto] = useState(false)
   const [bubble, setBubble] = useState<{ key: number; text: string; tom: 'boa' | 'ma' } | null>(null)
 
   useEffect(() => {
@@ -112,7 +124,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   }
 
   function interagir(zone: ZoneDef) {
-    if (busy) return
+    if (busy || dialogoAberto) return
     if (zone.subs) {
       setPopover((p) => (p === zone.id ? null : zone.id))
       return
@@ -121,16 +133,22 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   }
 
   function mover(dx: number, dy: number, direcao: Direcao) {
-    if (busy) return
+    if (busy || dialogoAberto) return
     setFacing(direcao)
     setPopover(null)
     const alvoX = pos.x + dx
     const alvoY = pos.y + dy
+
+    if (alvoX === MENTOR.gx && alvoY === MENTOR.gy) {
+      setDialogoAberto(true)
+      return
+    }
     const zonaNoAlvo = ZONES.find((z) => z.gx === alvoX && z.gy === alvoY)
     if (zonaNoAlvo) {
       interagir(zonaNoAlvo)
       return
     }
+    if (ARVORES.some((a) => a.gx === alvoX && a.gy === alvoY)) return
     if (alvoX < 0 || alvoX >= COLS || alvoY < 0 || alvoY >= ROWS) return
     setPos({ x: alvoX, y: alvoY })
   }
@@ -145,22 +163,55 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pos, busy])
+  }, [pos, busy, dialogoAberto])
 
   return (
     <div>
       <p className="text-sm text-slate-500 mb-2 text-center">
-        🎮 Usa as setas do teclado ou o D-pad para andares. Encosta-te a um sítio para agires!
+        🎮 Anda com as setas ou o D-pad. Fala com o Mestre Moedas para aprenderes a investir!
       </p>
       <div
         className="relative w-full rounded-3xl overflow-hidden border-4 border-white shadow-inner"
         style={{
           aspectRatio: '1 / 1',
-          background: 'linear-gradient(180deg, #bfe7ff 0%, #bfe7ff 22%, #b7e8b0 22%, #9adf8f 100%)',
+          backgroundColor: '#8fd97f',
           backgroundImage:
-            'linear-gradient(180deg, #bfe7ff 0%, #bfe7ff 22%, #b7e8b0 22%, #9adf8f 100%), repeating-linear-gradient(0deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 1px, transparent 1px, transparent calc(100%/7)), repeating-linear-gradient(90deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 1px, transparent 1px, transparent calc(100%/7))',
+            'radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1.2px), radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1.2px)',
+          backgroundSize: '10px 10px, 14px 14px',
+          backgroundPosition: '0 0, 5px 7px',
         }}
       >
+        {/* caminho de terra em cruz */}
+        <div
+          className="absolute bg-amber-100/70"
+          style={{ left: `${pctX(3) - 100 / COLS / 2}%`, top: 0, width: `${100 / COLS}%`, height: '100%' }}
+        />
+        <div
+          className="absolute bg-amber-100/70"
+          style={{ top: `${pctY(3) - 100 / ROWS / 2}%`, left: 0, height: `${100 / ROWS}%`, width: '100%' }}
+        />
+
+        {ARVORES.map((a, i) => (
+          <span
+            key={i}
+            className="absolute -translate-x-1/2 -translate-y-1/2 text-3xl pointer-events-none drop-shadow-sm"
+            style={{ left: `${pctX(a.gx)}%`, top: `${pctY(a.gy)}%` }}
+          >
+            🌳
+          </span>
+        ))}
+
+        <button
+          onClick={() => setDialogoAberto(true)}
+          className="absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110 z-10"
+          style={{ left: `${pctX(MENTOR.gx)}%`, top: `${pctY(MENTOR.gy)}%` }}
+        >
+          <CharacterSVG avatar={MENTOR.avatar} height={40} />
+          <span className="text-[11px] font-bold bg-emerald-100 rounded-full px-2 py-0.5 text-emerald-700 shadow">
+            {MENTOR.nome}
+          </span>
+        </button>
+
         {ZONES.map((zone) => {
           const disabled = zone.action ? !podeExecutar(state, ACOES.find((a) => a.id === zone.action)!) : false
           const zx = pctX(zone.gx)
@@ -281,6 +332,8 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
         </button>
         <div />
       </div>
+
+      {dialogoAberto && <DialogueBox npc={MENTOR} onFechar={() => setDialogoAberto(false)} />}
     </div>
   )
 }

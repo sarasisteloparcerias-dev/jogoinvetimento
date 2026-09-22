@@ -33,9 +33,14 @@ npm run preview
   esta solução própria e sempre disponível.
 - **Mapa tipo Pokémon (GBA)**: em vez de uma lista de botões, o avatar anda por um
   pequeno mapa em grelha 7x7 com 6 edifícios (Mealheiro, Loja, Banco, Escola, Parque,
-  Amigos). Controla-se com as setas do teclado (ou WASD) ou com um D-pad no ecrã;
-  encostar-se a um edifício ativa a ação, com uma bolha flutuante a mostrar o resultado
-  (ex. `-10 🪙 +10 🐷`).
+  Amigos), árvores como obstáculos e um caminho de terra. Controla-se com as setas do
+  teclado (ou WASD) ou com um D-pad no ecrã; encostar-se a um edifício ativa a ação, com
+  uma bolha flutuante a mostrar o resultado (ex. `-10 🪙 +10 🐷`).
+- **Mestre Moedas (NPC com quem se fala)**: um personagem no mapa que, ao falares com
+  ele, apresenta um menu de tópicos sobre finanças (o que é poupar, o que é investir,
+  porque existe risco, porque o dinheiro cresce sozinho) e explica cada um com
+  analogias simples (plantar uma semente, andar de bicicleta vs. skate) — a forma
+  principal de ensinar os conceitos no jogo, para além de os viver na prática.
 - **Loop de jogo semanal**:
   1. O jogador recebe mesada (aumenta ligeiramente com a Educação).
   2. Pode gastar moedas em várias ações — Poupar, Gastar em diversão, Investir
@@ -66,13 +71,15 @@ src/
     data.ts      - constantes e avatares
     events.ts    - banco de 20 eventos das 4 áreas de vida
     engine.ts    - lógica pura: ações, avanço de semana, juros, investimento
+    mentor.ts    - conteúdo do NPC "Mestre Moedas" (tópicos e falas sobre finanças)
   components/
     AgeGate.tsx           - formulário de idade e seleção de modo
     ModoIndisponivel.tsx  - placeholder para os modos 15-17 e 18+
     CharacterCreation.tsx - nome + criação de avatar
     CharacterSVG.tsx       - personagem 2D original (SVG), recolorível via props
     Dashboard.tsx         - ecrã principal do jogo
-    RoomScene.tsx          - mapa em grelha tipo Pokémon (D-pad + teclado) com 6 edifícios
+    RoomScene.tsx          - mapa em grelha tipo Pokémon (D-pad + teclado) com edifícios e NPC
+    DialogueBox.tsx         - caixa de diálogo com menu de tópicos, para falar com NPCs
     StatBar.tsx           - barra de estatística (Relações/Saúde/Educação)
     GrowthChart.tsx        - gráfico SVG de evolução financeira
     EventModal.tsx         - modal de evento com escolhas e resultado
