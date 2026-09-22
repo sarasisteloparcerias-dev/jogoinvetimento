@@ -23,7 +23,7 @@ function parseRpmMessage(raw: unknown): RpmMessage | null {
 
 export function AvatarCreatorFrame({ onAvatarReady }: AvatarCreatorFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const [pronto, setPronto] = useState(false)
+  const [carregado, setCarregado] = useState(false)
   const [demorouDemais, setDemorouDemais] = useState(false)
 
   useEffect(() => {
@@ -31,17 +31,20 @@ export function AvatarCreatorFrame({ onAvatarReady }: AvatarCreatorFrameProps) {
     return () => clearTimeout(t)
   }, [])
 
+  function inscrever() {
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ target: 'readyplayerme', type: 'subscribe', eventName: 'v1.avatar.exported' }),
+      '*',
+    )
+  }
+
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       const json = parseRpmMessage(event.data)
       if (!json || json.source !== 'readyplayerme') return
 
       if (json.eventName === 'v1.frame.ready') {
-        setPronto(true)
-        iframeRef.current?.contentWindow?.postMessage(
-          JSON.stringify({ target: 'readyplayerme', type: 'subscribe', eventName: 'v1.avatar.exported' }),
-          '*',
-        )
+        inscrever()
       }
 
       if (json.eventName === 'v1.avatar.exported' && json.data?.url) {
@@ -55,7 +58,7 @@ export function AvatarCreatorFrame({ onAvatarReady }: AvatarCreatorFrameProps) {
 
   return (
     <div className="relative rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-50" style={{ height: 460 }}>
-      {!pronto && (
+      {!carregado && (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400 px-6 text-center">
           <p>
             A carregar o criador de avatares…
@@ -74,7 +77,11 @@ export function AvatarCreatorFrame({ onAvatarReady }: AvatarCreatorFrameProps) {
         src={RPM_CREATOR_URL}
         allow="camera *; microphone *; clipboard-write"
         className="w-full h-full border-0"
-        style={{ visibility: pronto ? 'visible' : 'hidden' }}
+        style={{ visibility: carregado ? 'visible' : 'hidden' }}
+        onLoad={() => {
+          setCarregado(true)
+          inscrever()
+        }}
       />
     </div>
   )
