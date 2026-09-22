@@ -5,6 +5,7 @@ import { MARTA, TIAGO } from '../game/npcs'
 import type { ActionId, NPCDef, PlayerState } from '../game/types'
 import { CharacterSVG } from './CharacterSVG'
 import { DialogueBox } from './DialogueBox'
+import { Arvore, CORES_EDIFICIOS, Edificio } from './WorldArt'
 
 export interface ActionFeedback {
   key: number
@@ -79,7 +80,22 @@ const LAGO = [
 
 const BANCO_JARDIM = { gx: 12, gy: 6 }
 
+const FLORES = [
+  { gx: 4, gy: 4 },
+  { gx: 10, gy: 4 },
+  { gx: 4, gy: 10 },
+  { gx: 10, gy: 10 },
+  { gx: 6, gy: 5 },
+  { gx: 8, gy: 9 },
+  { gx: 6, gy: 12 },
+  { gx: 11, gy: 9 },
+]
+
 const INICIO = { x: 7, y: 7 }
+
+function distancia(ax: number, ay: number, bx: number, by: number) {
+  return Math.abs(ax - bx) + Math.abs(ay - by)
+}
 
 type Direcao = 'cima' | 'baixo' | 'esquerda' | 'direita'
 
@@ -232,26 +248,64 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
         >
           {/* caminhos de terra ligando os NPCs e a praça central */}
           <div
-            className="absolute bg-amber-100/70"
-            style={{ left: `${pctX(7, WORLD_COLS) - 100 / WORLD_COLS / 2}%`, top: 0, width: `${100 / WORLD_COLS}%`, height: '100%' }}
+            className="absolute"
+            style={{
+              left: `${pctX(7, WORLD_COLS) - 100 / WORLD_COLS / 2}%`,
+              top: 0,
+              width: `${100 / WORLD_COLS}%`,
+              height: '100%',
+              backgroundColor: '#e3c58f',
+              backgroundImage: 'radial-gradient(circle, rgba(120,80,40,0.22) 1.5px, transparent 1.8px)',
+              backgroundSize: '9px 9px',
+            }}
           />
           <div
-            className="absolute bg-amber-100/70"
-            style={{ top: `${pctY(7, WORLD_ROWS) - 100 / WORLD_ROWS / 2}%`, left: 0, height: `${100 / WORLD_ROWS}%`, width: '100%' }}
+            className="absolute"
+            style={{
+              top: `${pctY(7, WORLD_ROWS) - 100 / WORLD_ROWS / 2}%`,
+              left: 0,
+              height: `${100 / WORLD_ROWS}%`,
+              width: '100%',
+              backgroundColor: '#e3c58f',
+              backgroundImage: 'radial-gradient(circle, rgba(120,80,40,0.22) 1.5px, transparent 1.8px)',
+              backgroundSize: '9px 9px',
+            }}
           />
 
-          {/* lago */}
-          {LAGO.map((l, i) => (
-            <div
+          {/* flores decorativas */}
+          {FLORES.map((f, i) => (
+            <span
               key={i}
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-lg bg-sky-400"
-              style={{
-                left: `${pctX(l.gx, WORLD_COLS)}%`,
-                top: `${pctY(l.gy, WORLD_ROWS)}%`,
-                width: `${100 / WORLD_COLS}%`,
-                height: `${100 / WORLD_ROWS}%`,
-              }}
-            />
+              className="absolute -translate-x-1/2 -translate-y-1/2 text-base pointer-events-none"
+              style={{ left: `${pctX(f.gx, WORLD_COLS)}%`, top: `${pctY(f.gy, WORLD_ROWS)}%` }}
+            >
+              🌼
+            </span>
+          ))}
+
+          {/* lago com margem e leve brilho animado */}
+          {LAGO.map((l, i) => (
+            <div key={i}>
+              <div
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-xl"
+                style={{
+                  left: `${pctX(l.gx, WORLD_COLS)}%`,
+                  top: `${pctY(l.gy, WORLD_ROWS)}%`,
+                  width: `${(100 / WORLD_COLS) * 1.25}%`,
+                  height: `${(100 / WORLD_ROWS) * 1.25}%`,
+                  backgroundColor: '#e8dcb5',
+                }}
+              />
+              <div
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-lg lago-agua"
+                style={{
+                  left: `${pctX(l.gx, WORLD_COLS)}%`,
+                  top: `${pctY(l.gy, WORLD_ROWS)}%`,
+                  width: `${100 / WORLD_COLS}%`,
+                  height: `${100 / WORLD_ROWS}%`,
+                }}
+              />
+            </div>
           ))}
 
           {/* banco de jardim (decorativo) */}
@@ -263,48 +317,67 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
           </span>
 
           {ARVORES.map((a, i) => (
-            <span
+            <div
               key={i}
-              className="absolute -translate-x-1/2 -translate-y-1/2 text-3xl pointer-events-none drop-shadow-sm"
-              style={{ left: `${pctX(a.gx, WORLD_COLS)}%`, top: `${pctY(a.gy, WORLD_ROWS)}%` }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ left: `${pctX(a.gx, WORLD_COLS)}%`, top: `${pctY(a.gy, WORLD_ROWS)}%`, width: '9%', height: '9%' }}
             >
-              🌳
-            </span>
+              <Arvore />
+            </div>
           ))}
 
-          {NPCS.map((npc) => (
-            <button
-              key={npc.id}
-              onClick={() => setNpcAtivo(npc)}
-              className="absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110 z-10"
-              style={{ left: `${pctX(npc.gx, WORLD_COLS)}%`, top: `${pctY(npc.gy, WORLD_ROWS)}%` }}
-            >
-              <CharacterSVG avatar={npc.avatar} height={40} />
-              <span className="text-[11px] font-bold bg-emerald-100 rounded-full px-2 py-0.5 text-emerald-700 shadow whitespace-nowrap">
-                {npc.nome}
-              </span>
-            </button>
-          ))}
+          {NPCS.map((npc) => {
+            const perto = distancia(pos.x, pos.y, npc.gx, npc.gy) <= 1
+            return (
+              <button
+                key={npc.id}
+                onClick={() => setNpcAtivo(npc)}
+                className="absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110 z-10"
+                style={{ left: `${pctX(npc.gx, WORLD_COLS)}%`, top: `${pctY(npc.gy, WORLD_ROWS)}%` }}
+              >
+                <CharacterSVG avatar={npc.avatar} height={40} />
+                {perto && (
+                  <span className="text-[11px] font-bold bg-emerald-100 rounded-full px-2 py-0.5 text-emerald-700 shadow whitespace-nowrap animate-[float-up_0.4s_ease-out]">
+                    💬 Falar com {npc.nome}
+                  </span>
+                )}
+              </button>
+            )
+          })}
 
           {ZONES.map((zone) => {
             const disabled = zone.action ? !podeExecutar(state, ACOES.find((a) => a.id === zone.action)!) : false
             const zx = pctX(zone.gx, WORLD_COLS)
             const zy = pctY(zone.gy, WORLD_ROWS)
+            const perto = distancia(pos.x, pos.y, zone.gx, zone.gy) <= 1
+            const cores = CORES_EDIFICIOS[zone.id]
+            const larguraTile = 100 / WORLD_COLS
             return (
               <div key={zone.id}>
                 <button
                   onClick={() => interagir(zone)}
                   disabled={busy}
-                  className={`absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform ${
-                    disabled ? 'opacity-50' : 'hover:scale-110'
+                  className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 transition-transform ${
+                    disabled ? 'opacity-60' : 'hover:scale-105'
                   }`}
-                  style={{ left: `${zx}%`, top: `${zy}%` }}
+                  style={{
+                    left: `${zx}%`,
+                    top: `${zy}%`,
+                    width: `${larguraTile * (cores ? 1.7 : 2.1)}%`,
+                    aspectRatio: cores ? '100 / 78' : '1 / 1',
+                  }}
                 >
-                  <span className="text-3xl drop-shadow-sm">{zone.emoji}</span>
-                  <span className="text-[11px] font-bold bg-white/85 rounded-full px-2 py-0.5 text-slate-700 shadow whitespace-nowrap">
-                    {zone.label}
-                    {zone.action ? ` · -${custoDe(zone.action)}` : ''}
-                  </span>
+                  {cores ? (
+                    <Edificio {...cores} />
+                  ) : (
+                    <div className="w-full h-full rounded-2xl" style={{ backgroundColor: 'rgba(190, 242, 160, 0.55)' }} />
+                  )}
+                  {perto && (
+                    <span className="text-[11px] font-bold bg-white/90 rounded-full px-2 py-0.5 text-slate-700 shadow whitespace-nowrap -mt-1 animate-[float-up_0.4s_ease-out]">
+                      {zone.emoji} {zone.label}
+                      {zone.action ? ` · -${custoDe(zone.action)}` : ''}
+                    </span>
+                  )}
                 </button>
 
                 {zone.subs && popover === zone.id && (

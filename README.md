@@ -34,11 +34,14 @@ npm run preview
 - **Mapa grande tipo Pokémon (GBA), com câmara a seguir o jogador**: o mundo tem 15x15
   tiles — maior do que o que cabe no ecrã de uma vez — com uma câmara que segue o avatar
   e mostra sempre uma janela de 7x7 à sua volta, tal como nos jogos do Game Boy Advance.
-  Tem 6 edifícios (Mealheiro, Loja, Banco, Escola, Parque, Amigos), árvores, um lago e um
-  banco de jardim espalhados pelo mapa, obrigando a explorar para os encontrar. Controla-se
-  com as setas do teclado (ou WASD) ou com um D-pad no ecrã; encostar-se a um edifício
-  ativa a ação, com uma bolha flutuante a mostrar o resultado (ex. `-10 🪙 +10 🐷`) e uma
-  pequena animação de passo ao andar.
+  Os locais (Mealheiro, Loja, Banco, Escola, Amigos) são desenhados como pequenas casas
+  com telhado, porta e janelas (SVG, sem emojis a fazer de ícone), o Parque é uma zona
+  aberta em vez de um edifício, e há árvores em camadas, flores, um lago com margem e
+  brilho animado, e um banco de jardim espalhados pelo mapa — nada disto aparece
+  identificado até o jogador se aproximar, para não parecer um menu. Controla-se com as
+  setas do teclado (ou WASD) ou com um D-pad no ecrã; encostar-se a um local ativa a
+  ação, com uma bolha flutuante a mostrar o resultado (ex. `-10 🪙 +10 🐷`) e uma pequena
+  animação de passo ao andar.
 - **3 NPCs com quem se fala**: o **Mestre Moedas** apresenta um menu de 6 tópicos sobre
   finanças (poupar, investir, risco, juros, reserva de emergência, inflação), cada um
   explicado com analogias simples (plantar uma semente, andar de bicicleta vs. skate).
@@ -83,6 +86,7 @@ src/
     ModoIndisponivel.tsx  - placeholder para os modos 15-17 e 18+
     CharacterCreation.tsx - nome + criação de avatar
     CharacterSVG.tsx       - personagem 2D original (SVG), recolorível via props
+    WorldArt.tsx            - árvore e "edifício" (telhado/parede/porta/janelas) em SVG
     Dashboard.tsx         - ecrã principal do jogo
     RoomScene.tsx          - mapa em grelha tipo Pokémon (D-pad + teclado) com edifícios e NPC
     DialogueBox.tsx         - caixa de diálogo (menu de tópicos ou história linear) para NPCs
@@ -97,6 +101,10 @@ reaproveitar quando os modos 15-17 e 18+ forem construídos.
 
 ## Próximos passos (não implementados neste protótipo)
 
+- **Evolução visual do mundo (fases seguintes)**: casas adicionais decorativas, entrar
+  fisicamente nos edifícios (interiores próprios, com os NPCs lá dentro em vez de soltos
+  no mapa), sprite do jogador com pernas/braços a alternar ao andar, e mais detalhes
+  ambientais (postes, placas, pedras, cercas) e zonas escondidas para explorar.
 - **Modo 15-17 ("A Cidade")**: introduzir termos reais (ações, ETFs, obrigações,
   inflação) com dinheiro simulado, primeiro emprego, "notícias" de mercado simuladas e
   diversificação de carteira.
