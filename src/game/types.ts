@@ -1,3 +1,9 @@
+export interface AvatarConfig {
+  pele: string
+  cabelo: string
+  roupa: string
+}
+
 export type StatKey = 'relacoes' | 'saude' | 'educacao'
 
 export interface Stats {
@@ -22,7 +28,7 @@ export interface HistoryPoint {
 
 export interface PlayerState {
   name: string
-  avatarUrl: string
+  avatar: AvatarConfig
   week: number
   saldo: number
   poupanca: number

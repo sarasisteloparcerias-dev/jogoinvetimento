@@ -1,5 +1,6 @@
 import { TOTAL_SEMANAS } from '../game/engine'
 import type { PlayerState } from '../game/types'
+import { CharacterSVG } from './CharacterSVG'
 import { GrowthChart } from './GrowthChart'
 import type { ActionFeedback } from './RoomScene'
 import { RoomScene } from './RoomScene'
@@ -20,9 +21,7 @@ export function Dashboard({ state, onAction, onAvancar, feedback }: DashboardPro
     <div className="max-w-3xl mx-auto grid gap-4">
       <div className="bg-white/90 rounded-3xl shadow-xl p-4 border-4 border-white flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <span className="w-11 h-11 rounded-full bg-violet-100 text-violet-600 font-heading font-bold text-lg flex items-center justify-center">
-            {state.name.charAt(0).toUpperCase()}
-          </span>
+          <CharacterSVG avatar={state.avatar} height={44} />
           <div className="text-left">
             <p className="font-heading font-bold text-slate-800">{state.name}</p>
             <p className="text-xs text-slate-400">

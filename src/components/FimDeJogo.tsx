@@ -1,5 +1,5 @@
 import type { PlayerState } from '../game/types'
-import { Avatar3D } from './LazyAvatar3D'
+import { CharacterSVG } from './CharacterSVG'
 import { GrowthChart } from './GrowthChart'
 
 interface FimDeJogoProps {
@@ -23,7 +23,7 @@ export function FimDeJogo({ state, onReiniciar }: FimDeJogoProps) {
   return (
     <div className="max-w-lg mx-auto bg-white/90 rounded-3xl shadow-xl p-6 border-4 border-white text-center">
       <div className="flex justify-center items-center gap-1 mb-2">
-        <Avatar3D url={state.avatarUrl} size={110} />
+        <CharacterSVG avatar={state.avatar} height={110} />
         <span className="text-4xl">🏆</span>
       </div>
       <h2 className="font-heading text-2xl font-bold text-slate-800 mb-1">Fim da aventura de {state.name}!</h2>

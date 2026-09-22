@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ACOES, podeExecutar } from '../game/engine'
 import type { ActionId, PlayerState } from '../game/types'
-import { Avatar3D } from './LazyAvatar3D'
+import { CharacterSVG } from './CharacterSVG'
 
 export interface ActionFeedback {
   key: number
@@ -200,7 +200,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
             </span>
           )}
           <div className="character-idle">
-            <Avatar3D url={state.avatarUrl} size={104} />
+            <CharacterSVG avatar={state.avatar} height={92} />
           </div>
           <span className="w-8 h-2 rounded-full bg-black/15 -mt-2" />
         </div>

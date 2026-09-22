@@ -1,4 +1,4 @@
-import type { PlayerState } from './types'
+import type { AvatarConfig, PlayerState } from './types'
 
 export const MESADA_BASE = 20
 export const TAXA_POUPANCA = 0.04
@@ -10,10 +10,20 @@ export const GANHO_INVESTIR_MAX = { baixo: 0.06, medio: 0.16, alto: 0.35 }
 export const DECAY_POR_SEMANA = 3
 export const TOTAL_SEMANAS = 20
 
-export function novoJogador(name: string, avatarUrl: string): PlayerState {
+export const CORES_PELE = ['#ffe0bd', '#f1c27d', '#e0ac69', '#c68642', '#8d5524']
+export const CORES_CABELO = ['#2d1b0e', '#4a2c14', '#7a4a1e', '#d4a017', '#e8e0d5', '#a83232', '#5b3a8e']
+export const CORES_ROUPA = ['#f97316', '#ec4899', '#8b5cf6', '#0ea5e9', '#10b981', '#ef4444', '#64748b']
+
+export const AVATAR_PADRAO: AvatarConfig = {
+  pele: CORES_PELE[1],
+  cabelo: CORES_CABELO[0],
+  roupa: CORES_ROUPA[0],
+}
+
+export function novoJogador(name: string, avatar: AvatarConfig): PlayerState {
   return {
     name,
-    avatarUrl,
+    avatar,
     week: 1,
     saldo: 15,
     poupanca: 0,

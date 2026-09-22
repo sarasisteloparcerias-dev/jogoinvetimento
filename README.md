@@ -26,10 +26,11 @@ npm run preview
 - **Formulário de idade**: pede a idade e escolhe o modo. Idades 15-17 e 18+ mostram um
   ecrã "em construção" a explicar o que vai lá estar (ver `src/components/ModoIndisponivel.tsx`),
   para que a estrutura de 3 modos já exista mesmo só com um implementado.
-- **Criação de personagem**: nome + avatar 3D real, criado com o widget do
-  [Ready Player Me](https://readyplayer.me/) (câmara/fotos ou personalização manual de
-  cara, cabelo e roupa). Se o avatar não carregar (sem ligação, bloqueio de rede), o
-  jogo continua com um ícone de substituição em vez de rebentar.
+- **Criação de personagem**: nome + avatar 2D original (SVG desenhado em código),
+  personalizável em cor de pele, cabelo e roupa. Sem dependência de nenhum serviço
+  externo — chegámos a integrar o Ready Player Me para avatares 3D reais, mas o serviço
+  foi descontinuado em janeiro de 2026 (adquirido pela Netflix), por isso optámos por
+  esta solução própria e sempre disponível.
 - **Cena tipo "Sims"**: em vez de uma lista de botões, o avatar aparece dentro de um
   "bairro" com 6 sítios (Mealheiro, Loja, Banco, Escola, Parque, Amigos). Tocar num
   sítio faz o avatar andar até lá, executa a ação e mostra uma bolha flutuante com o
@@ -68,10 +69,7 @@ src/
     AgeGate.tsx           - formulário de idade e seleção de modo
     ModoIndisponivel.tsx  - placeholder para os modos 15-17 e 18+
     CharacterCreation.tsx - nome + criação de avatar
-    AvatarCreatorFrame.tsx - iframe do Ready Player Me + protocolo postMessage
-    Avatar3D.tsx           - render do avatar (.glb) com react-three-fiber
-    LazyAvatar3D.tsx        - carrega o Avatar3D em code-split + trata erros
-    AvatarErrorBoundary.tsx - fallback caso o modelo 3D falhe a carregar
+    CharacterSVG.tsx       - personagem 2D original (SVG), recolorível via props
     Dashboard.tsx         - ecrã principal do jogo
     RoomScene.tsx          - cena tipo Sims com o avatar e os 6 sítios de ação
     StatBar.tsx           - barra de estatística (Relações/Saúde/Educação)
@@ -93,20 +91,10 @@ reaproveitar quando os modos 15-17 e 18+ forem construídos.
   seguro, reforma) — com aviso claro de que é uma simulação educativa, não
   aconselhamento financeiro real.
 - Persistência de progresso (guardar estado localmente).
-- Animações de avatar (o modelo do Ready Player Me é estático; falta andar/gestos —
-  precisaria de um clip de animação compatível, ex. da biblioteca de animações da RPM).
-- Conta/subdomínio próprio no Ready Player Me em vez do subdomínio `demo` público
-  (necessário antes de publicar para lá de um protótipo).
-
-## Nota sobre o avatar 3D (Ready Player Me)
-
-O domínio `readyplayer.me` está bloqueado na rede do ambiente onde este protótipo foi
-construído, por isso a criação/carregamento do avatar não pôde ser testada em primeira
-mão aqui — foi implementada seguindo a documentação oficial (protocolo `postMessage` do
-Avatar Creator) e testada com URLs simuladas para confirmar que o resto do jogo continua
-a funcionar mesmo que o avatar falhe a carregar (`AvatarErrorBoundary`). Testa este fluxo
-no teu próprio computador (`npm run dev`), onde o acesso a esse domínio não deve estar
-bloqueado.
+- Mais opções de personalização do avatar (penteados, acessórios) — atualmente só cor
+  de pele, cabelo e roupa.
+- Avatares 3D reais, se um dia fizer sentido investir num serviço pago (ex. MetaPerson/
+  Avatar SDK) ou numa pipeline 3D própria.
 
 ## Perguntas em aberto (da especificação original)
 
