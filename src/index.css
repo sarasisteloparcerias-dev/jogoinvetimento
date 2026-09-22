@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --reino-bg-from: #fef3c7;
+  --reino-bg-to: #dbeafe;
+
+  /* categorical series (dataviz reference palette, slots 1-3) */
+  --series-saldo: #2a78d6;
+  --series-poupanca: #eb6834;
+  --series-investimento: #1baf7a;
+
+  --chart-surface: #fffdf7;
+  --chart-text-primary: #1f2937;
+  --chart-text-secondary: #6b7280;
+  --chart-grid: #e7e5df;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: linear-gradient(180deg, var(--reino-bg-from) 0%, var(--reino-bg-to) 100%);
+  min-height: 100vh;
+}
+
+.font-heading {
+  font-family: 'Baloo 2', system-ui, sans-serif;
+}
