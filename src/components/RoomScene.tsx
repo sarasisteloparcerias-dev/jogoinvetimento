@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ACOES, podeExecutar } from '../game/engine'
 import { MENTOR } from '../game/mentor'
-import type { ActionId, PlayerState } from '../game/types'
+import { MARTA, TIAGO } from '../game/npcs'
+import type { ActionId, NPCDef, PlayerState } from '../game/types'
 import { CharacterSVG } from './CharacterSVG'
 import { DialogueBox } from './DialogueBox'
 
@@ -25,46 +26,72 @@ interface ZoneDef {
   subs?: ZoneAction[]
 }
 
-const COLS = 7
-const ROWS = 7
+const WORLD_COLS = 15
+const WORLD_ROWS = 15
+const VIEW_COLS = 7
+const VIEW_ROWS = 7
 
 const ZONES: ZoneDef[] = [
-  { id: 'mealheiro', emoji: '🐷', label: 'Mealheiro', gx: 1, gy: 1, action: 'poupar' },
-  { id: 'loja', emoji: '🍭', label: 'Loja', gx: 5, gy: 1, action: 'gastar' },
+  { id: 'mealheiro', emoji: '🐷', label: 'Mealheiro', gx: 3, gy: 3, action: 'poupar' },
+  { id: 'loja', emoji: '🍭', label: 'Loja', gx: 11, gy: 3, action: 'gastar' },
   {
     id: 'banco',
     emoji: '🏦',
     label: 'Banco',
-    gx: 5,
-    gy: 5,
+    gx: 11,
+    gy: 11,
     subs: [
       { action: 'investir_baixo', label: '🌱 Baixo risco' },
       { action: 'investir_alto', label: '🎢 Alto risco' },
     ],
   },
-  { id: 'escola', emoji: '📚', label: 'Escola', gx: 1, gy: 5, action: 'estudar' },
-  { id: 'parque', emoji: '⚽', label: 'Parque', gx: 5, gy: 3, action: 'exercicio' },
-  { id: 'amigos', emoji: '🎈', label: 'Amigos', gx: 1, gy: 3, action: 'socializar' },
+  { id: 'escola', emoji: '📚', label: 'Escola', gx: 3, gy: 11, action: 'estudar' },
+  { id: 'parque', emoji: '⚽', label: 'Parque', gx: 11, gy: 7, action: 'exercicio' },
+  { id: 'amigos', emoji: '🎈', label: 'Amigos', gx: 3, gy: 7, action: 'socializar' },
 ]
+
+const NPCS: NPCDef[] = [MENTOR, MARTA, TIAGO]
 
 const ARVORES = [
-  { gx: 0, gy: 0 },
-  { gx: 6, gy: 0 },
-  { gx: 0, gy: 6 },
-  { gx: 6, gy: 6 },
-  { gx: 2, gy: 6 },
-  { gx: 4, gy: 0 },
+  { gx: 1, gy: 1 },
+  { gx: 13, gy: 1 },
+  { gx: 1, gy: 13 },
+  { gx: 13, gy: 13 },
+  { gx: 5, gy: 1 },
+  { gx: 9, gy: 1 },
+  { gx: 1, gy: 5 },
+  { gx: 1, gy: 9 },
+  { gx: 13, gy: 5 },
+  { gx: 13, gy: 9 },
+  { gx: 5, gy: 13 },
+  { gx: 9, gy: 13 },
+  { gx: 2, gy: 9 },
+  { gx: 9, gy: 2 },
+  { gx: 12, gy: 5 },
+  { gx: 4, gy: 12 },
 ]
 
-const INICIO = { x: 3, y: 3 }
+const LAGO = [
+  { gx: 13, gy: 11 },
+  { gx: 13, gy: 12 },
+  { gx: 12, gy: 12 },
+]
+
+const BANCO_JARDIM = { gx: 12, gy: 6 }
+
+const INICIO = { x: 7, y: 7 }
 
 type Direcao = 'cima' | 'baixo' | 'esquerda' | 'direita'
 
-function pctX(gx: number) {
-  return ((gx + 0.5) / COLS) * 100
+function pctX(gx: number, cols: number) {
+  return ((gx + 0.5) / cols) * 100
 }
-function pctY(gy: number) {
-  return ((gy + 0.5) / ROWS) * 100
+function pctY(gy: number, rows: number) {
+  return ((gy + 0.5) / rows) * 100
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value))
 }
 
 function custoDe(actionId: ActionId): number {
@@ -95,9 +122,10 @@ interface RoomSceneProps {
 export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   const [pos, setPos] = useState(INICIO)
   const [facing, setFacing] = useState<Direcao>('baixo')
+  const [passo, setPasso] = useState(false)
   const [busy, setBusy] = useState(false)
   const [popover, setPopover] = useState<string | null>(null)
-  const [dialogoAberto, setDialogoAberto] = useState(false)
+  const [npcAtivo, setNpcAtivo] = useState<NPCDef | null>(null)
   const [bubble, setBubble] = useState<{ key: number; text: string; tom: 'boa' | 'ma' } | null>(null)
 
   useEffect(() => {
@@ -124,7 +152,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   }
 
   function interagir(zone: ZoneDef) {
-    if (busy || dialogoAberto) return
+    if (busy || npcAtivo) return
     if (zone.subs) {
       setPopover((p) => (p === zone.id ? null : zone.id))
       return
@@ -133,14 +161,15 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   }
 
   function mover(dx: number, dy: number, direcao: Direcao) {
-    if (busy || dialogoAberto) return
+    if (busy || npcAtivo) return
     setFacing(direcao)
     setPopover(null)
     const alvoX = pos.x + dx
     const alvoY = pos.y + dy
 
-    if (alvoX === MENTOR.gx && alvoY === MENTOR.gy) {
-      setDialogoAberto(true)
+    const npcNoAlvo = NPCS.find((n) => n.gx === alvoX && n.gy === alvoY)
+    if (npcNoAlvo) {
+      setNpcAtivo(npcNoAlvo)
       return
     }
     const zonaNoAlvo = ZONES.find((z) => z.gx === alvoX && z.gy === alvoY)
@@ -149,8 +178,12 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
       return
     }
     if (ARVORES.some((a) => a.gx === alvoX && a.gy === alvoY)) return
-    if (alvoX < 0 || alvoX >= COLS || alvoY < 0 || alvoY >= ROWS) return
+    if (LAGO.some((l) => l.gx === alvoX && l.gy === alvoY)) return
+    if (alvoX < 0 || alvoX >= WORLD_COLS || alvoY < 0 || alvoY >= WORLD_ROWS) return
+
     setPos({ x: alvoX, y: alvoY })
+    setPasso(true)
+    setTimeout(() => setPasso(false), 160)
   }
 
   useEffect(() => {
@@ -163,137 +196,167 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pos, busy, dialogoAberto])
+  }, [pos, busy, npcAtivo])
+
+  const camX = clamp(pos.x - Math.floor(VIEW_COLS / 2), 0, WORLD_COLS - VIEW_COLS)
+  const camY = clamp(pos.y - Math.floor(VIEW_ROWS / 2), 0, WORLD_ROWS - VIEW_ROWS)
+  const mundoLargura = (WORLD_COLS / VIEW_COLS) * 100
+  const mundoAltura = (WORLD_ROWS / VIEW_ROWS) * 100
+  // transform: translate() percentages are relative to the element's OWN size,
+  // and the world div is (WORLD_COLS/VIEW_COLS)x its container's width — so the
+  // shift (in tiles) must be expressed as a fraction of WORLD_COLS, not VIEW_COLS.
+  const deslocX = -(camX / WORLD_COLS) * 100
+  const deslocY = -(camY / WORLD_ROWS) * 100
 
   return (
     <div>
       <p className="text-sm text-slate-500 mb-2 text-center">
-        🎮 Anda com as setas ou o D-pad. Fala com o Mestre Moedas para aprenderes a investir!
+        🎮 Anda com as setas ou o D-pad e explora O Reino! Fala com os personagens que encontrares.
       </p>
       <div
         className="relative w-full rounded-3xl overflow-hidden border-4 border-white shadow-inner"
-        style={{
-          aspectRatio: '1 / 1',
-          backgroundColor: '#8fd97f',
-          backgroundImage:
-            'radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1.2px), radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1.2px)',
-          backgroundSize: '10px 10px, 14px 14px',
-          backgroundPosition: '0 0, 5px 7px',
-        }}
+        style={{ aspectRatio: '1 / 1' }}
       >
-        {/* caminho de terra em cruz */}
         <div
-          className="absolute bg-amber-100/70"
-          style={{ left: `${pctX(3) - 100 / COLS / 2}%`, top: 0, width: `${100 / COLS}%`, height: '100%' }}
-        />
-        <div
-          className="absolute bg-amber-100/70"
-          style={{ top: `${pctY(3) - 100 / ROWS / 2}%`, left: 0, height: `${100 / ROWS}%`, width: '100%' }}
-        />
+          className="absolute transition-transform duration-150 ease-linear"
+          style={{
+            width: `${mundoLargura}%`,
+            height: `${mundoAltura}%`,
+            transform: `translate(${deslocX}%, ${deslocY}%)`,
+            backgroundColor: '#8fd97f',
+            backgroundImage:
+              'radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1.2px), radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1.2px)',
+            backgroundSize: '10px 10px, 14px 14px',
+            backgroundPosition: '0 0, 5px 7px',
+          }}
+        >
+          {/* caminhos de terra ligando os NPCs e a praça central */}
+          <div
+            className="absolute bg-amber-100/70"
+            style={{ left: `${pctX(7, WORLD_COLS) - 100 / WORLD_COLS / 2}%`, top: 0, width: `${100 / WORLD_COLS}%`, height: '100%' }}
+          />
+          <div
+            className="absolute bg-amber-100/70"
+            style={{ top: `${pctY(7, WORLD_ROWS) - 100 / WORLD_ROWS / 2}%`, left: 0, height: `${100 / WORLD_ROWS}%`, width: '100%' }}
+          />
 
-        {ARVORES.map((a, i) => (
+          {/* lago */}
+          {LAGO.map((l, i) => (
+            <div
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-lg bg-sky-400"
+              style={{
+                left: `${pctX(l.gx, WORLD_COLS)}%`,
+                top: `${pctY(l.gy, WORLD_ROWS)}%`,
+                width: `${100 / WORLD_COLS}%`,
+                height: `${100 / WORLD_ROWS}%`,
+              }}
+            />
+          ))}
+
+          {/* banco de jardim (decorativo) */}
           <span
-            key={i}
-            className="absolute -translate-x-1/2 -translate-y-1/2 text-3xl pointer-events-none drop-shadow-sm"
-            style={{ left: `${pctX(a.gx)}%`, top: `${pctY(a.gy)}%` }}
+            className="absolute -translate-x-1/2 -translate-y-1/2 text-2xl pointer-events-none"
+            style={{ left: `${pctX(BANCO_JARDIM.gx, WORLD_COLS)}%`, top: `${pctY(BANCO_JARDIM.gy, WORLD_ROWS)}%` }}
           >
-            🌳
+            🪑
           </span>
-        ))}
 
-        <button
-          onClick={() => setDialogoAberto(true)}
-          className="absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110 z-10"
-          style={{ left: `${pctX(MENTOR.gx)}%`, top: `${pctY(MENTOR.gy)}%` }}
-        >
-          <CharacterSVG avatar={MENTOR.avatar} height={40} />
-          <span className="text-[11px] font-bold bg-emerald-100 rounded-full px-2 py-0.5 text-emerald-700 shadow">
-            {MENTOR.nome}
-          </span>
-        </button>
-
-        {ZONES.map((zone) => {
-          const disabled = zone.action ? !podeExecutar(state, ACOES.find((a) => a.id === zone.action)!) : false
-          const zx = pctX(zone.gx)
-          const zy = pctY(zone.gy)
-          return (
-            <div key={zone.id}>
-              <button
-                onClick={() => interagir(zone)}
-                disabled={busy}
-                className={`absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform ${
-                  disabled ? 'opacity-50' : 'hover:scale-110'
-                }`}
-                style={{ left: `${zx}%`, top: `${zy}%` }}
-              >
-                <span className="text-3xl drop-shadow-sm">{zone.emoji}</span>
-                <span className="text-[11px] font-bold bg-white/85 rounded-full px-2 py-0.5 text-slate-700 shadow">
-                  {zone.label}
-                  {zone.action ? ` · -${custoDe(zone.action)}` : ''}
-                </span>
-              </button>
-
-              {zone.subs && popover === zone.id && (
-                <div
-                  className={`absolute z-10 flex flex-col gap-1 bg-white rounded-2xl shadow-xl border-2 border-violet-200 p-2 ${
-                    zx > 60 ? '' : zx < 40 ? '' : '-translate-x-1/2'
-                  }`}
-                  style={
-                    zx > 60
-                      ? { right: `${100 - zx - 6}%`, top: `${zy - 24}%` }
-                      : zx < 40
-                        ? { left: `${zx - 6}%`, top: `${zy - 24}%` }
-                        : { left: `${zx}%`, top: `${zy - 24}%` }
-                  }
-                >
-                  {zone.subs.map((sub) => {
-                    const subDisabled = !podeExecutar(state, ACOES.find((a) => a.id === sub.action)!)
-                    return (
-                      <button
-                        key={sub.action}
-                        disabled={subDisabled}
-                        onClick={() => agir(sub.action)}
-                        className={`whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-bold ${
-                          subDisabled
-                            ? 'bg-slate-100 text-slate-300'
-                            : 'bg-violet-50 text-slate-700 hover:bg-violet-100'
-                        }`}
-                      >
-                        {sub.label} · -{custoDe(sub.action)}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })}
-
-        <div
-          className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ease-linear flex flex-col items-center"
-          style={{ left: `${pctX(pos.x)}%`, top: `${pctY(pos.y)}%` }}
-        >
-          {bubble && (
+          {ARVORES.map((a, i) => (
             <span
-              key={bubble.key}
-              className={`absolute -top-9 whitespace-nowrap text-xs font-extrabold px-2 py-1 rounded-full shadow animate-[float-up_1.3s_ease-out] ${
-                bubble.tom === 'ma' ? 'bg-red-100 text-red-600' : 'bg-white text-slate-700'
-              }`}
-              style={
-                pctX(pos.x) > 65
-                  ? { right: '-4px', left: 'auto' }
-                  : pctX(pos.x) < 35
-                    ? { left: '-4px' }
-                    : { left: '50%', transform: 'translateX(-50%)' }
-              }
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2 text-3xl pointer-events-none drop-shadow-sm"
+              style={{ left: `${pctX(a.gx, WORLD_COLS)}%`, top: `${pctY(a.gy, WORLD_ROWS)}%` }}
             >
-              {bubble.text}
+              🌳
             </span>
-          )}
-          <div className="character-idle" style={{ transform: facing === 'esquerda' ? 'scaleX(-1)' : 'scaleX(1)' }}>
-            <CharacterSVG avatar={state.avatar} height={80} />
+          ))}
+
+          {NPCS.map((npc) => (
+            <button
+              key={npc.id}
+              onClick={() => setNpcAtivo(npc)}
+              className="absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110 z-10"
+              style={{ left: `${pctX(npc.gx, WORLD_COLS)}%`, top: `${pctY(npc.gy, WORLD_ROWS)}%` }}
+            >
+              <CharacterSVG avatar={npc.avatar} height={40} />
+              <span className="text-[11px] font-bold bg-emerald-100 rounded-full px-2 py-0.5 text-emerald-700 shadow whitespace-nowrap">
+                {npc.nome}
+              </span>
+            </button>
+          ))}
+
+          {ZONES.map((zone) => {
+            const disabled = zone.action ? !podeExecutar(state, ACOES.find((a) => a.id === zone.action)!) : false
+            const zx = pctX(zone.gx, WORLD_COLS)
+            const zy = pctY(zone.gy, WORLD_ROWS)
+            return (
+              <div key={zone.id}>
+                <button
+                  onClick={() => interagir(zone)}
+                  disabled={busy}
+                  className={`absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform ${
+                    disabled ? 'opacity-50' : 'hover:scale-110'
+                  }`}
+                  style={{ left: `${zx}%`, top: `${zy}%` }}
+                >
+                  <span className="text-3xl drop-shadow-sm">{zone.emoji}</span>
+                  <span className="text-[11px] font-bold bg-white/85 rounded-full px-2 py-0.5 text-slate-700 shadow whitespace-nowrap">
+                    {zone.label}
+                    {zone.action ? ` · -${custoDe(zone.action)}` : ''}
+                  </span>
+                </button>
+
+                {zone.subs && popover === zone.id && (
+                  <div
+                    className="absolute z-20 flex flex-col gap-1 bg-white rounded-2xl shadow-xl border-2 border-violet-200 p-2 -translate-x-1/2"
+                    style={{ left: `${zx}%`, top: `${zy - 100 / WORLD_ROWS / 2 - 6}%`, transform: 'translate(-50%, -100%)' }}
+                  >
+                    {zone.subs.map((sub) => {
+                      const subDisabled = !podeExecutar(state, ACOES.find((a) => a.id === sub.action)!)
+                      return (
+                        <button
+                          key={sub.action}
+                          disabled={subDisabled}
+                          onClick={() => agir(sub.action)}
+                          className={`whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-bold ${
+                            subDisabled
+                              ? 'bg-slate-100 text-slate-300'
+                              : 'bg-violet-50 text-slate-700 hover:bg-violet-100'
+                          }`}
+                        >
+                          {sub.label} · -{custoDe(sub.action)}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          <div
+            className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ease-linear flex flex-col items-center z-10"
+            style={{ left: `${pctX(pos.x, WORLD_COLS)}%`, top: `${pctY(pos.y, WORLD_ROWS)}%` }}
+          >
+            {bubble && (
+              <span
+                key={bubble.key}
+                className={`absolute -top-9 whitespace-nowrap text-xs font-extrabold px-2 py-1 rounded-full shadow animate-[float-up_1.3s_ease-out] ${
+                  bubble.tom === 'ma' ? 'bg-red-100 text-red-600' : 'bg-white text-slate-700'
+                }`}
+                style={{ left: '50%', transform: 'translateX(-50%)' }}
+              >
+                {bubble.text}
+              </span>
+            )}
+            <div style={{ transform: facing === 'esquerda' ? 'scaleX(-1)' : 'scaleX(1)' }}>
+              <div className={passo ? 'character-step' : 'character-idle'}>
+                <CharacterSVG avatar={state.avatar} height={80} />
+              </div>
+            </div>
+            <span className="w-8 h-2 rounded-full bg-black/15 -mt-2" />
           </div>
-          <span className="w-8 h-2 rounded-full bg-black/15 -mt-2" />
         </div>
       </div>
 
@@ -333,7 +396,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
         <div />
       </div>
 
-      {dialogoAberto && <DialogueBox npc={MENTOR} onFechar={() => setDialogoAberto(false)} />}
+      {npcAtivo && <DialogueBox npc={npcAtivo} onFechar={() => setNpcAtivo(null)} />}
     </div>
   )
 }

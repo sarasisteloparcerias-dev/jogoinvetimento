@@ -48,6 +48,21 @@ body {
   animation: idle-float 2s ease-in-out infinite;
 }
 
+@keyframes step-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-3px) scaleY(0.94);
+  }
+}
+
+.character-step {
+  display: inline-block;
+  animation: step-bounce 0.16s ease-in-out;
+}
+
 @keyframes float-up {
   0% {
     opacity: 0;

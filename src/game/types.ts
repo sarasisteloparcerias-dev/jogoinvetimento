@@ -88,4 +88,6 @@ export interface NPCDef {
   gy: number
   saudacao: string
   topicos: DialogoTopico[]
+  /** 'menu' (padrão): mostra um menu de tópicos à escolha. 'historia': conta uma história linear e fecha. */
+  estilo?: 'menu' | 'historia'
 }

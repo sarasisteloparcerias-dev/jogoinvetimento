@@ -4,8 +4,8 @@ export const MENTOR: NPCDef = {
   id: 'mentor',
   nome: 'Mestre Moedas',
   avatar: { pele: '#e0ac69', cabelo: '#e8e0d5', roupa: '#10b981' },
-  gx: 3,
-  gy: 1,
+  gx: 7,
+  gy: 3,
   saudacao: 'Olá! Sou o Mestre Moedas. Sobre o que queres aprender hoje?',
   topicos: [
     {
@@ -42,6 +42,24 @@ export const MENTOR: NPCDef = {
         'Quando guardas moedas na poupança do jogo, todas as semanas ganhas um bocadinho a mais — de graça!',
         'Chama-se "juro": é como um agradecimento por teres deixado o teu dinheiro lá guardado.',
         'Quanto mais cedo começares a guardar, mais tempo o teu dinheiro tem para crescer sozinho. Por isso vale a pena começar já, mesmo com pouco!',
+      ],
+    },
+    {
+      id: 'emergencia',
+      titulo: '🚨 O que é uma reserva de emergência?',
+      linhas: [
+        'É como uma "rede de segurança": dinheiro guardado só para imprevistos, que não gastas em mais nada.',
+        'Imagina que o teu brinquedo preferido se estraga de repente. Se já tiveres moedas guardadas para isso, resolves sem stress.',
+        'Sem essa reserva, quando algo corre mal tens de pedir emprestado ou ficar sem solução — por isso vale a pena guardares um pouco antes de precisares.',
+      ],
+    },
+    {
+      id: 'inflacao',
+      titulo: '📉 Porque é que as coisas ficam mais caras?',
+      linhas: [
+        'Já reparaste que um gelado que custava 2 moedas às vezes passa a custar 3? Isso chama-se inflação.',
+        'É por isso que só guardar dinheiro parado nem sempre chega: se as coisas ficam mais caras mais depressa do que o teu dinheiro cresce, ele "encolhe" em poder de compra.',
+        'É uma das razões porque investir (e não só poupar) pode ajudar o teu dinheiro a acompanhar o ritmo da vida.',
       ],
     },
   ],

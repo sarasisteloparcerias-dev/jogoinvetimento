@@ -8,15 +8,21 @@ interface DialogueBoxProps {
 }
 
 export function DialogueBox({ npc, onFechar }: DialogueBoxProps) {
-  const [topicoId, setTopicoId] = useState<string | null>(null)
+  const ehHistoria = npc.estilo === 'historia'
+  const [topicoId, setTopicoId] = useState<string | null>(ehHistoria ? npc.topicos[0].id : null)
   const [linha, setLinha] = useState(0)
 
   const topico = npc.topicos.find((t) => t.id === topicoId) ?? null
+  const ultimaLinha = topico ? linha === topico.linhas.length - 1 : false
 
   function avancar() {
     if (!topico) return
-    if (linha < topico.linhas.length - 1) {
+    if (!ultimaLinha) {
       setLinha(linha + 1)
+      return
+    }
+    if (ehHistoria) {
+      onFechar()
     } else {
       setTopicoId(null)
       setLinha(0)
@@ -42,7 +48,7 @@ export function DialogueBox({ npc, onFechar }: DialogueBoxProps) {
             onClick={avancar}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-heading font-bold py-3 transition-colors"
           >
-            {linha < topico.linhas.length - 1 ? 'Continuar ▶' : 'Perguntar outra coisa'}
+            {!ultimaLinha ? 'Continuar ▶' : ehHistoria ? 'Até à próxima! 👋' : 'Perguntar outra coisa'}
           </button>
         ) : (
           <div className="p-3 pt-0 grid gap-2">
