@@ -17,32 +17,44 @@ interface ZoneDef {
   id: string
   emoji: string
   label: string
-  x: number
-  y: number
+  gx: number
+  gy: number
   action?: ActionId
   subs?: ZoneAction[]
 }
 
+const COLS = 7
+const ROWS = 7
+
 const ZONES: ZoneDef[] = [
-  { id: 'mealheiro', emoji: '🐷', label: 'Mealheiro', x: 18, y: 24, action: 'poupar' },
-  { id: 'loja', emoji: '🍭', label: 'Loja', x: 82, y: 24, action: 'gastar' },
+  { id: 'mealheiro', emoji: '🐷', label: 'Mealheiro', gx: 1, gy: 1, action: 'poupar' },
+  { id: 'loja', emoji: '🍭', label: 'Loja', gx: 5, gy: 1, action: 'gastar' },
   {
     id: 'banco',
     emoji: '🏦',
     label: 'Banco',
-    x: 86,
-    y: 58,
+    gx: 5,
+    gy: 5,
     subs: [
       { action: 'investir_baixo', label: '🌱 Baixo risco' },
       { action: 'investir_alto', label: '🎢 Alto risco' },
     ],
   },
-  { id: 'escola', emoji: '📚', label: 'Escola', x: 18, y: 84, action: 'estudar' },
-  { id: 'parque', emoji: '⚽', label: 'Parque', x: 82, y: 84, action: 'exercicio' },
-  { id: 'amigos', emoji: '🎈', label: 'Amigos', x: 14, y: 58, action: 'socializar' },
+  { id: 'escola', emoji: '📚', label: 'Escola', gx: 1, gy: 5, action: 'estudar' },
+  { id: 'parque', emoji: '⚽', label: 'Parque', gx: 5, gy: 3, action: 'exercicio' },
+  { id: 'amigos', emoji: '🎈', label: 'Amigos', gx: 1, gy: 3, action: 'socializar' },
 ]
 
-const CENTRO = { x: 50, y: 50 }
+const INICIO = { x: 3, y: 3 }
+
+type Direcao = 'cima' | 'baixo' | 'esquerda' | 'direita'
+
+function pctX(gx: number) {
+  return ((gx + 0.5) / COLS) * 100
+}
+function pctY(gy: number) {
+  return ((gy + 0.5) / ROWS) * 100
+}
 
 function custoDe(actionId: ActionId): number {
   return ACOES.find((a) => a.id === actionId)?.custo ?? 0
@@ -70,7 +82,8 @@ interface RoomSceneProps {
 }
 
 export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
-  const [pos, setPos] = useState(CENTRO)
+  const [pos, setPos] = useState(INICIO)
+  const [facing, setFacing] = useState<Direcao>('baixo')
   const [busy, setBusy] = useState(false)
   const [popover, setPopover] = useState<string | null>(null)
   const [bubble, setBubble] = useState<{ key: number; text: string; tom: 'boa' | 'ma' } | null>(null)
@@ -84,56 +97,83 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
     return () => clearTimeout(t)
   }, [feedback])
 
-  function agir(zone: ZoneDef, actionId: ActionId) {
+  function agir(actionId: ActionId) {
     if (busy) return
     if (!podeExecutar(state, ACOES.find((a) => a.id === actionId)!)) {
       setPopover(null)
-      setPos({ x: zone.x, y: zone.y })
       setBubble({ key: Date.now(), text: 'Não chega! 😅', tom: 'ma' })
       setTimeout(() => setBubble(null), 1300)
-      setTimeout(() => setPos(CENTRO), 900)
       return
     }
     setBusy(true)
     setPopover(null)
-    setPos({ x: zone.x, y: zone.y })
-    setTimeout(() => onAction(actionId), 420)
-    setTimeout(() => setPos(CENTRO), 1150)
-    setTimeout(() => setBusy(false), 1500)
+    setTimeout(() => onAction(actionId), 200)
+    setTimeout(() => setBusy(false), 700)
   }
 
-  function handleZoneClick(zone: ZoneDef) {
+  function interagir(zone: ZoneDef) {
     if (busy) return
     if (zone.subs) {
       setPopover((p) => (p === zone.id ? null : zone.id))
       return
     }
-    if (zone.action) agir(zone, zone.action)
+    if (zone.action) agir(zone.action)
   }
+
+  function mover(dx: number, dy: number, direcao: Direcao) {
+    if (busy) return
+    setFacing(direcao)
+    setPopover(null)
+    const alvoX = pos.x + dx
+    const alvoY = pos.y + dy
+    const zonaNoAlvo = ZONES.find((z) => z.gx === alvoX && z.gy === alvoY)
+    if (zonaNoAlvo) {
+      interagir(zonaNoAlvo)
+      return
+    }
+    if (alvoX < 0 || alvoX >= COLS || alvoY < 0 || alvoY >= ROWS) return
+    setPos({ x: alvoX, y: alvoY })
+  }
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') mover(0, -1, 'cima')
+      else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') mover(0, 1, 'baixo')
+      else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') mover(-1, 0, 'esquerda')
+      else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') mover(1, 0, 'direita')
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pos, busy])
 
   return (
     <div>
       <p className="text-sm text-slate-500 mb-2 text-center">
-        👉 Toca num local do Reino para agires esta semana.
+        🎮 Usa as setas do teclado ou o D-pad para andares. Encosta-te a um sítio para agires!
       </p>
       <div
         className="relative w-full rounded-3xl overflow-hidden border-4 border-white shadow-inner"
         style={{
           aspectRatio: '1 / 1',
-          background: 'linear-gradient(180deg, #bfe7ff 0%, #bfe7ff 38%, #b7e8b0 38%, #9adf8f 100%)',
+          background: 'linear-gradient(180deg, #bfe7ff 0%, #bfe7ff 22%, #b7e8b0 22%, #9adf8f 100%)',
+          backgroundImage:
+            'linear-gradient(180deg, #bfe7ff 0%, #bfe7ff 22%, #b7e8b0 22%, #9adf8f 100%), repeating-linear-gradient(0deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 1px, transparent 1px, transparent calc(100%/7)), repeating-linear-gradient(90deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 1px, transparent 1px, transparent calc(100%/7))',
         }}
       >
         {ZONES.map((zone) => {
           const disabled = zone.action ? !podeExecutar(state, ACOES.find((a) => a.id === zone.action)!) : false
+          const zx = pctX(zone.gx)
+          const zy = pctY(zone.gy)
           return (
             <div key={zone.id}>
               <button
-                onClick={() => handleZoneClick(zone)}
+                onClick={() => interagir(zone)}
                 disabled={busy}
                 className={`absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 transition-transform ${
                   disabled ? 'opacity-50' : 'hover:scale-110'
                 }`}
-                style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
+                style={{ left: `${zx}%`, top: `${zy}%` }}
               >
                 <span className="text-3xl drop-shadow-sm">{zone.emoji}</span>
                 <span className="text-[11px] font-bold bg-white/85 rounded-full px-2 py-0.5 text-slate-700 shadow">
@@ -145,14 +185,14 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
               {zone.subs && popover === zone.id && (
                 <div
                   className={`absolute z-10 flex flex-col gap-1 bg-white rounded-2xl shadow-xl border-2 border-violet-200 p-2 ${
-                    zone.x > 60 ? '' : zone.x < 40 ? '' : '-translate-x-1/2'
+                    zx > 60 ? '' : zx < 40 ? '' : '-translate-x-1/2'
                   }`}
                   style={
-                    zone.x > 60
-                      ? { right: `${100 - zone.x - 6}%`, top: `${zone.y - 24}%` }
-                      : zone.x < 40
-                        ? { left: `${zone.x - 6}%`, top: `${zone.y - 24}%` }
-                        : { left: `${zone.x}%`, top: `${zone.y - 24}%` }
+                    zx > 60
+                      ? { right: `${100 - zx - 6}%`, top: `${zy - 24}%` }
+                      : zx < 40
+                        ? { left: `${zx - 6}%`, top: `${zy - 24}%` }
+                        : { left: `${zx}%`, top: `${zy - 24}%` }
                   }
                 >
                   {zone.subs.map((sub) => {
@@ -161,7 +201,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
                       <button
                         key={sub.action}
                         disabled={subDisabled}
-                        onClick={() => agir(zone, sub.action)}
+                        onClick={() => agir(sub.action)}
                         className={`whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-bold ${
                           subDisabled
                             ? 'bg-slate-100 text-slate-300'
@@ -179,8 +219,8 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
         })}
 
         <div
-          className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out flex flex-col items-center"
-          style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+          className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ease-linear flex flex-col items-center"
+          style={{ left: `${pctX(pos.x)}%`, top: `${pctY(pos.y)}%` }}
         >
           {bubble && (
             <span
@@ -189,9 +229,9 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
                 bubble.tom === 'ma' ? 'bg-red-100 text-red-600' : 'bg-white text-slate-700'
               }`}
               style={
-                pos.x > 65
+                pctX(pos.x) > 65
                   ? { right: '-4px', left: 'auto' }
-                  : pos.x < 35
+                  : pctX(pos.x) < 35
                     ? { left: '-4px' }
                     : { left: '50%', transform: 'translateX(-50%)' }
               }
@@ -199,11 +239,47 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
               {bubble.text}
             </span>
           )}
-          <div className="character-idle">
-            <CharacterSVG avatar={state.avatar} height={92} />
+          <div className="character-idle" style={{ transform: facing === 'esquerda' ? 'scaleX(-1)' : 'scaleX(1)' }}>
+            <CharacterSVG avatar={state.avatar} height={80} />
           </div>
           <span className="w-8 h-2 rounded-full bg-black/15 -mt-2" />
         </div>
+      </div>
+
+      <div className="grid grid-cols-3 grid-rows-3 gap-1.5 w-36 mx-auto mt-4 select-none">
+        <div />
+        <button
+          onClick={() => mover(0, -1, 'cima')}
+          className="rounded-xl bg-white border-2 border-slate-200 shadow active:scale-90 active:bg-violet-50 py-2 text-lg"
+          aria-label="Andar para cima"
+        >
+          ▲
+        </button>
+        <div />
+        <button
+          onClick={() => mover(-1, 0, 'esquerda')}
+          className="rounded-xl bg-white border-2 border-slate-200 shadow active:scale-90 active:bg-violet-50 py-2 text-lg"
+          aria-label="Andar para a esquerda"
+        >
+          ◀
+        </button>
+        <div className="flex items-center justify-center text-slate-300 text-xs">●</div>
+        <button
+          onClick={() => mover(1, 0, 'direita')}
+          className="rounded-xl bg-white border-2 border-slate-200 shadow active:scale-90 active:bg-violet-50 py-2 text-lg"
+          aria-label="Andar para a direita"
+        >
+          ▶
+        </button>
+        <div />
+        <button
+          onClick={() => mover(0, 1, 'baixo')}
+          className="rounded-xl bg-white border-2 border-slate-200 shadow active:scale-90 active:bg-violet-50 py-2 text-lg"
+          aria-label="Andar para baixo"
+        >
+          ▼
+        </button>
+        <div />
       </div>
     </div>
   )

@@ -31,10 +31,11 @@ npm run preview
   externo — chegámos a integrar o Ready Player Me para avatares 3D reais, mas o serviço
   foi descontinuado em janeiro de 2026 (adquirido pela Netflix), por isso optámos por
   esta solução própria e sempre disponível.
-- **Cena tipo "Sims"**: em vez de uma lista de botões, o avatar aparece dentro de um
-  "bairro" com 6 sítios (Mealheiro, Loja, Banco, Escola, Parque, Amigos). Tocar num
-  sítio faz o avatar andar até lá, executa a ação e mostra uma bolha flutuante com o
-  resultado (ex. `-10 🪙 +10 🐷`), antes de voltar ao centro.
+- **Mapa tipo Pokémon (GBA)**: em vez de uma lista de botões, o avatar anda por um
+  pequeno mapa em grelha 7x7 com 6 edifícios (Mealheiro, Loja, Banco, Escola, Parque,
+  Amigos). Controla-se com as setas do teclado (ou WASD) ou com um D-pad no ecrã;
+  encostar-se a um edifício ativa a ação, com uma bolha flutuante a mostrar o resultado
+  (ex. `-10 🪙 +10 🐷`).
 - **Loop de jogo semanal**:
   1. O jogador recebe mesada (aumenta ligeiramente com a Educação).
   2. Pode gastar moedas em várias ações — Poupar, Gastar em diversão, Investir
@@ -71,7 +72,7 @@ src/
     CharacterCreation.tsx - nome + criação de avatar
     CharacterSVG.tsx       - personagem 2D original (SVG), recolorível via props
     Dashboard.tsx         - ecrã principal do jogo
-    RoomScene.tsx          - cena tipo Sims com o avatar e os 6 sítios de ação
+    RoomScene.tsx          - mapa em grelha tipo Pokémon (D-pad + teclado) com 6 edifícios
     StatBar.tsx           - barra de estatística (Relações/Saúde/Educação)
     GrowthChart.tsx        - gráfico SVG de evolução financeira
     EventModal.tsx         - modal de evento com escolhas e resultado
