@@ -1,4 +1,4 @@
-import type { Avatar, PlayerState } from './types'
+import type { PlayerState } from './types'
 
 export const MESADA_BASE = 20
 export const TAXA_POUPANCA = 0.04
@@ -10,18 +10,10 @@ export const GANHO_INVESTIR_MAX = { baixo: 0.06, medio: 0.16, alto: 0.35 }
 export const DECAY_POR_SEMANA = 3
 export const TOTAL_SEMANAS = 20
 
-export const AVATARES: Avatar[] = [
-  { id: 'raposa', label: 'Raposa', emoji: '🦊', color: '#f97316' },
-  { id: 'coruja', label: 'Coruja', emoji: '🦉', color: '#8b5cf6' },
-  { id: 'urso', label: 'Urso', emoji: '🐻', color: '#78350f' },
-  { id: 'coelho', label: 'Coelho', emoji: '🐰', color: '#ec4899' },
-  { id: 'gato', label: 'Gato', emoji: '🐱', color: '#0ea5e9' },
-]
-
-export function novoJogador(name: string, avatar: PlayerState['avatar']): PlayerState {
+export function novoJogador(name: string, avatarUrl: string): PlayerState {
   return {
     name,
-    avatar,
+    avatarUrl,
     week: 1,
     saldo: 15,
     poupanca: 0,

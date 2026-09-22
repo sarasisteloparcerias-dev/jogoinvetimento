@@ -1,5 +1,5 @@
-import { AVATARES } from '../game/data'
 import type { PlayerState } from '../game/types'
+import { Avatar3D } from './LazyAvatar3D'
 import { GrowthChart } from './GrowthChart'
 
 interface FimDeJogoProps {
@@ -8,7 +8,6 @@ interface FimDeJogoProps {
 }
 
 export function FimDeJogo({ state, onReiniciar }: FimDeJogoProps) {
-  const avatar = AVATARES.find((a) => a.id === state.avatar)
   const patrimonio = Math.round(state.saldo + state.poupanca + state.investimento.amount)
   const mediaStats = Math.round((state.stats.relacoes + state.stats.saude + state.stats.educacao) / 3)
 
@@ -23,7 +22,10 @@ export function FimDeJogo({ state, onReiniciar }: FimDeJogoProps) {
 
   return (
     <div className="max-w-lg mx-auto bg-white/90 rounded-3xl shadow-xl p-6 border-4 border-white text-center">
-      <p className="text-5xl mb-2">{avatar?.emoji} 🏆</p>
+      <div className="flex justify-center items-center gap-1 mb-2">
+        <Avatar3D url={state.avatarUrl} size={110} />
+        <span className="text-4xl">🏆</span>
+      </div>
       <h2 className="font-heading text-2xl font-bold text-slate-800 mb-1">Fim da aventura de {state.name}!</h2>
       <p className="text-slate-500 mb-4">{mensagem}</p>
 

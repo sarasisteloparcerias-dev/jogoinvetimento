@@ -8,7 +8,7 @@ import { ModoIndisponivel } from './components/ModoIndisponivel'
 import type { ActionFeedback } from './components/RoomScene'
 import { novoJogador } from './game/data'
 import { avancarSemana, executarAcao, registarLog } from './game/engine'
-import type { ActionId, AvatarId, GameEvent, GameEventChoice, PlayerState } from './game/types'
+import type { ActionId, GameEvent, GameEventChoice, PlayerState } from './game/types'
 
 type Tela = 'idade' | 'modo-indisponivel' | 'criar-personagem' | 'jogo' | 'fim'
 
@@ -37,8 +37,8 @@ export default function App() {
     setTela(m === 'reino' ? 'criar-personagem' : 'modo-indisponivel')
   }
 
-  function handleStart(name: string, avatar: AvatarId) {
-    setPlayer(novoJogador(name, avatar))
+  function handleStart(name: string, avatarUrl: string) {
+    setPlayer(novoJogador(name, avatarUrl))
     setTela('jogo')
   }
 

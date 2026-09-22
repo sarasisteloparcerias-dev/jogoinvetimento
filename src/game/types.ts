@@ -1,12 +1,3 @@
-export type AvatarId = 'raposa' | 'coruja' | 'urso' | 'coelho' | 'gato'
-
-export interface Avatar {
-  id: AvatarId
-  label: string
-  emoji: string
-  color: string
-}
-
 export type StatKey = 'relacoes' | 'saude' | 'educacao'
 
 export interface Stats {
@@ -31,7 +22,7 @@ export interface HistoryPoint {
 
 export interface PlayerState {
   name: string
-  avatar: AvatarId
+  avatarUrl: string
   week: number
   saldo: number
   poupanca: number

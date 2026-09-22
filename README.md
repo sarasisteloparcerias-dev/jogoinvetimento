@@ -26,8 +26,14 @@ npm run preview
 - **Formulário de idade**: pede a idade e escolhe o modo. Idades 15-17 e 18+ mostram um
   ecrã "em construção" a explicar o que vai lá estar (ver `src/components/ModoIndisponivel.tsx`),
   para que a estrutura de 3 modos já exista mesmo só com um implementado.
-- **Criação de personagem**: nome + escolha de um de 5 companheiros-avatar (emoji), sem
-  customização complexa, como sugerido para o protótipo inicial.
+- **Criação de personagem**: nome + avatar 3D real, criado com o widget do
+  [Ready Player Me](https://readyplayer.me/) (câmara/fotos ou personalização manual de
+  cara, cabelo e roupa). Se o avatar não carregar (sem ligação, bloqueio de rede), o
+  jogo continua com um ícone de substituição em vez de rebentar.
+- **Cena tipo "Sims"**: em vez de uma lista de botões, o avatar aparece dentro de um
+  "bairro" com 6 sítios (Mealheiro, Loja, Banco, Escola, Parque, Amigos). Tocar num
+  sítio faz o avatar andar até lá, executa a ação e mostra uma bolha flutuante com o
+  resultado (ex. `-10 🪙 +10 🐷`), antes de voltar ao centro.
 - **Loop de jogo semanal**:
   1. O jogador recebe mesada (aumenta ligeiramente com a Educação).
   2. Pode gastar moedas em várias ações — Poupar, Gastar em diversão, Investir
@@ -61,9 +67,13 @@ src/
   components/
     AgeGate.tsx           - formulário de idade e seleção de modo
     ModoIndisponivel.tsx  - placeholder para os modos 15-17 e 18+
-    CharacterCreation.tsx - nome + avatar
+    CharacterCreation.tsx - nome + criação de avatar
+    AvatarCreatorFrame.tsx - iframe do Ready Player Me + protocolo postMessage
+    Avatar3D.tsx           - render do avatar (.glb) com react-three-fiber
+    LazyAvatar3D.tsx        - carrega o Avatar3D em code-split + trata erros
+    AvatarErrorBoundary.tsx - fallback caso o modelo 3D falhe a carregar
     Dashboard.tsx         - ecrã principal do jogo
-    ActionsPanel.tsx      - botões de ação semanal
+    RoomScene.tsx          - cena tipo Sims com o avatar e os 6 sítios de ação
     StatBar.tsx           - barra de estatística (Relações/Saúde/Educação)
     GrowthChart.tsx        - gráfico SVG de evolução financeira
     EventModal.tsx         - modal de evento com escolhas e resultado
@@ -83,9 +93,20 @@ reaproveitar quando os modos 15-17 e 18+ forem construídos.
   seguro, reforma) — com aviso claro de que é uma simulação educativa, não
   aconselhamento financeiro real.
 - Persistência de progresso (guardar estado localmente).
-- Arte de personagem mais elaborada (fora do âmbito do Claude Code — ver secção 5/6 da
-  especificação: usar um gerador de imagens dedicado, Ready Player Me/Mixamo, ou um
-  artista 3D).
+- Animações de avatar (o modelo do Ready Player Me é estático; falta andar/gestos —
+  precisaria de um clip de animação compatível, ex. da biblioteca de animações da RPM).
+- Conta/subdomínio próprio no Ready Player Me em vez do subdomínio `demo` público
+  (necessário antes de publicar para lá de um protótipo).
+
+## Nota sobre o avatar 3D (Ready Player Me)
+
+O domínio `readyplayer.me` está bloqueado na rede do ambiente onde este protótipo foi
+construído, por isso a criação/carregamento do avatar não pôde ser testada em primeira
+mão aqui — foi implementada seguindo a documentação oficial (protocolo `postMessage` do
+Avatar Creator) e testada com URLs simuladas para confirmar que o resto do jogo continua
+a funcionar mesmo que o avatar falhe a carregar (`AvatarErrorBoundary`). Testa este fluxo
+no teu próprio computador (`npm run dev`), onde o acesso a esse domínio não deve estar
+bloqueado.
 
 ## Perguntas em aberto (da especificação original)
 

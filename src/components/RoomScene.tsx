@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { AVATARES } from '../game/data'
 import { ACOES, podeExecutar } from '../game/engine'
 import type { ActionId, PlayerState } from '../game/types'
+import { Avatar3D } from './LazyAvatar3D'
 
 export interface ActionFeedback {
   key: number
@@ -70,7 +70,6 @@ interface RoomSceneProps {
 }
 
 export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
-  const avatar = AVATARES.find((a) => a.id === state.avatar)
   const [pos, setPos] = useState(CENTRO)
   const [busy, setBusy] = useState(false)
   const [popover, setPopover] = useState<string | null>(null)
@@ -200,8 +199,10 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
               {bubble.text}
             </span>
           )}
-          <span className="text-5xl character-idle">{avatar?.emoji}</span>
-          <span className="w-6 h-2 rounded-full bg-black/15 -mt-1" />
+          <div className="character-idle">
+            <Avatar3D url={state.avatarUrl} size={104} />
+          </div>
+          <span className="w-8 h-2 rounded-full bg-black/15 -mt-2" />
         </div>
       </div>
     </div>
