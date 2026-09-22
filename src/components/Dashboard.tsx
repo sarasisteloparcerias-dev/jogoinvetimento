@@ -1,8 +1,9 @@
 import { AVATARES } from '../game/data'
 import { TOTAL_SEMANAS } from '../game/engine'
 import type { PlayerState } from '../game/types'
-import { ActionsPanel } from './ActionsPanel'
 import { GrowthChart } from './GrowthChart'
+import type { ActionFeedback } from './RoomScene'
+import { RoomScene } from './RoomScene'
 import { StatBar } from './StatBar'
 import type { ActionId } from '../game/types'
 
@@ -10,9 +11,10 @@ interface DashboardProps {
   state: PlayerState
   onAction: (id: ActionId) => void
   onAvancar: () => void
+  feedback: ActionFeedback | null
 }
 
-export function Dashboard({ state, onAction, onAvancar }: DashboardProps) {
+export function Dashboard({ state, onAction, onAvancar, feedback }: DashboardProps) {
   const avatar = AVATARES.find((a) => a.id === state.avatar)
   const investLabel = state.investimento.risk === 'baixo' ? 'baixo risco 🌱' : state.investimento.risk === 'alto' ? 'alto risco 🎢' : 'médio risco'
 
@@ -59,7 +61,7 @@ export function Dashboard({ state, onAction, onAvancar }: DashboardProps) {
       </div>
 
       <div className="bg-white/90 rounded-3xl shadow-xl p-4 border-4 border-white">
-        <ActionsPanel state={state} onAction={onAction} />
+        <RoomScene state={state} onAction={onAction} feedback={feedback} />
       </div>
 
       <div className="bg-white/90 rounded-3xl shadow-xl p-4 border-4 border-white">
