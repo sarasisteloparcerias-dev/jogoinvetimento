@@ -59,3 +59,17 @@ export const CORES_DECORATIVAS: CoresEdificio[] = [
   { telhado: '#38bdf8', telhadoSombra: '#0369a1', parede: '#f0f9ff' },
   { telhado: '#fb7185', telhadoSombra: '#9f1239', parede: '#fff1f2' },
 ]
+
+export interface TemaInterior {
+  corChao: string
+  props: string[]
+}
+
+/** Ambiente interior de cada local funcional (Parque fica de fora — é uma zona ao ar livre). */
+export const TEMAS_INTERIOR: Record<string, TemaInterior> = {
+  mealheiro: { corChao: '#fce7f3', props: ['🐷', '🪙', '🧸'] },
+  loja: { corChao: '#fff7ed', props: ['🍭', '🛒', '🧺'] },
+  banco: { corChao: '#e2e8f0', props: ['💰', '📊', '🖥️'] },
+  escola: { corChao: '#f0fdfa', props: ['📚', '✏️', '🎒'] },
+  amigos: { corChao: '#fffbeb', props: ['🎈', '🎮', '🍕'] },
+}

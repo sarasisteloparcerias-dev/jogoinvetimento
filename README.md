@@ -43,13 +43,21 @@ npm run preview
   setas do teclado (ou WASD) ou com um D-pad no ecrã; encostar-se a um local ativa a
   ação, com uma bolha flutuante a mostrar o resultado (ex. `-10 🪙 +10 🐷`) e uma pequena
   animação de passo ao andar.
-- **3 NPCs com quem se fala**: o **Mestre Moedas** apresenta um menu de 6 tópicos sobre
-  finanças (poupar, investir, risco, juros, reserva de emergência, inflação), cada um
-  explicado com analogias simples (plantar uma semente, andar de bicicleta vs. skate).
-  A **Marta** e o **Tiago** contam, em vez disso, uma pequena história pessoal (ao estilo
-  dos vídeos educativos da Tuttle Twins) — ela sobre poupar para um objetivo concreto
-  (uma bicicleta), ele sobre o que acontece quando não se tem nada guardado para um
-  imprevisto — para ensinar através de situações concretas, não de explicações técnicas.
+- **Entradas e interiores**: cada local funcional (Mealheiro, Loja, Banco, Escola,
+  Amigos) tem uma porta física — encostar-se a ela abre uma vista de interior própria
+  (sala temática com chão e 3 "props" em emoji coerentes com o local, ex. o Banco tem
+  💰📊🖥️), onde a ação desse local acontece; "Sair" volta exatamente à posição exterior
+  de onde se entrou. O Parque continua a ser a exceção — é uma zona ao ar livre, sem
+  porta, por isso a ação acontece na hora, como antes.
+- **3 NPCs com quem se fala**: o **Mestre Moedas** já não anda solto no mapa — vive
+  fisicamente dentro do Banco, e é lá que se fala com ele. Apresenta um menu de 6
+  tópicos sobre finanças (poupar, investir, risco, juros, reserva de emergência,
+  inflação), cada um explicado com analogias simples (plantar uma semente, andar de
+  bicicleta vs. skate). A **Marta** e o **Tiago** continuam soltos no mapa exterior e
+  contam, em vez disso, uma pequena história pessoal (ao estilo dos vídeos educativos da
+  Tuttle Twins) — ela sobre poupar para um objetivo concreto (uma bicicleta), ele sobre
+  o que acontece quando não se tem nada guardado para um imprevisto — para ensinar
+  através de situações concretas, não de explicações técnicas.
 - **Loop de jogo semanal**:
   1. O jogador recebe mesada (aumenta ligeiramente com a Educação).
   2. Pode gastar moedas em várias ações — Poupar, Gastar em diversão, Investir
@@ -102,10 +110,10 @@ reaproveitar quando os modos 15-17 e 18+ forem construídos.
 
 ## Próximos passos (não implementados neste protótipo)
 
-- **Evolução visual do mundo (fases seguintes)**: casas adicionais decorativas, entrar
-  fisicamente nos edifícios (interiores próprios, com os NPCs lá dentro em vez de soltos
-  no mapa), sprite do jogador com pernas/braços a alternar ao andar, e mais detalhes
-  ambientais (postes, placas, pedras, cercas) e zonas escondidas para explorar.
+- **Evolução visual do mundo (fases seguintes)**: reposicionar a Marta e o Tiago em
+  locais fisicamente mais coerentes, sprite do jogador com pernas/braços a alternar ao
+  andar, e mais detalhes ambientais (postes, placas, pedras, cercas) e zonas escondidas
+  para explorar.
 - **Modo 15-17 ("A Cidade")**: introduzir termos reais (ações, ETFs, obrigações,
   inflação) com dinheiro simulado, primeiro emprego, "notícias" de mercado simuladas e
   diversificação de carteira.

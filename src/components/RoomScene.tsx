@@ -5,7 +5,7 @@ import { MARTA, TIAGO } from '../game/npcs'
 import type { ActionId, NPCDef, PlayerState } from '../game/types'
 import { CharacterSVG } from './CharacterSVG'
 import { DialogueBox } from './DialogueBox'
-import { Arvore, CORES_DECORATIVAS, CORES_EDIFICIOS, Edificio } from './WorldArt'
+import { Arvore, CORES_DECORATIVAS, CORES_EDIFICIOS, Edificio, TEMAS_INTERIOR } from './WorldArt'
 
 export interface ActionFeedback {
   key: number
@@ -51,7 +51,8 @@ const ZONES: ZoneDef[] = [
   { id: 'amigos', emoji: '🎈', label: 'Amigos', gx: 3, gy: 7, action: 'socializar' },
 ]
 
-const NPCS: NPCDef[] = [MENTOR, MARTA, TIAGO]
+// O Mestre Moedas já não anda solto no mapa — vive dentro do Banco (ver interior).
+const NPCS: NPCDef[] = [MARTA, TIAGO]
 
 const ARVORES = [
   { gx: 1, gy: 1 },
@@ -149,7 +150,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   const [facing, setFacing] = useState<Direcao>('baixo')
   const [passo, setPasso] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [popover, setPopover] = useState<string | null>(null)
+  const [interiorAberto, setInteriorAberto] = useState<ZoneDef | null>(null)
   const [npcAtivo, setNpcAtivo] = useState<NPCDef | null>(null)
   const [bubble, setBubble] = useState<{ key: number; text: string; tom: 'boa' | 'ma' } | null>(null)
 
@@ -165,30 +166,28 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
   function agir(actionId: ActionId) {
     if (busy) return
     if (!podeExecutar(state, ACOES.find((a) => a.id === actionId)!)) {
-      setPopover(null)
       setBubble({ key: Date.now(), text: 'Não chega! 😅', tom: 'ma' })
       setTimeout(() => setBubble(null), 1300)
       return
     }
     setBusy(true)
-    setPopover(null)
     setTimeout(() => onAction(actionId), 200)
     setTimeout(() => setBusy(false), 700)
   }
 
-  function interagir(zone: ZoneDef) {
-    if (busy || npcAtivo) return
-    if (zone.subs) {
-      setPopover((p) => (p === zone.id ? null : zone.id))
+  function abrirLocal(zone: ZoneDef) {
+    if (busy || npcAtivo || interiorAberto) return
+    if (zone.id === 'parque') {
+      // O Parque é uma zona ao ar livre, sem porta para entrar — a ação acontece logo ali.
+      if (zone.action) agir(zone.action)
       return
     }
-    if (zone.action) agir(zone.action)
+    setInteriorAberto(zone)
   }
 
   function mover(dx: number, dy: number, direcao: Direcao) {
-    if (busy || npcAtivo) return
+    if (busy || npcAtivo || interiorAberto) return
     setFacing(direcao)
-    setPopover(null)
     const alvoX = pos.x + dx
     const alvoY = pos.y + dy
 
@@ -199,7 +198,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
     }
     const zonaNoAlvo = ZONES.find((z) => z.gx === alvoX && z.gy === alvoY)
     if (zonaNoAlvo) {
-      interagir(zonaNoAlvo)
+      abrirLocal(zonaNoAlvo)
       return
     }
     if (ARVORES.some((a) => a.gx === alvoX && a.gy === alvoY)) return
@@ -222,7 +221,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pos, busy, npcAtivo])
+  }, [pos, busy, npcAtivo, interiorAberto])
 
   const camX = clamp(pos.x - Math.floor(VIEW_COLS / 2), 0, WORLD_COLS - VIEW_COLS)
   const camY = clamp(pos.y - Math.floor(VIEW_ROWS / 2), 0, WORLD_ROWS - VIEW_ROWS)
@@ -380,7 +379,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
             return (
               <div key={zone.id}>
                 <button
-                  onClick={() => interagir(zone)}
+                  onClick={() => abrirLocal(zone)}
                   disabled={busy}
                   className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 transition-transform ${
                     disabled ? 'opacity-60' : 'hover:scale-105'
@@ -399,36 +398,10 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
                   )}
                   {perto && (
                     <span className="text-[11px] font-bold bg-white/90 rounded-full px-2 py-0.5 text-slate-700 shadow whitespace-nowrap -mt-1 animate-[float-up_0.4s_ease-out]">
-                      {zone.emoji} {zone.label}
-                      {zone.action ? ` · -${custoDe(zone.action)}` : ''}
+                      {zone.emoji} {zone.label} · {cores ? 'Entrar 🚪' : `-${custoDe(zone.action!)}`}
                     </span>
                   )}
                 </button>
-
-                {zone.subs && popover === zone.id && (
-                  <div
-                    className="absolute z-20 flex flex-col gap-1 bg-white rounded-2xl shadow-xl border-2 border-violet-200 p-2 -translate-x-1/2"
-                    style={{ left: `${zx}%`, top: `${zy - 100 / WORLD_ROWS / 2 - 6}%`, transform: 'translate(-50%, -100%)' }}
-                  >
-                    {zone.subs.map((sub) => {
-                      const subDisabled = !podeExecutar(state, ACOES.find((a) => a.id === sub.action)!)
-                      return (
-                        <button
-                          key={sub.action}
-                          disabled={subDisabled}
-                          onClick={() => agir(sub.action)}
-                          className={`whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-bold ${
-                            subDisabled
-                              ? 'bg-slate-100 text-slate-300'
-                              : 'bg-violet-50 text-slate-700 hover:bg-violet-100'
-                          }`}
-                        >
-                          {sub.label} · -{custoDe(sub.action)}
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
               </div>
             )
           })}
@@ -493,6 +466,95 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
         </button>
         <div />
       </div>
+
+      {interiorAberto && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-end sm:items-center justify-center p-3 z-40">
+          <div
+            className="w-full max-w-md rounded-3xl shadow-2xl border-4 overflow-hidden"
+            style={{ borderColor: CORES_EDIFICIOS[interiorAberto.id]?.telhado }}
+          >
+            <div
+              className="px-4 py-3 flex items-center gap-2"
+              style={{ backgroundColor: CORES_EDIFICIOS[interiorAberto.id]?.parede }}
+            >
+              <p className="font-heading font-bold text-slate-700">
+                {interiorAberto.emoji} Dentro: {interiorAberto.label}
+              </p>
+            </div>
+
+            <div
+              className="p-6 grid gap-3 justify-items-center"
+              style={{ backgroundColor: TEMAS_INTERIOR[interiorAberto.id]?.corChao }}
+            >
+              <div className="flex gap-3 text-4xl">
+                {TEMAS_INTERIOR[interiorAberto.id]?.props.map((p, i) => (
+                  <span key={i}>{p}</span>
+                ))}
+              </div>
+
+              {interiorAberto.id === 'banco' && (
+                <button onClick={() => setNpcAtivo(MENTOR)} className="flex flex-col items-center">
+                  <CharacterSVG avatar={MENTOR.avatar} height={56} />
+                  <span className="text-xs font-bold bg-emerald-100 rounded-full px-2 py-0.5 text-emerald-700 mt-1 whitespace-nowrap">
+                    💬 Falar com {MENTOR.nome}
+                  </span>
+                </button>
+              )}
+
+              {bubble && (
+                <p
+                  className={`text-sm font-extrabold px-3 py-2 rounded-xl ${
+                    bubble.tom === 'ma' ? 'bg-red-100 text-red-600' : 'bg-white text-slate-700'
+                  }`}
+                >
+                  {bubble.text}
+                </p>
+              )}
+
+              <div className="grid gap-2 w-full">
+                {interiorAberto.subs
+                  ? interiorAberto.subs.map((sub) => {
+                      const subDisabled = !podeExecutar(state, ACOES.find((a) => a.id === sub.action)!)
+                      return (
+                        <button
+                          key={sub.action}
+                          disabled={subDisabled || busy}
+                          onClick={() => agir(sub.action)}
+                          className={`rounded-2xl px-4 py-2.5 font-bold shadow ${
+                            subDisabled ? 'bg-slate-100 text-slate-300' : 'bg-white hover:bg-slate-50 text-slate-700'
+                          }`}
+                        >
+                          {sub.label} · -{custoDe(sub.action)}
+                        </button>
+                      )
+                    })
+                  : interiorAberto.action && (
+                      <button
+                        disabled={
+                          !podeExecutar(state, ACOES.find((a) => a.id === interiorAberto.action)!) || busy
+                        }
+                        onClick={() => agir(interiorAberto.action!)}
+                        className={`rounded-2xl px-4 py-3 font-bold shadow ${
+                          !podeExecutar(state, ACOES.find((a) => a.id === interiorAberto.action)!)
+                            ? 'bg-slate-100 text-slate-300'
+                            : 'bg-white hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        {interiorAberto.emoji} {interiorAberto.label} · -{custoDe(interiorAberto.action)}
+                      </button>
+                    )}
+              </div>
+
+              <button
+                onClick={() => setInteriorAberto(null)}
+                className="text-sm font-bold text-slate-400 underline mt-1"
+              >
+                Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {npcAtivo && <DialogueBox npc={npcAtivo} onFechar={() => setNpcAtivo(null)} />}
     </div>
