@@ -80,6 +80,51 @@ body {
   }
 }
 
+@keyframes encontro-entrar-direita {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.encontro-entrar-npc {
+  animation: encontro-entrar-direita 0.35s ease-out;
+}
+
+@keyframes encontro-entrar-esquerda {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.encontro-entrar-jogador {
+  animation: encontro-entrar-esquerda 0.35s ease-out;
+}
+
+@keyframes encontro-seta-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.encontro-seta {
+  display: inline-block;
+  animation: encontro-seta-bounce 0.9s ease-in-out infinite;
+}
+
 @keyframes float-up {
   0% {
     opacity: 0;

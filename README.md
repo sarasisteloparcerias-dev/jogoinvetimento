@@ -58,6 +58,13 @@ npm run preview
   Tuttle Twins) — ela sobre poupar para um objetivo concreto (uma bicicleta), ele sobre
   o que acontece quando não se tem nada guardado para um imprevisto — para ensinar
   através de situações concretas, não de explicações técnicas.
+- **Ecrã de encontro ao estilo Pokémon (GBA)**: falar com um NPC já não abre um cartão
+  flutuante centrado sobre o mapa — abre um ecrã de encontro dedicado, com o NPC de
+  corpo inteiro numa plataforma à direita e o jogador noutra à esquerda, tal como no
+  ecrã "X gostaria de lutar!" dos jogos do Game Boy Advance. A caixa de texto fica
+  encostada à parte de baixo, com o nome do NPC numa etiqueta e uma seta a indicar que
+  há mais texto para avançar. Aplica-se tanto à Marta e ao Tiago no mapa exterior como
+  ao Mestre Moedas dentro do Banco — o conteúdo da conversa não muda, só a apresentação.
 - **Loop de jogo semanal**:
   1. O jogador recebe mesada (aumenta ligeiramente com a Educação).
   2. Pode gastar moedas em várias ações — Poupar, Gastar em diversão, Investir

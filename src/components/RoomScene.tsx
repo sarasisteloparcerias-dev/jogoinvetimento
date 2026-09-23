@@ -556,7 +556,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
         </div>
       )}
 
-      {npcAtivo && <DialogueBox npc={npcAtivo} onFechar={() => setNpcAtivo(null)} />}
+      {npcAtivo && <DialogueBox npc={npcAtivo} playerAvatar={state.avatar} onFechar={() => setNpcAtivo(null)} />}
     </div>
   )
 }
