@@ -50,3 +50,12 @@ export const CORES_EDIFICIOS: Record<string, CoresEdificio> = {
   escola: { telhado: '#14b8a6', telhadoSombra: '#0f766e', parede: '#f0fdfa' },
   amigos: { telhado: '#f59e0b', telhadoSombra: '#b45309', parede: '#fffbeb' },
 }
+
+/** Paletas para casas puramente decorativas espalhadas pelo mapa (sem ação associada). */
+export const CORES_DECORATIVAS: CoresEdificio[] = [
+  { telhado: '#8b5cf6', telhadoSombra: '#5b21b6', parede: '#f5f3ff' },
+  { telhado: '#84cc16', telhadoSombra: '#4d7c0f', parede: '#f7fee7' },
+  { telhado: '#92400e', telhadoSombra: '#451a03', parede: '#fef3c7' },
+  { telhado: '#38bdf8', telhadoSombra: '#0369a1', parede: '#f0f9ff' },
+  { telhado: '#fb7185', telhadoSombra: '#9f1239', parede: '#fff1f2' },
+]

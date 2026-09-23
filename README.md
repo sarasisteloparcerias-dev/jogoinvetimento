@@ -37,8 +37,9 @@ npm run preview
   Os locais (Mealheiro, Loja, Banco, Escola, Amigos) são desenhados como pequenas casas
   com telhado, porta e janelas (SVG, sem emojis a fazer de ícone), o Parque é uma zona
   aberta em vez de um edifício, e há árvores em camadas, flores, um lago com margem e
-  brilho animado, e um banco de jardim espalhados pelo mapa — nada disto aparece
-  identificado até o jogador se aproximar, para não parecer um menu. Controla-se com as
+  brilho animado, um banco de jardim, e 5 casas puramente decorativas (sem ação — só
+  para o mapa parecer uma vizinhança com gente a viver lá) espalhadas pelo mapa — nada
+  disto aparece identificado até o jogador se aproximar, para não parecer um menu. Controla-se com as
   setas do teclado (ou WASD) ou com um D-pad no ecrã; encostar-se a um local ativa a
   ação, com uma bolha flutuante a mostrar o resultado (ex. `-10 🪙 +10 🐷`) e uma pequena
   animação de passo ao andar.

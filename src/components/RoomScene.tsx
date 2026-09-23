@@ -5,7 +5,7 @@ import { MARTA, TIAGO } from '../game/npcs'
 import type { ActionId, NPCDef, PlayerState } from '../game/types'
 import { CharacterSVG } from './CharacterSVG'
 import { DialogueBox } from './DialogueBox'
-import { Arvore, CORES_EDIFICIOS, Edificio } from './WorldArt'
+import { Arvore, CORES_DECORATIVAS, CORES_EDIFICIOS, Edificio } from './WorldArt'
 
 export interface ActionFeedback {
   key: number
@@ -79,6 +79,15 @@ const LAGO = [
 ]
 
 const BANCO_JARDIM = { gx: 12, gy: 6 }
+
+/** Casas só decorativas — dão vida ao mapa, mas não têm nenhuma ação associada. */
+const CASAS_DECORATIVAS = [
+  { gx: 5, gy: 5 },
+  { gx: 9, gy: 5 },
+  { gx: 5, gy: 9 },
+  { gx: 2, gy: 4 },
+  { gx: 12, gy: 9 },
+]
 
 const FLORES = [
   { gx: 4, gy: 4 },
@@ -195,6 +204,7 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
     }
     if (ARVORES.some((a) => a.gx === alvoX && a.gy === alvoY)) return
     if (LAGO.some((l) => l.gx === alvoX && l.gy === alvoY)) return
+    if (CASAS_DECORATIVAS.some((c) => c.gx === alvoX && c.gy === alvoY)) return
     if (alvoX < 0 || alvoX >= WORLD_COLS || alvoY < 0 || alvoY >= WORLD_ROWS) return
 
     setPos({ x: alvoX, y: alvoY })
@@ -323,6 +333,21 @@ export function RoomScene({ state, onAction, feedback }: RoomSceneProps) {
               style={{ left: `${pctX(a.gx, WORLD_COLS)}%`, top: `${pctY(a.gy, WORLD_ROWS)}%`, width: '9%', height: '9%' }}
             >
               <Arvore />
+            </div>
+          ))}
+
+          {CASAS_DECORATIVAS.map((casa, i) => (
+            <div
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{
+                left: `${pctX(casa.gx, WORLD_COLS)}%`,
+                top: `${pctY(casa.gy, WORLD_ROWS)}%`,
+                width: `${(100 / WORLD_COLS) * 1.7}%`,
+                aspectRatio: '100 / 78',
+              }}
+            >
+              <Edificio {...CORES_DECORATIVAS[i % CORES_DECORATIVAS.length]} />
             </div>
           ))}
 
