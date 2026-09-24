@@ -86,7 +86,7 @@ export function Intro({ onConcluir }: { onConcluir: (nome: string, avatar: Avata
   return (
     <Consola onPremir={premir} onSoltar={() => {}}>
       <div className="fundo-intro" />
-      <div style={{ position: 'absolute', left: fase === 'aspeto' ? u(30) : '50%', top: u(14), transform: fase === 'aspeto' ? undefined : 'translateX(-50%)', textAlign: 'center' }}>
+      <div style={{ position: 'absolute', left: fase === 'aspeto' ? u(14) : '50%', top: u(14), transform: fase === 'aspeto' ? undefined : 'translateX(-50%)', textAlign: 'center' }}>
         <div className="plataforma" style={{ position: 'absolute', left: '50%', bottom: u(-2), width: u(70), height: u(14), transform: 'translateX(-50%)' }} />
         <div style={{ position: 'relative' }}>
           {fase === 'aspeto' ? <SpriteView avatar={avatar} escala={u(3)} girar /> : <SpriteView avatar={MENTOR.avatar} escala={u(3)} />}
@@ -125,8 +125,8 @@ export function Intro({ onConcluir }: { onConcluir: (nome: string, avatar: Avata
       )}
 
       {fase === 'aspeto' && (
-        <div className="janela" style={{ position: 'absolute', right: u(6), top: u(8), width: u(126), padding: `${u(5)} ${u(7)}` }}>
-          <div style={{ fontSize: u(9), color: '#7a8298', marginBottom: u(3) }}>Como és tu, {nome.trim()}?</div>
+        <div className="janela" style={{ position: 'absolute', right: u(4), top: u(6), width: u(160), padding: `${u(5)} ${u(6)}` }}>
+          <div style={{ fontSize: u(8), color: '#7a8298', marginBottom: u(3) }}>Como és tu, {nome.trim()}?</div>
           {LINHAS.map((l, i) => (
             <div
               key={l}
@@ -135,18 +135,18 @@ export function Intro({ onConcluir }: { onConcluir: (nome: string, avatar: Avata
                 if (i === 4) void terminar()
                 else mudar(i, 1)
               }}
-              style={{ display: 'flex', alignItems: 'center', fontSize: u(10), lineHeight: u(15), cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', fontSize: u(8), lineHeight: u(15), cursor: 'pointer', whiteSpace: 'nowrap' }}
             >
               <Cursor visivel={linha === i} />
               <span style={{ flex: 1 }}>{l}</span>
               {i < 4 && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: u(3), fontSize: u(8) }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: u(2), fontSize: u(7) }}>
                   ◀ {valor(i)} ▶
                 </span>
               )}
             </div>
           ))}
-          <div style={{ fontSize: u(7), color: '#8890a8', marginTop: u(2) }}>Setas para escolher · A para confirmar</div>
+          <div style={{ fontSize: u(6), color: '#8890a8', marginTop: u(2) }}>Setas: escolher · A: confirmar</div>
         </div>
       )}
 

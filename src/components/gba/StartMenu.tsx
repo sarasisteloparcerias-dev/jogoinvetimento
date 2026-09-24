@@ -37,9 +37,9 @@ export function StartMenu({ estado, menu, onEscolher, onVoltar }: Props) {
     )
   }
   return (
-    <div className="janela" style={{ position: 'absolute', top: u(3), right: u(3), width: u(82), padding: `${u(5)} ${u(6)}` }}>
+    <div className="janela" style={{ position: 'absolute', top: u(3), right: u(3), width: u(132), padding: `${u(5)} ${u(6)}` }}>
       {OPCOES_MENU.map((o, i) => (
-        <div key={o} onClick={() => onEscolher(i)} style={{ display: 'flex', alignItems: 'center', fontSize: u(10), lineHeight: u(15), cursor: 'pointer' }}>
+        <div key={o} onClick={() => onEscolher(i)} style={{ display: 'flex', alignItems: 'center', fontSize: u(9), lineHeight: u(16), cursor: 'pointer', whiteSpace: 'nowrap' }}>
           <Cursor visivel={i === menu.indice} />
           {o}
         </div>

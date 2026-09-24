@@ -1,5 +1,4 @@
-@import '@fontsource/pixelify-sans/400.css';
-@import '@fontsource/pixelify-sans/700.css';
+@import '@fontsource/press-start-2p/400.css';
 @import 'tailwindcss';
 
 :root {
@@ -26,7 +25,7 @@ body,
 
 body {
   margin: 0;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'Press Start 2P', monospace;
   background: radial-gradient(ellipse at top, #2c3152 0%, var(--fundo) 70%);
   color: #2d3448;
   -webkit-tap-highlight-color: transparent;

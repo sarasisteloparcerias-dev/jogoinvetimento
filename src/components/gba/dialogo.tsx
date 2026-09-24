@@ -3,7 +3,7 @@ import { Cursor, SetaBaixo, u } from './ui'
 
 export type Tecla = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'A' | 'B' | 'START'
 
-export const FONTE_PIXEL = "'Pixelify Sans', monospace"
+export const FONTE_PIXEL = "'Press Start 2P', monospace"
 const LARGURA_TEXTO = 204
 const LINHAS_POR_PAGINA = 3
 

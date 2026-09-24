@@ -18,7 +18,7 @@ export default function App() {
   useEffect(() => {
     // A caixa de diálogo mede o texto com a fonte pixel, por isso esperamos que ela carregue.
     const limite = setTimeout(() => setPronto(true), 1500)
-    document.fonts.load("10px 'Pixelify Sans'").finally(() => {
+    document.fonts.load("10px 'Press Start 2P'").finally(() => {
       clearTimeout(limite)
       setPronto(true)
     })
