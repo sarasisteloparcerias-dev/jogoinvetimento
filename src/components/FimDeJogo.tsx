@@ -1,5 +1,8 @@
+import { CRACHAS } from '../game/crachas'
+import { iconeCracha } from '../game/pixel/cenario'
 import type { PlayerState } from '../game/types'
-import { CharacterSVG } from './CharacterSVG'
+import { fmt } from '../game/world/scripts'
+import { PixelImg, SpriteView } from './gba/ui'
 import { GrowthChart } from './GrowthChart'
 
 interface FimDeJogoProps {
@@ -8,10 +11,10 @@ interface FimDeJogoProps {
 }
 
 export function FimDeJogo({ state, onReiniciar }: FimDeJogoProps) {
-  const patrimonio = Math.round(state.saldo + state.poupanca + state.investimento.amount)
-  const mediaStats = Math.round((state.stats.relacoes + state.stats.saude + state.stats.educacao) / 3)
+  const patrimonio = state.saldo + state.poupanca + state.investimento.amount
+  const mediaStats = (state.stats.relacoes + state.stats.saude + state.stats.educacao) / 3
 
-  let mensagem = 'Foi uma boa aventura! Continua a praticar boas escolhas financeiras.'
+  let mensagem = 'Foi uma boa aventura! Continua a praticar boas escolhas com o teu dinheiro.'
   if (state.poupanca + state.investimento.amount > state.saldo && mediaStats >= 60) {
     mensagem = 'Excelente equilíbrio! Guardaste e investiste bem, sem nunca esquecer amigos, saúde e estudo.'
   } else if (patrimonio < 20) {
@@ -21,39 +24,44 @@ export function FimDeJogo({ state, onReiniciar }: FimDeJogoProps) {
   }
 
   return (
-    <div className="max-w-lg mx-auto bg-white/90 rounded-3xl shadow-xl p-6 border-4 border-white text-center">
-      <div className="flex justify-center items-center gap-1 mb-2">
-        <CharacterSVG avatar={state.avatar} height={110} />
-        <span className="text-4xl">🏆</span>
-      </div>
-      <h2 className="font-heading text-2xl font-bold text-slate-800 mb-1">Fim da aventura de {state.name}!</h2>
-      <p className="text-slate-500 mb-4">{mensagem}</p>
+    <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
+      <div className="janela" style={{ maxWidth: 560, width: '100%', padding: 24, textAlign: 'center' }}>
+        <SpriteView avatar={state.avatar} escala="5px" />
+        <h2 style={{ fontSize: 26, margin: '8px 0 4px' }}>Fim da aventura de {state.name}!</h2>
+        <p style={{ color: '#5a6280', marginBottom: 16 }}>{mensagem}</p>
 
-      <div className="grid grid-cols-3 gap-2 mb-4 text-sm">
-        <div className="bg-amber-50 rounded-xl p-3">
-          <p className="text-slate-400 font-semibold">Património</p>
-          <p className="font-heading text-xl font-bold text-amber-600">{patrimonio}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16, fontSize: 15 }}>
+          <div className="caixa-valor">
+            Tudo junto
+            <strong style={{ color: '#c08a10' }}>{fmt(patrimonio)}</strong>
+          </div>
+          <div className="caixa-valor">
+            Mealheiro
+            <strong style={{ color: '#d04880' }}>{fmt(state.poupanca)}</strong>
+          </div>
+          <div className="caixa-valor">
+            Investido
+            <strong style={{ color: '#2a8a5a' }}>{fmt(state.investimento.amount)}</strong>
+          </div>
         </div>
-        <div className="bg-pink-50 rounded-xl p-3">
-          <p className="text-slate-400 font-semibold">Relações</p>
-          <p className="font-heading text-xl font-bold text-pink-600">{Math.round(state.stats.relacoes)}</p>
-        </div>
-        <div className="bg-emerald-50 rounded-xl p-3">
-          <p className="text-slate-400 font-semibold">Saúde</p>
-          <p className="font-heading text-xl font-bold text-emerald-600">{Math.round(state.stats.saude)}</p>
-        </div>
-      </div>
 
-      <div className="mb-6">
-        <GrowthChart history={state.history} />
-      </div>
+        <p style={{ marginBottom: 6 }}>
+          Crachás: {state.crachas.length} de {CRACHAS.length}
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
+          {CRACHAS.map((c) => (
+            <PixelImg key={c.id} src={iconeCracha(c.id, state.crachas.includes(c.id))} escala="3px" />
+          ))}
+        </div>
 
-      <button
-        onClick={onReiniciar}
-        className="w-full rounded-2xl bg-violet-500 hover:bg-violet-600 text-white font-heading font-bold py-3 transition-colors"
-      >
-        Jogar novamente
-      </button>
+        <div style={{ marginBottom: 20 }}>
+          <GrowthChart history={state.history} />
+        </div>
+
+        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: 18, padding: 10 }}>
+          Jogar outra vez
+        </button>
+      </div>
     </div>
   )
 }

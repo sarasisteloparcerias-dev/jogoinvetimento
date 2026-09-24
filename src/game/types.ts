@@ -2,6 +2,7 @@ export interface AvatarConfig {
   pele: string
   cabelo: string
   roupa: string
+  cabeloComprido?: boolean
 }
 
 export type StatKey = 'relacoes' | 'saude' | 'educacao'
@@ -39,6 +40,9 @@ export interface PlayerState {
   history: HistoryPoint[]
   log: LogEntry[]
   gameOver: boolean
+  crachas: string[]
+  /** Marcas de progresso da história (ex. tutorial visto, primeira visita à loja). */
+  flags: string[]
 }
 
 export interface LogEntry {

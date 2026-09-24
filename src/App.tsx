@@ -1,40 +1,33 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AgeGate, type Modo } from './components/AgeGate'
-import { CharacterCreation } from './components/CharacterCreation'
-import { Dashboard } from './components/Dashboard'
-import { EventModal } from './components/EventModal'
 import { FimDeJogo } from './components/FimDeJogo'
+import { GameScreen } from './components/gba/GameScreen'
+import { Intro } from './components/gba/Intro'
 import { ModoIndisponivel } from './components/ModoIndisponivel'
-import type { ActionFeedback } from './components/RoomScene'
 import { novoJogador } from './game/data'
-import { avancarSemana, executarAcao, registarLog } from './game/engine'
-import type { ActionId, AvatarConfig, GameEvent, GameEventChoice, PlayerState } from './game/types'
+import type { AvatarConfig, PlayerState } from './game/types'
 
-type Tela = 'idade' | 'modo-indisponivel' | 'criar-personagem' | 'jogo' | 'fim'
-
-function calcularDeltas(antes: PlayerState, depois: PlayerState): ActionFeedback['deltas'] {
-  const deltas: ActionFeedback['deltas'] = {}
-  if (depois.saldo !== antes.saldo) deltas.saldo = depois.saldo - antes.saldo
-  if (depois.poupanca !== antes.poupanca) deltas.poupanca = depois.poupanca - antes.poupanca
-  if (depois.investimento.amount !== antes.investimento.amount) {
-    deltas.investimento = depois.investimento.amount - antes.investimento.amount
-  }
-  if (depois.stats.relacoes !== antes.stats.relacoes) deltas.relacoes = depois.stats.relacoes - antes.stats.relacoes
-  if (depois.stats.saude !== antes.stats.saude) deltas.saude = depois.stats.saude - antes.stats.saude
-  if (depois.stats.educacao !== antes.stats.educacao) deltas.educacao = depois.stats.educacao - antes.stats.educacao
-  return deltas
-}
+type Tela = 'idade' | 'modo-indisponivel' | 'intro' | 'jogo' | 'fim'
 
 export default function App() {
+  const [pronto, setPronto] = useState(false)
   const [tela, setTela] = useState<Tela>('idade')
   const [modo, setModo] = useState<Modo>('reino')
   const [player, setPlayer] = useState<PlayerState | null>(null)
-  const [eventoPendente, setEventoPendente] = useState<GameEvent | null>(null)
-  const [feedback, setFeedback] = useState<ActionFeedback | null>(null)
+
+  useEffect(() => {
+    // A caixa de diálogo mede o texto com a fonte pixel, por isso esperamos que ela carregue.
+    const limite = setTimeout(() => setPronto(true), 1500)
+    document.fonts.load("10px 'Pixelify Sans'").finally(() => {
+      clearTimeout(limite)
+      setPronto(true)
+    })
+    return () => clearTimeout(limite)
+  }, [])
 
   function handleEscolherModo(m: Modo) {
     setModo(m)
-    setTela(m === 'reino' ? 'criar-personagem' : 'modo-indisponivel')
+    setTela(m === 'reino' ? 'intro' : 'modo-indisponivel')
   }
 
   function handleStart(name: string, avatar: AvatarConfig) {
@@ -42,30 +35,9 @@ export default function App() {
     setTela('jogo')
   }
 
-  function handleAction(id: ActionId) {
-    if (!player) return
-    const resultado = executarAcao(player, id)
-    if (resultado === player) return
-    setFeedback({ key: Date.now(), deltas: calcularDeltas(player, resultado) })
-    setPlayer(resultado)
-  }
-
-  function handleAvancar() {
-    if (!player) return
-    const { estado, evento } = avancarSemana(player)
-    setPlayer(estado)
-    setEventoPendente(evento)
-  }
-
-  function handleResolverEvento(choice: GameEventChoice) {
-    if (!player || !eventoPendente) return
-    const resultado = choice.apply(player)
-    const comLog = registarLog(resultado, `${eventoPendente.title} — ${choice.resultText(player)}`, 'neutra')
-    setPlayer(comLog)
-    setEventoPendente(null)
-    if (comLog.gameOver) {
-      setTela('fim')
-    }
+  function handleFim(s: PlayerState) {
+    setPlayer(s)
+    setTela('fim')
   }
 
   function handleReiniciar() {
@@ -73,18 +45,15 @@ export default function App() {
     setTela('idade')
   }
 
+  if (!pronto) return null
+
   return (
-    <div className="min-h-screen py-8 px-4">
+    <>
       {tela === 'idade' && <AgeGate onEscolherModo={handleEscolherModo} />}
       {tela === 'modo-indisponivel' && <ModoIndisponivel modo={modo} onVoltar={() => setTela('idade')} />}
-      {tela === 'criar-personagem' && <CharacterCreation onStart={handleStart} />}
-      {tela === 'jogo' && player && (
-        <>
-          <Dashboard state={player} onAction={handleAction} onAvancar={handleAvancar} feedback={feedback} />
-          {eventoPendente && <EventModal evento={eventoPendente} state={player} onResolve={handleResolverEvento} />}
-        </>
-      )}
+      {tela === 'intro' && <Intro onConcluir={handleStart} />}
+      {tela === 'jogo' && player && <GameScreen estadoInicial={player} onMudar={setPlayer} onFim={handleFim} />}
       {tela === 'fim' && player && <FimDeJogo state={player} onReiniciar={handleReiniciar} />}
-    </div>
+    </>
   )
 }

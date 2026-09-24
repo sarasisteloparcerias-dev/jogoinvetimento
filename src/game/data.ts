@@ -34,6 +34,8 @@ export function novoJogador(name: string, avatar: AvatarConfig): PlayerState {
     history: [{ week: 0, saldo: 15, poupanca: 0, investimento: 0 }],
     log: [],
     gameOver: false,
+    crachas: [],
+    flags: [],
   }
 }
 
