@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CRACHAS } from '../../game/crachas'
 import { avancarSemana } from '../../game/engine'
+import type { ResultadoMiniJogo, TipoMiniJogo } from '../../game/minijogos/tipos'
 import { iconeCracha } from '../../game/pixel/cenario'
 import type { Dir } from '../../game/pixel/sprites'
 import { ECRA_H, ECRA_W, Motor } from '../../game/world/motor'
@@ -8,6 +9,7 @@ import { executarInteracao, manha, resumoFinal, tutorial, type Ctx } from '../..
 import type { PlayerState } from '../../game/types'
 import { Consola } from './Consola'
 import { CaixaDialogo, useDialogo, type Tecla } from './dialogo'
+import { MiniJogoView, type ControloMiniJogo } from './MiniJogoView'
 import { OPCOES_MENU, StartMenu, type EstadoMenu } from './StartMenu'
 import { PixelImg, u } from './ui'
 
@@ -29,6 +31,8 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
   const menuRef = useRef<EstadoMenu | null>(null)
   const [cracha, setCracha] = useState<string | null>(null)
   const [banner, setBanner] = useState<{ nome: string; k: number } | null>(null)
+  const [mini, setMini] = useState<{ tipo: TipoMiniJogo; k: number; resolver: (r: ResultadoMiniJogo) => void } | null>(null)
+  const miniRef = useRef<ControloMiniJogo | null>(null)
   const scriptAtivo = useRef(false)
   const iniciado = useRef(false)
   const callbacks = useRef({ onMudar, onFim })
@@ -62,6 +66,10 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
       await dlg.say(`${s.name} ganhou o ${c.nome.toUpperCase()}!`)
       await dlg.say(c.licao, 'Mestre Moedas')
       setCracha(null)
+    },
+    jogar(tipo) {
+      motorRef.current?.limparTeclas()
+      return new Promise<ResultadoMiniJogo>((resolver) => setMini({ tipo, k: Date.now(), resolver }))
     },
     async dormir() {
       const m = motorRef.current!
@@ -132,6 +140,7 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
   const premir = (t: Tecla) => {
     const m = motorRef.current
     if (!m) return
+    if (miniRef.current) return miniRef.current.premir(t)
     const dir = DIRS[t]
     if (dir) m.premir(dir)
     if (dlg.aberto()) return dlg.tecla(t)
@@ -156,6 +165,7 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
   }
 
   const soltar = (t: Tecla) => {
+    miniRef.current?.soltar(t)
     const dir = DIRS[t]
     if (dir) motorRef.current?.soltar(dir)
   }
@@ -180,6 +190,19 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
       )}
 
       {menu && <StartMenu estado={estado} menu={menu} onEscolher={escolherMenu} onVoltar={() => setMenu({ ...menu, aba: null })} />}
+
+      {mini && (
+        <MiniJogoView
+          key={mini.k}
+          tipo={mini.tipo}
+          avatar={estado.avatar}
+          ref={miniRef}
+          onFim={(r) => {
+            setMini(null)
+            mini.resolver(r)
+          }}
+        />
+      )}
 
       {dlg.dialogo && <CaixaDialogo d={dlg.dialogo} onA={() => dlg.tecla('A')} onEscolher={dlg.escolher} />}
     </Consola>

@@ -1,8 +1,10 @@
 import { CRACHAS, META_OBJETIVO, objetivoAtual } from '../crachas'
+import { clamp } from '../data'
 import { executarAcao, registarLog } from '../engine'
 import { MENTOR } from '../mentor'
 import { MARTA, TIAGO } from '../npcs'
-import type { ActionId, GameEvent, PlayerState } from '../types'
+import type { ResultadoMiniJogo, TipoMiniJogo } from '../minijogos/tipos'
+import type { ActionId, GameEvent, PlayerState, StatKey } from '../types'
 import type { Interacao } from './motor'
 
 export interface Ctx {
@@ -12,6 +14,7 @@ export interface Ctx {
   definir(s: PlayerState): void
   cracha(id: string): Promise<void>
   dormir(): Promise<void>
+  jogar(tipo: TipoMiniJogo): Promise<ResultadoMiniJogo>
 }
 
 export function fmt(n: number): string {
@@ -54,6 +57,13 @@ function fazer(ctx: Ctx, id: ActionId) {
   if (depois === antes) return null
   ctx.definir(depois)
   return { antes, depois }
+}
+
+/** Pequeno prémio nas estatísticas por jogar bem um mini-jogo (nunca dá moedas). */
+function bonus(ctx: Ctx, stat: StatKey, n: number) {
+  if (n <= 0) return
+  const s = ctx.estado()
+  ctx.definir({ ...s, stats: { ...s.stats, [stat]: clamp(s.stats[stat] + n) } })
 }
 
 async function verificarObjetivo(ctx: Ctx) {
@@ -124,8 +134,15 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     if (r !== 0) return ctx.say('Boa escolha também! Às vezes, a melhor compra é não comprar nada.', quem)
     const res = fazer(ctx, 'gastar')
     if (!res) return semMoedas(ctx, quem, 10)
-    await ctx.say('Aqui tens! Hmm, que delícia!', quem)
-    await ctx.say(`${descreverMudancas(res.antes, res.depois)}. Foi divertido, mas essas moedas já não voltam.`)
+    await ctx.say('Então anda, faz tu o teu gelado! Apanha as bolas com o cone e segue o pedido.', quem)
+    const jogo = await ctx.jogar('gelado')
+    bonus(ctx, 'relacoes', jogo.pontos >= 2 ? 2 : jogo.pontos)
+    await ctx.say(`${jogo.texto}! Que gelado lindo!`, quem)
+    await ctx.say([
+      `${descreverMudancas(res.antes, ctx.estado())}.`,
+      'Estava ótimo! Mas repara: o gelado acabou em minutos e as 10 moedas não voltam.',
+      'Gastar em coisas que acabam depressa chama-se CONSUMO. Não faz mal, desde que não seja o dinheiro todo!',
+    ])
   },
 
   async cliente(ctx) {
@@ -198,18 +215,30 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     if (r !== 0) return ctx.say('Fica para a próxima! Correr no parque também é grátis.', quem)
     const res = fazer(ctx, 'exercicio')
     if (!res) return semMoedas(ctx, quem, 5)
-    await ctx.say('Boa! Correste, saltaste e marcaste golo!', quem)
-    await ctx.say(`${descreverMudancas(res.antes, res.depois)}. Cuidar da saúde também é uma riqueza!`)
+    await ctx.say('Hoje treinamos penáltis! Eu vou à baliza. Mostra o que vales!', quem)
+    const jogo = await ctx.jogar('futebol')
+    bonus(ctx, 'saude', jogo.pontos >= 5 ? 3 : jogo.pontos >= 3 ? 2 : jogo.pontos >= 1 ? 1 : 0)
+    await ctx.say(jogo.pontos >= 3 ? `${jogo.texto}! És um craque!` : `${jogo.texto}. Para a próxima corre melhor!`, quem)
+    await ctx.say([
+      `${descreverMudancas(res.antes, ctx.estado())}.`,
+      'Treinar é como poupar: cada treino junta-se ao anterior e, com o tempo, ficas muito melhor.',
+    ])
   },
 
   async amigos(ctx) {
     const quem = 'Leo e Bia'
-    const r = await ctx.ask('Olá! Vamos ao cinema? Cada um paga 6 moedas.', ['SIM', 'NÃO'], quem, 1)
+    const r = await ctx.ask('Olá! Vamos dar uma volta de bicicleta e lanchar? O lanche custa 6 moedas.', ['SIM', 'NÃO'], quem, 1)
     if (r !== 0) return ctx.say('Não faz mal! Também podemos brincar aqui no parque, de graça.', quem)
     const res = fazer(ctx, 'socializar')
     if (!res) return semMoedas(ctx, quem, 6)
-    await ctx.say('Foi o máximo! Rimo-nos imenso.', quem)
-    await ctx.say(`${descreverMudancas(res.antes, res.depois)}. Gastar com amigos não faz mal: o segredo é não gastar tudo!`)
+    await ctx.say('Boa! Toca a pedalar! Cuidado com os cones e as poças!', quem)
+    const jogo = await ctx.jogar('bicicleta')
+    bonus(ctx, 'relacoes', jogo.pontos >= 10 ? 3 : jogo.pontos >= 5 ? 2 : jogo.pontos >= 1 ? 1 : 0)
+    await ctx.say(`Apanhaste ${jogo.texto}! Foi o máximo!`, quem)
+    await ctx.say([
+      `${descreverMudancas(res.antes, ctx.estado())}.`,
+      'A Marta poupou semanas para ter esta bicicleta, mas agora diverte-se todos os dias. Vale a pena poupar para coisas que duram!',
+    ])
   },
 
   async marta(ctx) {
@@ -271,7 +300,10 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
   },
 
   async bola(ctx) {
-    await ctx.say('É uma bola de futebol. Jogar à bola com os amigos é grátis e divertido!')
+    const r = await ctx.ask('É uma bola de futebol. Queres marcar uns penáltis? É grátis!', ['SIM', 'NÃO'], undefined, 1)
+    if (r !== 0) return
+    const jogo = await ctx.jogar('futebol')
+    await ctx.say([`${jogo.texto}!`, 'Viste? Divertiste-te imenso e não gastaste uma única moeda.'])
   },
 }
 

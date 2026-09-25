@@ -58,13 +58,27 @@ npm run preview
   | Ação | Onde |
   |---|---|
   | Poupar 10 moedas | Mealheiro no teu quarto |
-  | Gastar em diversão | Sr. Doce, ao balcão da Loja |
+  | Gastar em diversão | Sr. Doce, ao balcão da Loja (mini-jogo do gelado) |
   | Investir (baixo / alto risco) | Sofia, ao balcão do Banco |
   | Estudar | Professora Luz, na Escola |
-  | Exercício | Treinador Zé, no Parque |
-  | Sair com amigos | Leo e Bia, no Parque |
+  | Exercício | Treinador Zé, no Parque (mini-jogo de penáltis) |
+  | Sair com amigos | Leo e Bia, no Parque (mini-jogo de bicicleta) |
   | Passar a semana | Dormir na tua cama |
 
+- **Mini-jogos** (ecrã próprio, mesmos botões, com título, instruções e resultado):
+  - **Penáltis** com o Treinador Zé: uma mira anda pela baliza e remata-se com A;
+    5 remates contra um guarda-redes que se atira para um lado ao acaso.
+  - **Passeio de bicicleta** com o Leo e a Bia, ao estilo Subway Surfers: 3 faixas,
+    setas para mudar de faixa, A para saltar cones e poças, estrelas para apanhar, 30
+    segundos e 3 vidas.
+  - **Faz o teu gelado** na Loja: a máquina deixa cair bolas, apanham-se com o cone e
+    segue-se o pedido do Sr. Doce para ganhar mais pontos.
+  - A **bola** do Parque deixa jogar penáltis **de graça**.
+
+  Paga-se primeiro (como antes); jogar bem só dá um pequeno bónus nas estatísticas,
+  nunca moedas. No fim de cada um há uma lição curta: treinar é como poupar (os
+  treinos somam-se), vale a pena poupar para coisas que duram (a bicicleta da Marta),
+  e gastar em coisas que acabam depressa chama-se CONSUMO.
 - **Explicações para crianças dentro do jogo**:
   - **Introdução** com o Mestre Moedas, que explica a vila e te deixa escolher o nome e o aspeto.
   - **Tutorial** da Mãe na primeira manhã (como falar, onde poupar, como passar a semana).
@@ -100,6 +114,9 @@ src/
       draw.ts     - utilitários de pixel art (grelhas de caracteres → imagem, cores)
       sprites.ts  - personagens 16×24, 4 direções × 3 frames, recoloridas pelo avatar
       cenario.ts  - tiles, edifícios, mobília e ícones dos crachás
+    minijogos/
+      futebol.ts, bicicleta.ts, gelado.ts - os três mini-jogos (update/render em canvas)
+      tipos.ts, index.ts                  - interface comum e criação por tipo
     world/
       tipos.ts    - tipos de mapas, edifícios, objetos, NPCs
       mapas.ts    - a Vila Moeda e os interiores
@@ -112,6 +129,7 @@ src/
       Intro.tsx      - introdução, nome e aspeto
       dialogo.tsx    - caixa de texto letra a letra e caixa de escolha
       StartMenu.tsx  - menu START
+      MiniJogoView.tsx - mostra um mini-jogo na consola (título, jogo, resultado)
       ui.tsx         - escala, sprites em HTML, cursores
     AgeGate.tsx, ModoIndisponivel.tsx, FimDeJogo.tsx, GrowthChart.tsx
 ```

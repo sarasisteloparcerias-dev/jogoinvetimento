@@ -43,7 +43,7 @@ function grelhaSala(w: number, h: number, saidaX: number): string[] {
   return texto(g)
 }
 
-const AVATARES = {
+export const AVATARES = {
   mae: { pele: '#f1c27d', cabelo: '#2d1b0e', roupa: '#0e7490', cabeloComprido: true },
   avo: { pele: '#f1c27d', cabelo: '#e8e0d5', roupa: '#a83232', cabeloComprido: true },
   srDoce: { pele: '#ffe0bd', cabelo: '#e8e0d5', roupa: '#ef4444' },

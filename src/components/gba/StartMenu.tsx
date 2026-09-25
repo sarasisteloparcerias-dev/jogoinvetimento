@@ -30,7 +30,7 @@ export function StartMenu({ estado, menu, onEscolher, onVoltar }: Props) {
             B: voltar
           </button>
         </div>
-        <div style={{ flex: 1, minHeight: 0, fontSize: u(9), lineHeight: u(12) }}>
+        <div style={{ flex: 1, minHeight: 0, fontSize: u(8), lineHeight: u(11), overflow: 'auto' }}>
           <Conteudo aba={menu.aba} estado={estado} />
         </div>
       </div>
@@ -53,7 +53,7 @@ function Linha({ nome, valor, nota, cor }: { nome: string; valor: string; nota: 
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: u(6), padding: `${u(2)} 0`, borderBottom: `${u(1)} solid #e4e9f2` }}>
       <div>
         <div style={{ color: cor, fontWeight: 700 }}>{nome}</div>
-        <div style={{ fontSize: u(7.5), lineHeight: u(9), color: '#7a8298' }}>{nota}</div>
+        <div style={{ fontSize: u(6), lineHeight: u(8), color: '#7a8298' }}>{nota}</div>
       </div>
       <div style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{valor}</div>
     </div>
@@ -81,14 +81,14 @@ function Conteudo({ aba, estado: s }: { aba: Aba; estado: PlayerState }) {
       return (
         <div>
           <Linha nome="CARTEIRA" valor={`${fmt(s.saldo)} moedas`} nota="Dinheiro para gastar." cor="#c08a10" />
-          <Linha nome="MEALHEIRO" valor={`${fmt(s.poupanca)} moedas`} nota="Guardado. Cresce um bocadinho todas as semanas (juro)." cor="#d04880" />
+          <Linha nome="MEALHEIRO" valor={`${fmt(s.poupanca)} moedas`} nota="Guardado. Cresce todas as semanas (juro)." cor="#d04880" />
           <Linha
             nome="INVESTIMENTO"
             valor={`${fmt(s.investimento.amount)} moedas`}
             nota={s.investimento.amount > 0 ? `Em ${risco}: pode subir ou descer.` : 'Ainda não investiste. Vai ao Banco!'}
             cor="#2a8a5a"
           />
-          <Linha nome="TOTAL" valor={`${fmt(s.saldo + s.poupanca + s.investimento.amount)} moedas`} nota="Tudo o que tens, somado." cor="#3a4262" />
+          <Linha nome="TOTAL" valor={`${fmt(s.saldo + s.poupanca + s.investimento.amount)} moedas`} nota="Tudo somado." cor="#3a4262" />
         </div>
       )
     }

@@ -312,7 +312,7 @@ export function desenharEdificio(ctx: CanvasRenderingContext2D, e: EdificioDef) 
 
 // ---------- mobília e objetos ----------
 
-function circulo(ctx: CanvasRenderingContext2D, cx: number, cy: number, raio: number, cor: string, contorno?: string) {
+export function circulo(ctx: CanvasRenderingContext2D, cx: number, cy: number, raio: number, cor: string, contorno?: string) {
   for (let dy = -raio; dy <= raio; dy++)
     for (let dx = -raio; dx <= raio; dx++) {
       const d = dx * dx + dy * dy
