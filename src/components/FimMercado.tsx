@@ -9,9 +9,12 @@ import { GrowthChart } from './GrowthChart'
 interface FimMercadoProps {
   state: EstadoMercado
   onReiniciar: () => void
+  /** Nome do nível seguinte, se houver. */
+  proximo?: string
+  onProximo?: () => void
 }
 
-export function FimMercado({ state: s, onReiniciar }: FimMercadoProps) {
+export function FimMercado({ state: s, onReiniciar, proximo, onProximo }: FimMercadoProps) {
   const total = patrimonioM(s)
   const casa = total >= META_CASA
   const media = (s.stats.relacoes + s.stats.saude + s.stats.carreira) / 3
@@ -66,8 +69,13 @@ export function FimMercado({ state: s, onReiniciar }: FimMercadoProps) {
           Simulação educativa: ativos fictícios e valores simplificados (impostos, juros, salários). Nada neste jogo é aconselhamento financeiro.
         </p>
 
-        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: 18, padding: 10 }}>
-          Jogar outra vez
+        {proximo && onProximo && (
+          <button onClick={onProximo} className="botao-pixel" style={{ width: '100%', fontSize: 16, padding: 10, marginBottom: 10, background: '#2a9a5a' }}>
+            Continuar para {proximo}
+          </button>
+        )}
+        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: proximo ? 14 : 18, padding: proximo ? 8 : 10, background: proximo ? '#8890a8' : undefined }}>
+          {proximo ? 'Começar de novo' : 'Jogar outra vez'}
         </button>
       </div>
     </div>

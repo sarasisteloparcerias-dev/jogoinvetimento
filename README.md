@@ -29,6 +29,13 @@ npm run build
 npm run preview
 ```
 
+## Progresso e níveis
+
+O jogo fica guardado no próprio browser: ao voltar, o ecrã inicial mostra
+**CONTINUAR**. No fim de cada nível há o botão **Continuar para...**, que leva a mesma
+personagem ao nível seguinte (Vila Moeda → A Cidade → O Mercado), com parte do dinheiro
+que juntou.
+
 ## Como se joga
 
 | Tecla | Botão no ecrã | O que faz |
@@ -255,7 +262,6 @@ src/
 
 ## Próximos passos (não implementados neste protótipo)
 
-- Guardar o progresso (continuar o jogo noutro dia).
 - Som e música.
 - Mais zonas para explorar fora da vila e mais personagens com histórias.
 

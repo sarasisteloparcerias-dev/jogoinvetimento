@@ -60,7 +60,14 @@ const TEXTOS = {
   },
 }
 
-export function Intro({ modo = 'reino', onConcluir }: { modo?: 'reino' | 'cidade' | 'mercado'; onConcluir: (nome: string, avatar: AvatarConfig) => void }) {
+interface PropsIntro {
+  modo?: 'reino' | 'cidade' | 'mercado'
+  /** Personagem que vem do nível anterior: não se volta a pedir nome nem aspeto. */
+  existente?: { nome: string; avatar: AvatarConfig; linhas: string[] }
+  onConcluir: (nome: string, avatar: AvatarConfig) => void
+}
+
+export function Intro({ modo = 'reino', existente, onConcluir }: PropsIntro) {
   const textos = TEXTOS[modo]
   const dlg = useDialogo()
   const [fase, setFase] = useState<Fase>('falas')
@@ -79,10 +86,17 @@ export function Intro({ modo = 'reino', onConcluir }: { modo?: 'reino' | 'cidade
     if (iniciado.current) return
     iniciado.current = true
     void (async () => {
+      if (existente) {
+        // As boas-vindas sem a última pergunta ("como te chamas?").
+        await dlg.say([...existente.linhas, ...textos.boasVindas.slice(1, -1)], 'Mestre Moedas')
+        await dlg.say(textos.fim(existente.nome).slice(1), 'Mestre Moedas')
+        onConcluir(existente.nome, existente.avatar)
+        return
+      }
       await dlg.say(textos.boasVindas, 'Mestre Moedas')
       setFase('nome')
     })()
-  }, [dlg, textos])
+  }, [dlg, textos, existente, onConcluir])
 
   function mudar(l: number, passo: number) {
     const ciclo = (lista: string[], atual: string) => lista[(lista.indexOf(atual) + passo + lista.length) % lista.length]

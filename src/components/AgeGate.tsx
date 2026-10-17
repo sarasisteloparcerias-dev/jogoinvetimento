@@ -1,13 +1,19 @@
 import { useState } from 'react'
 import { AVATAR_PADRAO } from '../game/data'
 import { MENTOR } from '../game/mentor'
-import { framesAdolescente } from '../game/pixel/sprites'
+import type { Gravacao, Modo } from '../game/gravar'
+import { resumoGravacao } from '../game/niveis'
+import { framesAdolescente, framesPersonagem } from '../game/pixel/sprites'
+import type { AvatarConfig } from '../game/types'
 import { SpriteView } from './gba/ui'
 
-export type Modo = 'reino' | 'cidade' | 'mercado'
+export type { Modo }
 
 interface AgeGateProps {
   onEscolherModo: (modo: Modo) => void
+  gravacao: Gravacao | null
+  onContinuar: () => void
+  onApagar: () => void
 }
 
 /** 8-11: Vila Moeda · 12-14: escolhem · 15-17: A Cidade · 18+: O Mercado. */
@@ -18,7 +24,7 @@ function modoParaIdade(idade: number): Modo | 'escolher' {
   return 'mercado'
 }
 
-export function AgeGate({ onEscolherModo }: AgeGateProps) {
+export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: AgeGateProps) {
   const [idade, setIdade] = useState<number | ''>('')
   const [escolher, setEscolher] = useState(false)
 
@@ -68,6 +74,25 @@ export function AgeGate({ onEscolherModo }: AgeGateProps) {
         </div>
         <h1 className="titulo-jogo">VILA MOEDA</h1>
         <p style={{ color: '#5a6280', marginBottom: 20 }}>Uma aventura para aprender a poupar e a investir.</p>
+
+        {gravacao && (
+          <div style={{ marginBottom: 20 }}>
+            <button type="button" className="cartao-modo" onClick={onContinuar} style={{ width: '100%', flexDirection: 'row', textAlign: 'left' }}>
+              <SpriteView
+                avatar={(gravacao.estado as { avatar: AvatarConfig }).avatar}
+                escala="2px"
+                sprites={gravacao.modo === 'reino' && !gravacao.fim ? framesPersonagem : framesAdolescente}
+              />
+              <span style={{ flex: 1 }}>
+                <strong style={{ display: 'block', marginBottom: 4 }}>{gravacao.fim ? 'PASSAR AO NÍVEL SEGUINTE' : 'CONTINUAR'}</strong>
+                {resumoGravacao(gravacao.modo, gravacao.estado, gravacao.fim)}
+              </span>
+            </button>
+            <button type="button" onClick={onApagar} style={{ marginTop: 6, color: '#8890a8', fontSize: 11 }}>
+              Apagar o jogo guardado
+            </button>
+          </div>
+        )}
 
         <label htmlFor="idade" style={{ display: 'block', marginBottom: 6 }}>
           Quantos anos tens?

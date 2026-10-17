@@ -8,9 +8,12 @@ import { GrowthChart } from './GrowthChart'
 interface FimDeJogoProps {
   state: PlayerState
   onReiniciar: () => void
+  /** Nome do nível seguinte, se houver. */
+  proximo?: string
+  onProximo?: () => void
 }
 
-export function FimDeJogo({ state, onReiniciar }: FimDeJogoProps) {
+export function FimDeJogo({ state, onReiniciar, proximo, onProximo }: FimDeJogoProps) {
   const patrimonio = state.saldo + state.poupanca + state.investimento.amount
   const mediaStats = (state.stats.relacoes + state.stats.saude + state.stats.educacao) / 3
 
@@ -58,8 +61,13 @@ export function FimDeJogo({ state, onReiniciar }: FimDeJogoProps) {
           <GrowthChart history={state.history} />
         </div>
 
-        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: 18, padding: 10 }}>
-          Jogar outra vez
+        {proximo && onProximo && (
+          <button onClick={onProximo} className="botao-pixel" style={{ width: '100%', fontSize: 16, padding: 10, marginBottom: 10, background: '#2a9a5a' }}>
+            Continuar para {proximo}
+          </button>
+        )}
+        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: proximo ? 14 : 18, padding: proximo ? 8 : 10, background: proximo ? '#8890a8' : undefined }}>
+          {proximo ? 'Começar de novo' : 'Jogar outra vez'}
         </button>
       </div>
     </div>

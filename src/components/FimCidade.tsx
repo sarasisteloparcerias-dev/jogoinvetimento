@@ -9,9 +9,12 @@ import { GrowthChart } from './GrowthChart'
 interface FimCidadeProps {
   state: EstadoCidade
   onReiniciar: () => void
+  /** Nome do nível seguinte, se houver. */
+  proximo?: string
+  onProximo?: () => void
 }
 
-export function FimCidade({ state: s, onReiniciar }: FimCidadeProps) {
+export function FimCidade({ state: s, onReiniciar, proximo, onProximo }: FimCidadeProps) {
   const total = patrimonio(s)
   const viagem = poupadoViagem(s) >= META_VIAGEM || s.crachas.includes('viagem')
   const media = (s.stats.relacoes + s.stats.saude + s.stats.educacao) / 3
@@ -63,8 +66,13 @@ export function FimCidade({ state: s, onReiniciar }: FimCidadeProps) {
           Simulação educativa: o dinheiro e as empresas são fictícios. Nada neste jogo é aconselhamento financeiro.
         </p>
 
-        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: 18, padding: 10 }}>
-          Jogar outra vez
+        {proximo && onProximo && (
+          <button onClick={onProximo} className="botao-pixel" style={{ width: '100%', fontSize: 16, padding: 10, marginBottom: 10, background: '#2a9a5a' }}>
+            Continuar para {proximo}
+          </button>
+        )}
+        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: proximo ? 14 : 18, padding: proximo ? 8 : 10, background: proximo ? '#8890a8' : undefined }}>
+          {proximo ? 'Começar de novo' : 'Jogar outra vez'}
         </button>
       </div>
     </div>
