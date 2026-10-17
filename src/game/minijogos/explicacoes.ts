@@ -38,21 +38,66 @@ interface Pergunta {
   certa: number
 }
 
-/** Explicações: ajuda um colega mais novo respondendo certo e depressa. */
+/** Perguntas do exame de código (regras portuguesas, simplificadas). */
+export const PERGUNTAS_CODIGO: string[][] = [
+  ['Numa passadeira com peões a atravessar, deves...', 'Parar e deixar passar', 'Buzinar', 'Acelerar', 'Passar devagar'],
+  ['Velocidade máxima dentro das localidades (carro)?', '50 km/h', '70 km/h', '90 km/h', '30 km/h'],
+  ['Em Portugal circula-se...', 'Pela direita', 'Pela esquerda', 'Ao meio', 'Onde houver espaço'],
+  ['Semáforo amarelo intermitente significa...', 'Passar com cuidado', 'Parar sempre', 'Acelerar', 'Proibido passar'],
+  ['Álcool no sangue máximo com carta há menos de 3 anos?', '0,2 g/l', '0,5 g/l', '0,8 g/l', '1,2 g/l'],
+  ['O cinto de segurança é obrigatório...', 'Para todos', 'Só para o condutor', 'Só à frente', 'Só na autoestrada'],
+  ['Telemóvel na mão a conduzir...', 'É proibido', 'Pode-se no semáforo', 'Pode-se em reta', 'Só chamadas curtas'],
+  ['Num cruzamento sem sinais, tem prioridade quem vem...', 'Da direita', 'Da esquerda', 'De frente', 'Mais depressa'],
+  ['Velocidade máxima em autoestrada (carro)?', '120 km/h', '100 km/h', '140 km/h', '90 km/h'],
+  ['O sinal de STOP obriga a...', 'Parar sempre', 'Abrandar', 'Buzinar', 'Parar se vier alguém'],
+  ['Crianças pequenas no carro viajam...', 'Em cadeirinha própria', 'Ao colo', 'À frente sem cinto', 'Como quiserem'],
+  ['Antes de mudar de faixa deves...', 'Olhar e fazer pisca', 'Acelerar', 'Buzinar', 'Travar a fundo'],
+]
+
+interface OpcoesQuiz {
+  titulo: string
+  instrucoes: string[]
+  perguntas: string[][]
+  n: number
+  segundos: number
+}
+
+const EXPLICACOES: OpcoesQuiz = {
+  titulo: 'EXPLICAÇÕES',
+  instrucoes: ['Responde às perguntas do teu aluno.', 'Setas: escolher · A: responder.', `Tens ${POR_PERGUNTA} segundos por pergunta.`],
+  perguntas: PERGUNTAS,
+  n: N_PERGUNTAS,
+  segundos: POR_PERGUNTA,
+}
+
+export const EXAME_CODIGO: OpcoesQuiz = {
+  titulo: 'EXAME DE CÓDIGO',
+  instrucoes: ['7 perguntas sobre as regras da estrada.', 'Setas: escolher · A: responder.', 'Para passar, só podes errar 1.'],
+  perguntas: PERGUNTAS_CODIGO,
+  n: 7,
+  segundos: 15,
+}
+
+/** Quiz de escolha múltipla: as explicações e o exame de código. */
 export class Explicacoes implements MiniJogo {
-  titulo = 'EXPLICAÇÕES'
-  instrucoes = ['Responde às perguntas do teu aluno.', 'Setas: escolher · A: responder.', `Tens ${POR_PERGUNTA} segundos por pergunta.`]
+  titulo: string
+  instrucoes: string[]
   terminado = false
   private perguntas: Pergunta[]
   private atual = 0
   private cursor = 0
-  private t = POR_PERGUNTA
+  private t: number
+  private segundos: number
   private certas = 0
   private feedback: { certo: boolean; t: number } | null = null
 
-  constructor() {
-    this.perguntas = baralhar(PERGUNTAS)
-      .slice(0, N_PERGUNTAS)
+  constructor(op: OpcoesQuiz = EXPLICACOES) {
+    this.titulo = op.titulo
+    this.instrucoes = op.instrucoes
+    this.segundos = op.segundos
+    this.t = op.segundos
+    this.perguntas = baralhar(op.perguntas)
+      .slice(0, op.n)
       .map(([texto, certa, ...erradas]) => {
         const opcoes = baralhar([certa, ...erradas])
         return { texto, opcoes, certa: opcoes.indexOf(certa) }
@@ -67,7 +112,7 @@ export class Explicacoes implements MiniJogo {
         this.feedback = null
         this.atual++
         this.cursor = 0
-        this.t = POR_PERGUNTA
+        this.t = this.segundos
         if (this.atual >= this.perguntas.length) this.terminado = true
       }
       return

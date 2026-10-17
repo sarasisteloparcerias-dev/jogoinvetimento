@@ -10,6 +10,8 @@ export type TipoMiniJogo =
   | 'explicacoes'
   | 'emails'
   | 'bowling'
+  | 'codigo'
+  | 'conducao'
 
 export type TeclaJogo = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'A' | 'B'
 

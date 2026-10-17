@@ -867,6 +867,7 @@ const SIMBOLOS: Record<string, string[]> = {
   irs: ['XXXXXX...', 'X....XX..', 'X.XX.XXX.', 'X......X.', 'X.XXXX.X.', 'X......X.', 'X.XXXX.X.', 'X......X.', 'XXXXXXXX.'],
   aumento: ['.....XXXX', '.......XX', '......X.X', '.....X...', 'X...X....', 'XX.X.....', 'X.X......', 'X........', 'XXXXXXXXX'],
   casa: ['....X....', '...XXX...', '..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', '.X.....X.', '.X.XX..X.', '.X.XX..X.', '.XXXXXXX.'],
+  carta: ['.........', '..XXXXX..', '.X.X.X.X.', 'XXXXXXXXX', 'XXXXXXXXX', 'X.XXXXX.X', '.X.....X.', '.........', '.........'],
   viagem: ['....X....', '....X....', '...XXX...', '.XXXXXXX.', 'XXXXXXXXX', '....X....', '....X....', '...XXX...', '..XX.XX..'],
 }
 
@@ -889,6 +890,7 @@ export const COR_CRACHA: Record<string, string> = {
   irs: '#7a8496',
   aumento: '#2a9a5a',
   casa: '#e8743a',
+  carta: '#e04848',
 }
 
 const cacheCracha = new Map<string, HTMLCanvasElement>()

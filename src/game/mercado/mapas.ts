@@ -11,6 +11,7 @@ const AVATARES = {
   carla: { pele: '#f1c27d', cabelo: '#d4a017', roupa: '#e0709a', cabeloComprido: true },
   lurdes: { pele: '#e0ac69', cabelo: '#a83232', roupa: '#10b981', cabeloComprido: true },
   nuno: { pele: '#8d5524', cabelo: '#2d1b0e', roupa: '#f97316' },
+  vera: { pele: '#f1c27d', cabelo: '#a83232', roupa: '#e04848', cabeloComprido: true },
 }
 
 export const RUA: MapaDef = {
@@ -29,6 +30,7 @@ export const RUA: MapaDef = {
     { x: 28, y: 13, w: 6, h: 6, cor: 'rosa', estilo: 'predio', porta: 2, janelas: [0, 1, 3, 4, 5], letreiro: 'CASAS', toldo: '#e8743a', interior: 'imobiliaria' },
     { x: 11, y: 23, w: 4, h: 4, cor: 'laranja', porta: 1, janelas: [3], chamine: true, interior: 'casa_pais' },
     { x: 21, y: 23, w: 5, h: 4, cor: 'lilas', estilo: 'predio', porta: 2, janelas: [0, 1, 3, 4], letreiro: 'GYM', interior: 'ginasio' },
+    { x: 32, y: 23, w: 3, h: 4, cor: 'vermelho', estilo: 'predio', porta: 1, janelas: [0, 2], letreiro: 'CARTA', interior: 'escola_conducao' },
   ],
   props: [
     { tipo: 'candeeiro', x: 1, y: 8 },
@@ -52,7 +54,7 @@ export const RUA: MapaDef = {
     { x: 8, y: 13, texto: 'BANCO PONTE. O Mestre Moedas é agora planeador financeiro.' },
     { x: 27, y: 18, texto: 'À esquerda: SUPERMERCADO. À direita: IMOBILIÁRIA (mudar de casa).' },
     { x: 15, y: 23, texto: 'PARQUE DA CIDADE. A casa dos teus pais é ali ao lado.' },
-    { x: 20, y: 23, texto: 'GINÁSIO E CAMPO DE JOGOS.' },
+    { x: 20, y: 23, texto: 'GINÁSIO E CAMPO DE JOGOS. Ao fundo, a ESCOLA DE CONDUÇÃO.' },
   ],
   npcs: [
     { id: 'rui', nome: 'Rui', avatar: AVATARES.rui, x: 8, y: 26, dir: 'right', script: 'amigos' },
@@ -188,6 +190,26 @@ export const CASA_PAIS: MapaDef = {
   ],
 }
 
+export const ESCOLA_CONDUCAO: MapaDef = {
+  id: 'escola_conducao',
+  nome: 'ESCOLA DE CONDUÇÃO',
+  tipo: 'interior',
+  grelha: sala(12, 9),
+  saida: { x: 6, y: 8 },
+  chao: 'azulejo',
+  parede: '#fbe8e8',
+  props: [
+    { tipo: 'quadro', x: 1, y: 0, w: 3, h: 2, script: 'sinais' },
+    { tipo: 'carteira', x: 1, y: 4 },
+    { tipo: 'carteira', x: 2, y: 4 },
+    { tipo: 'carteira', x: 1, y: 6 },
+    { tipo: 'carteira', x: 2, y: 6 },
+    { tipo: 'computador', x: 9, y: 2, script: 'simulador' },
+    { tipo: 'planta', x: 11, y: 2 },
+  ],
+  npcs: [{ id: 'vera', nome: 'Instrutora Vera', avatar: AVATARES.vera, x: 7, y: 3, dir: 'down', script: 'vera' }],
+}
+
 export const MAPAS_MERCADO: Record<string, MapaDef> = {
   rua: RUA,
   casa: QUARTO,
@@ -200,4 +222,5 @@ export const MAPAS_MERCADO: Record<string, MapaDef> = {
   ginasio: GINASIO,
   casa_pais: CASA_PAIS,
   hospital: HOSPITAL,
+  escola_conducao: ESCOLA_CONDUCAO,
 }

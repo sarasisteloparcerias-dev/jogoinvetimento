@@ -129,7 +129,8 @@ export function custoSupermercado(s: EstadoMercado) {
 }
 
 export function custoTransportes(s: EstadoMercado) {
-  return round2(65 * s.indicePrecos)
+  // com carro já não precisa do passe: fica só o telemóvel
+  return round2((s.carro ? 25 : 65) * s.indicePrecos)
 }
 
 /** As despesas fixas de um mês (sem investimentos nem extras). */
@@ -334,7 +335,7 @@ export function avancarMes(antes: EstadoMercado): { estado: EstadoMercado; notic
 
   const efeitos: Partial<StatsAdulto> = prof.efeitosMes
   s.stats = {
-    relacoes: clamp(s.stats.relacoes - 3 + (efeitos.relacoes ?? 0)),
+    relacoes: clamp(s.stats.relacoes - 3 + (efeitos.relacoes ?? 0) + (s.carro ? 1 : 0)),
     saude: clamp(s.stats.saude - 3 + (s.casa === 't1' ? 1 : 0) + (efeitos.saude ?? 0)),
     carreira: clamp(s.stats.carreira - 1 + (efeitos.carreira ?? 0)),
   }

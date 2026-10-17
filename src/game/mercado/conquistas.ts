@@ -62,6 +62,15 @@ export const CONQUISTAS_MERCADO: ConquistaCidade[] = [
     licao: ['Um ano inteiro sem pagar juros! As dívidas caras, como as do cartão de crédito, comem qualquer poupança.', 'Se usares cartão de crédito, paga sempre o valor total no fim do mês.'],
   },
   {
+    id: 'carta',
+    nome: 'Carta de Condução',
+    objetivo: 'Tira a carta na escola de condução (código e exame prático).',
+    licao: [
+      'Tens carta! Agora a grande pergunta: compensa ter carro?',
+      'Um carro custa muito mais do que o preço de compra: seguro, combustível, imposto, manutenção e estacionamento, todos os meses.',
+    ],
+  },
+  {
     id: 'casa',
     nome: 'Entrada da Casa',
     objetivo: 'Chega a 8.000€ de património líquido (o que tens menos o que deves).',

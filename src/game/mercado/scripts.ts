@@ -36,6 +36,14 @@ export type CtxMercado = CtxJogo<EstadoMercado>
 type Ctx = CtxMercado
 
 const MESTRE = 'Mestre Moedas'
+/** Carta e carro: valores aproximados, só para o jogo. */
+const INSCRICAO_CARTA = 650
+const REPETIR_CODIGO = 30
+const REPETIR_CONDUCAO = 90
+const PRECO_CARRO = 6000
+const PRESTACAO_CARRO = 148
+const CUSTO_CARRO_MES = 160
+const VALOR_REVENDA = 4200
 
 function mudar(ctx: Ctx, f: (s: EstadoMercado) => EstadoMercado) {
   ctx.definir(f(ctx.estado()))
@@ -343,6 +351,89 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     await verificarConquistasM(ctx)
   },
 
+  async vera(ctx) {
+    const quem = 'Instrutora Vera'
+    const s = ctx.estado()
+    if (!s.carta) {
+      await ctx.say(
+        [
+          'Olá! Queres tirar a carta de condução (carro)?',
+          `A inscrição custa ${euros(INSCRICAO_CARTA)}: inclui as aulas de código, as aulas de condução e o primeiro exame de cada. Se chumbares, há uma taxa para repetir. (Valores aproximados.)`,
+        ],
+        quem,
+      )
+      const r = await ctx.ask('Inscreves-te?', ['SIM', 'AINDA NÃO'], quem, 1)
+      if (r !== 0) return ctx.say('Pensa com calma. A carta é um investimento: abre portas, mas custa dinheiro e tempo.', quem)
+      if (s.conta < INSCRICAO_CARTA) return ctx.say(`Precisas de ${euros(INSCRICAO_CARTA)} na conta. Junta primeiro!`, quem)
+      mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - INSCRICAO_CARTA), carta: 'inscrito' }))
+      return ctx.say(['Inscrição feita! Primeiro, o exame de código: regras de trânsito e sinais.', 'Quando quiseres fazer o exame, fala comigo.'], quem)
+    }
+    if (s.carta === 'inscrito' || s.carta === 'codigo') {
+      const codigo = s.carta === 'inscrito'
+      const taxa = codigo ? REPETIR_CODIGO : REPETIR_CONDUCAO
+      const repetir = tem(ctx, codigo ? 'chumbou_codigo' : 'chumbou_conducao')
+      const r = await ctx.ask(
+        `${codigo ? 'Exame de código' : 'Exame de condução'}${repetir ? ` (repetir custa ${euros(taxa)})` : ''}. Vamos a isso?`,
+        ['FAZER O EXAME', 'AINDA NÃO'],
+        quem,
+        1,
+      )
+      if (r !== 0) return ctx.say('Estuda mais um bocadinho. O simulador ali ao lado ajuda!', quem)
+      if (repetir) {
+        if (ctx.estado().conta < taxa) return ctx.say(`Precisas de ${euros(taxa)} para a taxa do exame.`, quem)
+        mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - taxa) }))
+      }
+      await ctx.say(codigo ? 'Boa sorte! Lê bem cada pergunta.' : 'Cinto posto, espelhos ajustados... vamos!', quem)
+      const jogo = await ctx.jogar(codigo ? 'codigo' : 'conducao')
+      const passou = codigo ? jogo.pontos >= 6 : jogo.pontos >= 1
+      if (!passou) {
+        comFlag(ctx, codigo ? 'chumbou_codigo' : 'chumbou_conducao')
+        return ctx.say(
+          [`${jogo.texto}.`, `Chumbaste desta vez. Acontece a muita gente! Para repetir, a taxa é ${euros(taxa)}.`, 'Errar sai caro: mais uma razão para estudar bem antes.'],
+          quem,
+        )
+      }
+      mudar(ctx, (x) => ({ ...x, carta: codigo ? 'codigo' : 'carta' }))
+      if (codigo) return ctx.say([`${jogo.texto}. Passaste no código!`, 'Agora as aulas de condução e depois o exame prático. Fala comigo quando quiseres.'], quem)
+      await ctx.say([`${jogo.texto}`, 'Parabéns, tens carta! Durante os primeiros 3 anos, atenção: o limite de álcool é mais baixo.'], quem)
+      return ctx.cracha('carta')
+    }
+    // já tem carta: comprar ou vender carro
+    if (!s.carro) {
+      await ctx.say(
+        [
+          `Um carro usado custa uns ${euros(PRECO_CARRO)}. Depois, todos os meses: seguro, combustível, imposto, manutenção e estacionamento, uns ${euros(CUSTO_CARRO_MES)}.`,
+          'Em troca, deixas de precisar do passe e ganhas liberdade. Compensa? Depende de quanto o vais usar.',
+        ],
+        quem,
+      )
+      const r = await ctx.ask('Compras um carro?', ['A PRONTO', `A CRÉDITO (48x${PRESTACAO_CARRO}€)`, 'NÃO, FICO COM O PASSE'], quem, 2)
+      if (r === 2) return ctx.say('Boa decisão para muita gente na cidade: transportes públicos saem bem mais baratos.', quem)
+      if (r === 0 && ctx.estado().conta < PRECO_CARRO) return ctx.say(`Precisas de ${euros(PRECO_CARRO)} na conta para comprar a pronto.`, quem)
+      mudar(ctx, (x) => ({
+        ...x,
+        carro: true,
+        conta: r === 0 ? round2(x.conta - PRECO_CARRO) : x.conta,
+        pagamentos: [
+          ...x.pagamentos,
+          { id: 'carro', nome: 'Carro (seguro, combustível...)', valor: CUSTO_CARRO_MES, restam: null, cancelavel: false },
+          ...(r === 1 ? [{ id: 'credito_carro', nome: 'Crédito do carro', valor: PRESTACAO_CARRO, restam: 48, cancelavel: false }] : []),
+        ],
+        flags: r === 1 ? [...x.flags, 'credito_pessoal'] : x.flags,
+      }))
+      return ctx.say(
+        r === 1
+          ? `Carro novo à porta! Mas a crédito pagas ${euros(PRESTACAO_CARRO * 48)} por um carro de ${euros(PRECO_CARRO)}, além dos custos de todos os meses.`
+          : 'Carro novo à porta! Lembra-te: um carro perde valor todos os anos.',
+        quem,
+      )
+    }
+    const r = await ctx.ask(`Queres vender o carro? Já vale menos: recebes ${euros(VALOR_REVENDA)}.`, ['VENDER', 'FICAR COM ELE'], quem, 1)
+    if (r !== 0) return ctx.say('Boas viagens!', quem)
+    mudar(ctx, (x) => ({ ...x, carro: false, conta: round2(x.conta + VALOR_REVENDA), pagamentos: x.pagamentos.filter((p) => p.id !== 'carro') }))
+    await ctx.say(['Vendido! Voltas ao passe.', 'Se ainda tinhas crédito do carro, as prestações continuam até ao fim.'], quem)
+  },
+
   async medica(ctx) {
     await ctx.say('Descansa. E da próxima vez, passadeira!', 'Dra. Ana')
   },
@@ -587,6 +678,17 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
 
   async bola(ctx) {
     await ACOES_NPC.duarte(ctx)
+  },
+
+  async sinais(ctx) {
+    await ctx.say(['No quadro: STOP (parar sempre), triângulo vermelho (dar prioridade), círculo vermelho com número (velocidade máxima).', 'E em letras grandes: "Nas passadeiras, o peão tem prioridade."'])
+  },
+
+  async simulador(ctx) {
+    const r = await ctx.ask('Simulador de exame de código. Treinar? (grátis)', ['SIM', 'NÃO'], undefined, 1)
+    if (r !== 0) return
+    const jogo = await ctx.jogar('codigo')
+    await ctx.say([`${jogo.texto}.`, jogo.pontos >= 6 ? 'Já podes ir a exame!' : 'Ainda não. Treina mais um bocadinho.'])
   },
 
   async trabalhar(ctx) {

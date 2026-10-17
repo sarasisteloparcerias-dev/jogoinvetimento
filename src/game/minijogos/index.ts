@@ -6,7 +6,8 @@ import { Bowling } from './bowling'
 import { Cafe } from './cafe'
 import { Emails } from './emails'
 import { Entregas } from './entregas'
-import { Explicacoes } from './explicacoes'
+import { Conducao } from './conducao'
+import { EXAME_CODIGO, Explicacoes } from './explicacoes'
 import { Futebol } from './futebol'
 import { Gelado } from './gelado'
 import { Ginasio } from './ginasio'
@@ -35,6 +36,10 @@ export function criarMiniJogo(tipo: TipoMiniJogo, avatar: AvatarConfig, sprites:
       return new Emails()
     case 'bowling':
       return new Bowling()
+    case 'codigo':
+      return new Explicacoes(EXAME_CODIGO)
+    case 'conducao':
+      return new Conducao()
     case 'gelado':
       return new Gelado()
   }

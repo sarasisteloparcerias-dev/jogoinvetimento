@@ -212,9 +212,17 @@ simulação educativa e não aconselhamento financeiro.
   phishing, lay-off, Black Friday, crédito para férias, telemóvel a prestações,
   casamento, herança, seguro de saúde, dentista, formação, trabalho extra, adotar um cão,
   subida da renda, multa...
-- **9 conquistas**: Fundo de Emergência (3 meses de despesas), IRS Entregue, Investidor
-  Regular, Carteira Diversificada, Mão Firme, Anti-Burla, Aumento, Zero Juros e Entrada
-  da Casa.
+- **10 conquistas**: Fundo de Emergência (3 meses de despesas), IRS Entregue, Investidor
+  Regular, Carteira Diversificada, Mão Firme, Anti-Burla, Aumento, Zero Juros, Carta de
+  Condução e Entrada da Casa.
+- **Carta de condução** na Escola de Condução (Instrutora Vera): inscrição (~650€),
+  **exame de código** (quiz com 7 perguntas sobre regras portuguesas, só se pode errar
+  1; há um simulador grátis para treinar) e **exame de condução** (mini-jogo: acelerar,
+  travar, mudar de faixa, parar nas passadeiras e nos vermelhos, não passar dos 50 km/h
+  e circular pela direita; chumba com mais de 1 falta). Repetir um exame tem taxa.
+  Com carta, decide-se se compensa ter **carro**: usado a pronto ou a crédito, mais
+  ~160€ por mês de seguro, combustível, imposto e manutenção (deixa de precisar do
+  passe). Pode vender-se, mas já vale menos.
 - **Painel** (START): BANCO, INVESTIR, MÊS (orçamento e taxa de poupança), JORNAL, METAS
   e PERFIL.
 
@@ -232,7 +240,8 @@ src/
       cenario.ts  - tiles, edifícios, mobília e ícones dos crachás
     minijogos/
       futebol.ts, bicicleta.ts, gelado.ts, cafe.ts, supermercado.ts, ginasio.ts,
-      entregas.ts, babysitting.ts, explicacoes.ts, emails.ts, bowling.ts - os 11 mini-jogos
+      entregas.ts, babysitting.ts, explicacoes.ts (e exame de código), emails.ts,
+      bowling.ts, conducao.ts - os mini-jogos
       tipos.ts, index.ts                  - interface comum e criação por tipo
     modo.ts       - o que todos os modos partilham (estado base e ações dos guiões)
     world/

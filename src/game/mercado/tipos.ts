@@ -29,6 +29,9 @@ export interface EstadoMercado extends EstadoBase {
   cartaoCredito: boolean
   salarioBruto: number
   profissao: Profissao
+  /** Carta de condução: inscrição, código feito, carta tirada. (Opcional: jogos guardados antes desta versão não têm.) */
+  carta?: 'inscrito' | 'codigo' | 'carta'
+  carro?: boolean
   casa: Casa
   marcaBranca: boolean
   ginasio: boolean
