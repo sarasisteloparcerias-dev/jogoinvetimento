@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { AgeGate } from './components/AgeGate'
 import { FimCidade } from './components/FimCidade'
 import { FimDeJogo } from './components/FimDeJogo'
+import { FimCasa } from './components/FimCasa'
 import { FimMercado } from './components/FimMercado'
 import { GameScreen } from './components/gba/GameScreen'
 import { Intro } from './components/gba/Intro'
+import { MODO_CASA } from './components/gba/modoCasa'
 import { MODO_CIDADE } from './components/gba/modoCidade'
 import { MODO_MERCADO } from './components/gba/modoMercado'
 import { MODO_VILA } from './components/gba/modoVila'
@@ -12,7 +14,7 @@ import { novoEstadoCidade } from './game/cidade/economia'
 import type { EstadoCidade } from './game/cidade/tipos'
 import { novoJogador } from './game/data'
 import { apagarGravacao, gravar, lerGravacao, type Gravacao, type Modo } from './game/gravar'
-import { novoEstadoMercado } from './game/mercado/economia'
+import { novoEstadoCasa, novoEstadoMercado } from './game/mercado/economia'
 import type { EstadoMercado } from './game/mercado/tipos'
 import { NOME_MODO, passarNivel, PROXIMO } from './game/niveis'
 import type { AvatarConfig, PlayerState } from './game/types'
@@ -59,6 +61,7 @@ export default function App() {
     if (continuacao) setEstado(continuacao.estado)
     else if (modo === 'cidade') setEstado(novoEstadoCidade(name, avatar))
     else if (modo === 'mercado') setEstado(novoEstadoMercado(name, avatar))
+    else if (modo === 'casa') setEstado(novoEstadoCasa(name, avatar))
     else setEstado(novoJogador(name, avatar))
     setTela('jogo')
   }
@@ -114,9 +117,11 @@ export default function App() {
       {tela === 'jogo' && modo === 'reino' && <GameScreen modo={MODO_VILA} estadoInicial={estado as PlayerState} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'jogo' && modo === 'cidade' && <GameScreen modo={MODO_CIDADE} estadoInicial={estado as EstadoCidade} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'jogo' && modo === 'mercado' && <GameScreen modo={MODO_MERCADO} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
+      {tela === 'jogo' && modo === 'casa' && <GameScreen modo={MODO_CASA} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'fim' && modo === 'reino' && <FimDeJogo state={estado as PlayerState} {...fimProps} />}
       {tela === 'fim' && modo === 'cidade' && <FimCidade state={estado as EstadoCidade} {...fimProps} />}
       {tela === 'fim' && modo === 'mercado' && <FimMercado state={estado as EstadoMercado} {...fimProps} />}
+      {tela === 'fim' && modo === 'casa' && <FimCasa state={estado as EstadoMercado} {...fimProps} />}
     </>
   )
 }

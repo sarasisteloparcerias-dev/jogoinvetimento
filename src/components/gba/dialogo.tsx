@@ -18,7 +18,8 @@ function largura(t: string) {
 export function paginar(texto: string): string[] {
   const linhas: string[] = []
   let atual = ''
-  for (const palavra of texto.split(/\s+/).filter(Boolean)) {
+  // só se parte nos espaços normais: o espaço dos milhares ("16 000,00€") não pode separar o número
+  for (const palavra of texto.split(/[ \t\n]+/).filter(Boolean)) {
     const tentativa = atual ? `${atual} ${palavra}` : palavra
     if (!atual || largura(tentativa) <= LARGURA_TEXTO) atual = tentativa
     else {

@@ -868,6 +868,10 @@ const SIMBOLOS: Record<string, string[]> = {
   aumento: ['.....XXXX', '.......XX', '......X.X', '.....X...', 'X...X....', 'XX.X.....', 'X.X......', 'X........', 'XXXXXXXXX'],
   casa: ['....X....', '...XXX...', '..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', '.X.....X.', '.X.XX..X.', '.X.XX..X.', '.XXXXXXX.'],
   carta: ['.........', '..XXXXX..', '.X.X.X.X.', 'XXXXXXXXX', 'XXXXXXXXX', 'X.XXXXX.X', '.X.....X.', '.........', '.........'],
+  chave: ['..XXX....', '.X...X...', '.X...X...', '..XXX....', '...X.....', '...X.....', '...XX....', '...X.....', '...XX....'],
+  amortizar: ['....X....', '....X....', '....X....', '....X....', 'X...X...X', '.X..X..X.', '..X.X.X..', '...XXX...', '....X....'],
+  imi: ['....X....', '...XXX...', '..XXXXX..', '.XXXXXXX.', '..X...X..', '..X.X.X..', '..X.X.X..', '..X...X..', '..XXXXX..'],
+  patrimonio: ['..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..'],
   viagem: ['....X....', '....X....', '...XXX...', '.XXXXXXX.', 'XXXXXXXXX', '....X....', '....X....', '...XXX...', '..XX.XX..'],
 }
 
@@ -891,6 +895,10 @@ export const COR_CRACHA: Record<string, string> = {
   aumento: '#2a9a5a',
   casa: '#e8743a',
   carta: '#e04848',
+  chave: '#e0b020',
+  amortizar: '#2a9a5a',
+  imi: '#7a8496',
+  patrimonio: '#c08a10',
 }
 
 const cacheCracha = new Map<string, HTMLCanvasElement>()

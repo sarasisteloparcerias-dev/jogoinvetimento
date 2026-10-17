@@ -16,19 +16,45 @@ interface AgeGateProps {
   onApagar: () => void
 }
 
-/** 8-11: Vila Moeda · 12-14: escolhem · 15-17: A Cidade · 18+: O Mercado. */
-function modoParaIdade(idade: number): Modo | 'escolher' {
+/** 8-11: Vila Moeda · 12-14: escolhem (Vila ou Cidade) · 15-17: A Cidade · 18+: escolhem (Mercado ou Casa). */
+function modoParaIdade(idade: number): Modo | 'escolher' | 'escolher18' {
   if (idade <= 11) return 'reino'
   if (idade <= 14) return 'escolher'
   if (idade <= 17) return 'cidade'
-  return 'mercado'
+  return 'escolher18'
 }
 
 export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: AgeGateProps) {
   const [idade, setIdade] = useState<number | ''>('')
-  const [escolher, setEscolher] = useState(false)
+  const [escolher, setEscolher] = useState<false | 'jovem' | 'adulto'>(false)
 
-  if (escolher) {
+  if (escolher === 'adulto') {
+    return (
+      <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
+        <div className="janela" style={{ maxWidth: 520, width: '100%', padding: 24, textAlign: 'center' }}>
+          <h1 className="titulo-jogo" style={{ fontSize: 18 }}>ESCOLHE O NÍVEL</h1>
+          <p style={{ color: '#5a6280', marginBottom: 16 }}>A Casa é a continuação d'O Mercado, mas também se pode começar por lá.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            <button className="cartao-modo" onClick={() => onEscolherModo('mercado')}>
+              <SpriteView avatar={AVATAR_PADRAO} escala="3px" sprites={framesAdolescente} />
+              <strong>O MERCADO</strong>
+              <span>Primeiro emprego a sério: salário, renda, impostos, investir e tirar a carta.</span>
+            </button>
+            <button className="cartao-modo" onClick={() => onEscolherModo('casa')}>
+              <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#0ea5e9' }} escala="3px" sprites={framesAdolescente} />
+              <strong>A CASA</strong>
+              <span>Comprar casa: crédito à habitação, taxa fixa ou variável, IMI, condomínio e obras.</span>
+            </button>
+          </div>
+          <button onClick={() => setEscolher(false)} style={{ marginTop: 16, color: '#8890a8', fontSize: 12 }}>
+            Voltar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (escolher === 'jovem') {
     return (
       <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
         <div className="janela" style={{ maxWidth: 520, width: '100%', padding: 24, textAlign: 'center' }}>
@@ -63,7 +89,8 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
           e.preventDefault()
           if (idade === '') return
           const m = modoParaIdade(idade)
-          if (m === 'escolher') setEscolher(true)
+          if (m === 'escolher') setEscolher('jovem')
+          else if (m === 'escolher18') setEscolher('adulto')
           else onEscolherModo(m)
         }}
       >

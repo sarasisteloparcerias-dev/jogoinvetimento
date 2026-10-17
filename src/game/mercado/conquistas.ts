@@ -81,3 +81,56 @@ export const CONQUISTAS_MERCADO: ConquistaCidade[] = [
 export function objetivoMercado(crachas: string[]) {
   return CONQUISTAS_MERCADO.find((c) => !crachas.includes(c.id)) ?? null
 }
+
+/** Conquistas do nível "A Casa". */
+export const CONQUISTAS_CASA: ConquistaCidade[] = [
+  {
+    id: 'chave',
+    nome: 'Chave na Mão',
+    objetivo: 'Compra a tua casa: escolhe-a na Imobiliária e pede o crédito no Banco Ponte.',
+    licao: [
+      'A casa é tua (e um bocadinho do banco, durante uns anos)!',
+      'Um crédito à habitação dura décadas: a prestação tem de caber no orçamento mesmo quando os juros sobem ou o rendimento desce.',
+    ],
+  },
+  {
+    id: 'emergencia',
+    nome: 'Fundo de Emergência',
+    objetivo: 'Tem no depósito 3 meses de despesas fixas.',
+    licao: ['Com casa própria, os imprevistos são maiores: obras, eletrodomésticos, condomínio.', 'O fundo de emergência evita que tenhas de pedir crédito caro quando algo avaria.'],
+  },
+  {
+    id: 'imi',
+    nome: 'IMI em Dia',
+    objetivo: 'Paga o IMI, o imposto anual sobre a casa (em maio).',
+    licao: ['Quem tem casa paga todos os anos o IMI à câmara municipal.', 'É um custo que se esquece facilmente quando se faz contas à compra de uma casa.'],
+  },
+  {
+    id: 'amortizar',
+    nome: 'Amortização',
+    objetivo: 'Amortiza parte do crédito antes do tempo, no Banco Ponte.',
+    licao: ['Amortizar é pagar parte da dívida antes do tempo: pagas menos juros no total.', 'Mas só faz sentido com o fundo de emergência em dia. Dinheiro posto na casa não se tira facilmente.'],
+  },
+  {
+    id: 'anti_burla',
+    nome: 'Anti-Burla',
+    objetivo: 'Não caias numa burla.',
+    licao: ['As Finanças e os bancos nunca pedem pagamentos por links em SMS.', 'Na dúvida, entra tu no site oficial ou liga para o número oficial.'],
+  },
+  {
+    id: 'aumento',
+    nome: 'Aumento',
+    objetivo: 'Consegue um aumento de salário (a Carreira conta).',
+    licao: ['Com um crédito de 30 anos, cada aumento de salário dá mais folga ao orçamento.', 'Investir em ti continua a ser dos melhores investimentos.'],
+  },
+  {
+    id: 'patrimonio',
+    nome: 'Património de 30 Mil',
+    objetivo: 'Chega a 30.000€ de património líquido (a casa conta, menos o que deves ao banco).',
+    licao: ['O teu património líquido passou os 30.000€!', 'Repara: cada prestação paga, a parte de capital, aumenta o teu património. A parte dos juros, não.'],
+  },
+]
+
+export function objetivoCasa(crachas: string[]) {
+  return CONQUISTAS_CASA.find((c) => !crachas.includes(c.id)) ?? null
+}

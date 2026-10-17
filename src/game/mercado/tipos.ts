@@ -1,13 +1,14 @@
 import type { Movimento, Noticia, Pagamento } from '../cidade/tipos'
 import type { EstadoBase } from '../modo'
 import type { HistoryPoint } from '../types'
+import type { Hipoteca } from './habitacao'
 import type { Profissao } from './profissoes'
 
 export type { Movimento, Noticia, Pagamento }
 
 export type AtivoM = 'obrig' | 'etf' | 'pixel' | 'brisa' | 'eco' | 'lua'
 
-export type Casa = 'pais' | 'quarto' | 't1'
+export type Casa = 'pais' | 'quarto' | 't1' | 'propria'
 
 export interface StatsAdulto {
   relacoes: number
@@ -32,6 +33,10 @@ export interface EstadoMercado extends EstadoBase {
   /** Carta de condução: inscrição, código feito, carta tirada. (Opcional: jogos guardados antes desta versão não têm.) */
   carta?: 'inscrito' | 'codigo' | 'carta'
   carro?: boolean
+  /** Nível "A Casa" (continuação d'O Mercado). */
+  nivel?: 'casa'
+  casaEscolhida?: string
+  hipoteca?: Hipoteca
   casa: Casa
   marcaBranca: boolean
   ginasio: boolean

@@ -294,11 +294,110 @@ export const EVENTOS_MERCADO: EventoMercado[] = [
   },
 ]
 
+const temCasa = (s: EstadoMercado) => !!s.hipoteca
+const reutilizar = (id: string, mes?: number) => ({ ...EVENTOS_MERCADO.find((e) => e.id === id)!, mes })
+
+/** Eventos do nível "A Casa": a vida de quem compra (ou ainda procura) casa. */
+export const EVENTOS_CASA: EventoMercado[] = [
+  {
+    id: 'burla_imi',
+    mes: 3,
+    titulo: 'SMS das "Finanças"',
+    texto: () => 'SMS: "Finanças: tem uma dívida de IMI. Pague hoje em financas-pagar.co para evitar penhora." O que fazes?',
+    opcoes: [
+      {
+        label: 'PAGAR NO LINK',
+        aplicar: (s) => {
+          const perda = Math.min(s.conta, 480)
+          return { estado: flag(conta(s, -perda), 'burlado'), texto: `Era falso! Perdeste ${euros(perda)}. As Finanças nunca pedem pagamentos por links em SMS.` }
+        },
+      },
+      { label: 'VER NO PORTAL OFICIAL', conquista: 'anti_burla', aplicar: (s) => ({ estado: s, texto: 'No portal oficial não havia dívida nenhuma. Era uma burla.' }) },
+      { label: 'APAGAR', conquista: 'anti_burla', aplicar: (s) => ({ estado: s, texto: 'Apagado. Desconfiar de pressa e de links é meio caminho andado.' }) },
+    ],
+  },
+  reutilizar('avaliacao', 12),
+  {
+    id: 'canos',
+    condicao: temCasa,
+    titulo: 'Obras inesperadas',
+    texto: (s) =>
+      s.hipoteca?.casa === 't0'
+        ? 'A canalização do T0 é antiga e começou a pingar por todo o lado. Arranjar tudo custa 3.500€.'
+        : 'O esquentador avariou de vez. Um novo, instalado, custa 450€.',
+    opcoes: [
+      {
+        label: 'ARRANJAR',
+        aplicar: (s) => {
+          const v = s.hipoteca?.casa === 't0' ? 3500 : 450
+          const r = gastar(s, v)
+          if (!r) return { estado: stats(s, { saude: -6 }), texto: `${SEM(v)} Vais viver com o problema até juntares o dinheiro.` }
+          return { estado: r.estado, texto: `Arranjado. Quem compra casa tem de contar com obras.${r.nota}` }
+        },
+      },
+      { label: 'ADIAR', aplicar: (s) => ({ estado: stats(s, { saude: -6 }), texto: 'Adiar obras costuma sair mais caro. Saúde -6.' }) },
+    ],
+  },
+  {
+    id: 'inundacao',
+    condicao: temCasa,
+    titulo: 'Cano rebentado!',
+    texto: () => 'Um cano rebentou e estragou o chão da sala: 1.800€ de estragos. Felizmente tens o seguro multirriscos (obrigatório com o crédito).',
+    opcoes: [{ label: 'ACIONAR O SEGURO', aplicar: (s) => ({ estado: conta(s, -150), texto: 'O seguro pagou tudo menos a franquia de 150€. É para isto que servem os seguros!' }) }],
+  },
+  {
+    id: 'condominio_extra',
+    condicao: temCasa,
+    titulo: 'Obras no prédio',
+    texto: () => 'A reunião de condomínio aprovou obras no telhado: cada casa paga 400€ extra.',
+    opcoes: [{ label: 'PAGAR', aplicar: (s) => {
+      const r = gastar(s, 400)
+      return r ? { estado: r.estado, texto: `Pago. O condomínio é de todos os vizinhos.${r.nota}` } : { estado: flag(s, 'divida_condominio'), texto: 'Ficaste a dever ao condomínio. Os vizinhos não gostaram.' }
+    } }],
+  },
+  {
+    id: 'eletrodomestico',
+    titulo: 'A máquina de lavar avariou',
+    texto: () => 'A máquina de lavar roupa deixou de funcionar. Uma nova custa 380€.',
+    opcoes: [
+      { label: 'COMPRAR NOVA', aplicar: pagarOuNao(() => 380, 'Máquina nova. Imprevistos destes acontecem a todos.') },
+      { label: 'LAVANDARIA', aplicar: (s) => ({ estado: { ...s, pagamentos: [...s.pagamentos, { id: 'lavandaria', nome: 'Lavandaria', valor: 25, restam: null, cancelavel: true }] }, texto: 'Lavandaria self-service: 25€ por mês. Podes cancelar em DÉBITOS.' }) },
+    ],
+  },
+  {
+    id: 'inquilino',
+    condicao: (s) => s.hipoteca?.casa === 't2' && !s.flags.includes('inquilino'),
+    titulo: 'Arrendar um quarto',
+    texto: () => 'Um colega procura quarto. No teu T2 sobra um: ele paga 300€ por mês. Arrendas?',
+    opcoes: [
+      { label: 'ARRENDAR', aplicar: (s) => ({ estado: stats(flag(s, 'inquilino'), { relacoes: -2 }), texto: 'Mais 300€ por mês! Atenção: as rendas recebidas pagam imposto (aqui, 25%). E dividir a casa tem custos na privacidade.' }) },
+      { label: 'NÃO', aplicar: (s) => ({ estado: s, texto: 'A tua casa, as tuas regras.' }) },
+    ],
+  },
+  {
+    id: 'consolidar',
+    titulo: 'Junte os seus créditos!',
+    texto: () => 'Anúncio: "Junte todos os seus créditos numa só prestação, muito mais baixa!" Pedes informações?',
+    opcoes: [
+      { label: 'PEDIR INFORMAÇÕES', aplicar: (s) => ({ estado: stats(s, { carreira: 1 }), texto: 'A prestação desce porque o prazo aumenta muito: no total pagarias muito mais juros. Ler as letras pequenas compensa.' }) },
+      { label: 'IGNORAR', aplicar: (s) => ({ estado: s, texto: 'Desconfia de soluções mágicas para dívidas.' }) },
+    ],
+  },
+  reutilizar('heranca'),
+  reutilizar('casamento'),
+  reutilizar('dentista'),
+  reutilizar('freelance'),
+  reutilizar('formacao'),
+  reutilizar('multa'),
+  { ...reutilizar('black_friday'), mes: 11 },
+]
+
 export function escolherEventoMercado(s: EstadoMercado): EventoMercado {
+  const lista = s.nivel === 'casa' ? EVENTOS_CASA : EVENTOS_MERCADO
   const vistos = new Set(s.flags.filter((f) => f.startsWith('ev_')).map((f) => f.slice(3)))
-  const fixo = EVENTOS_MERCADO.find((e) => e.mes === s.mes && !vistos.has(e.id))
+  const fixo = lista.find((e) => e.mes === s.mes && !vistos.has(e.id))
   if (fixo) return fixo
-  const livres = EVENTOS_MERCADO.filter((e) => e.mes === undefined && !vistos.has(e.id) && (e.condicao?.(s) ?? true))
+  const livres = lista.filter((e) => e.mes === undefined && !vistos.has(e.id) && (e.condicao?.(s) ?? true))
   if (livres.length) return livres[Math.floor(Math.random() * livres.length)]
   return EVENTOS_MERCADO.find((e) => e.id === 'freelance')!
 }

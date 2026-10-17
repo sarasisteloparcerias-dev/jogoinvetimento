@@ -1,6 +1,6 @@
 /** Guarda o jogo no próprio browser, para continuar noutro dia. */
 
-export type Modo = 'reino' | 'cidade' | 'mercado'
+export type Modo = 'reino' | 'cidade' | 'mercado' | 'casa'
 
 export interface Gravacao {
   v: 1

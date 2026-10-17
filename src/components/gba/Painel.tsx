@@ -1,5 +1,6 @@
 import { useImperativeHandle, useState, type ReactNode } from 'react'
-import { CONQUISTAS_MERCADO, objetivoMercado } from '../../game/mercado/conquistas'
+import { CONQUISTAS_CASA, CONQUISTAS_MERCADO, objetivoCasa, objetivoMercado } from '../../game/mercado/conquistas'
+import { META_PATRIMONIO_CASA, taxaAnual } from '../../game/mercado/habitacao'
 import {
   ACOES_M,
   ATIVO_M,
@@ -87,6 +88,14 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
           <Linha nome="DEPÓSITO" valor={euros(s.poupanca)} nota={`${pct(taxaDeposito(s))}/ano, menos 28% de imposto.`} />
           <Linha nome="PPR" valor={euros(s.ppr)} nota="Para a reforma. Desconta no IRS." />
           {(s.cartaoCredito || s.divida > 0) && <Linha nome="DÍVIDA" valor={euros(s.divida)} nota={s.cartaoCredito ? 'Cartão de crédito: ~21%/ano.' : 'Descoberto.'} cor={s.divida > 0 ? '#d03a3a' : undefined} />}
+          {s.hipoteca && (
+            <Linha
+              nome="CRÉDITO CASA"
+              valor={euros(s.hipoteca.divida)}
+              nota={`Taxa ${s.hipoteca.taxa} ${(Math.round(taxaAnual(s.hipoteca, s.mes) * 1000) / 10).toLocaleString('pt-PT')}%: ${euros(s.hipoteca.prestacao)}/mês.`}
+              cor="#d03a3a"
+            />
+          )}
           {dividaPrestacoes(s) > 0 && <Linha nome="PRESTAÇÕES" valor={euros(dividaPrestacoes(s))} nota="O que falta pagar em créditos." cor="#d03a3a" />}
         </>
       )
@@ -280,21 +289,24 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
     case 'metas': {
       titulo = 'METAS'
       const liq = patrimonioM(s)
-      const obj = objetivoMercado(s.crachas)
+      const casa = s.nivel === 'casa'
+      const meta = casa ? META_PATRIMONIO_CASA : META_CASA
+      const lista = casa ? CONQUISTAS_CASA : CONQUISTAS_MERCADO
+      const obj = casa ? objetivoCasa(s.crachas) : objetivoMercado(s.crachas)
       conteudo = (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>ENTRADA DA CASA</span>
+            <span>{casa ? 'PATRIMÓNIO' : 'ENTRADA DA CASA'}</span>
             <span>
-              {euros(liq)} / {euros(META_CASA)}
+              {euros(liq)} / {euros(meta)}
             </span>
           </div>
           <div style={{ height: u(6), background: '#e4e9f2', border: `${u(1)} solid #3a4262`, margin: `${u(2)} 0` }}>
-            <div style={{ height: '100%', width: `${Math.max(0, Math.min(100, (liq / META_CASA) * 100))}%`, background: '#e8743a' }} />
+            <div style={{ height: '100%', width: `${Math.max(0, Math.min(100, (liq / meta) * 100))}%`, background: '#e8743a' }} />
           </div>
           <div style={{ fontSize: u(5.5), color: '#7a8298', marginBottom: u(4) }}>Património líquido: tudo o que tens menos o que deves.</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: u(3) }}>
-            {CONQUISTAS_MERCADO.map((c) => (
+            {lista.map((c) => (
               <PixelImg key={c.id} src={iconeCracha(c.id, s.crachas.includes(c.id))} escala={u(1.3)} style={{ opacity: s.crachas.includes(c.id) ? 1 : 0.5 }} />
             ))}
           </div>

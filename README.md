@@ -9,7 +9,7 @@ modos estão feitos:
 | 8-11 | **Vila Moeda** (título de trabalho original: "O Reino") |
 | 12-14 | escolhem entre os dois no ecrã inicial |
 | 15-17 | **A Cidade** |
-| 18+ | **O Mercado** (vida adulta) |
+| 18+ | escolhem entre **O Mercado** (vida adulta) e **A Casa** (comprar casa) |
 
 Jogar online: https://sarasisteloparcerias-dev.github.io/jogoinvetimento/
 
@@ -33,8 +33,8 @@ npm run preview
 
 O jogo fica guardado no próprio browser: ao voltar, o ecrã inicial mostra
 **CONTINUAR**. No fim de cada nível há o botão **Continuar para...**, que leva a mesma
-personagem ao nível seguinte (Vila Moeda → A Cidade → O Mercado), com parte do dinheiro
-que juntou.
+personagem ao nível seguinte (Vila Moeda → A Cidade → O Mercado → A Casa), com parte do
+dinheiro que juntou.
 
 ## Como se joga
 
@@ -226,6 +226,31 @@ simulação educativa e não aconselhamento financeiro.
 - **Painel** (START): BANCO, INVESTIR, MÊS (orçamento e taxa de poupança), JORNAL, METAS
   e PERFIL.
 
+## A Casa (18+, continuação d'O Mercado)
+
+Mais 24 meses, com o mesmo mundo, a mesma profissão (com mais experiência e salário) e o
+mesmo painel. O objetivo é **comprar casa** sem estrangular o orçamento e chegar a
+**30.000€ de património líquido** (a casa conta, menos o que se deve ao banco). Valores
+simplificados e entidades inventadas.
+
+- **Imobiliária** (Carla): T0 para remodelar (72.000€, vai precisar de obras), T2 nos
+  arredores (98.000€, mais transportes) ou T1 no centro (130.000€). O banco financia 90%;
+  paga-se 10% de entrada mais ~3% de escritura, registos e impostos.
+- **Banco Ponte** (Rita): crédito a 30 anos com **taxa fixa** (4%) ou **variável**
+  (Euribor + 1%, revista de 6 em 6 meses), com explicação. O banco recusa se as
+  prestações passarem de 40% do rendimento líquido (**taxa de esforço**). Depois da
+  compra pode **amortizar** 1.000€ (com comissão de 0,5% na variável e 2% na fixa).
+- **A Euribor conta uma história**: sobe para 3,5% e 4% e depois desce para 2,75%; quem
+  tem taxa variável vê a prestação mudar, quem tem fixa não.
+- **Custos de quem tem casa**: prestação (com a parte de juros e de capital), água, luz e
+  gás, condomínio, seguros obrigatórios (vida e multirriscos) e **IMI** em maio.
+- **Eventos** desta fase: burla do "IMI em atraso", obras na canalização, cano rebentado
+  pago pelo seguro (menos a franquia), obras no prédio, eletrodomésticos, arrendar um
+  quarto do T2 (com imposto sobre a renda), anúncios de "junte os seus créditos", e
+  outros da vida adulta.
+- **7 conquistas**: Chave na Mão, Fundo de Emergência, IMI em Dia, Amortização,
+  Anti-Burla, Aumento e Património de 30 Mil.
+
 ## Estrutura do código
 
 ```
@@ -258,11 +283,13 @@ src/
       tipos.ts, economia.ts - estado, salário, despesas, impostos, dívidas e o mercado de cada mês
       eventos.ts, conquistas.ts, mapas.ts, scripts.ts - eventos, conquistas, mundo e conversas d'O Mercado
       profissoes.ts - as 3 profissões (salário, gorjetas, mini-jogo, efeitos)
+      habitacao.ts  - casas à venda, crédito à habitação, Euribor, IMI (nível A Casa)
+    gravar.ts, niveis.ts - jogo guardado no browser e passagem de um nível para o seguinte
   components/
     gba/
       Consola.tsx    - ecrã ampliado, teclado e botões tácteis
       GameScreen.tsx - liga o motor, os diálogos, o menu e as conquistas de qualquer modo
-      modo.ts, modoVila.ts, modoCidade.ts, modoMercado.ts - o que define cada modo (mapas, sprites, guiões, menu)
+      modo.ts, modoVila.ts, modoCidade.ts, modoMercado.ts, modoCasa.ts - o que define cada modo (mapas, sprites, guiões, menu)
       telefone.tsx   - moldura e peças comuns do telemóvel e do painel
       Telemovel.tsx  - o telemóvel d'A Cidade
       Painel.tsx     - o painel d'O Mercado
@@ -271,7 +298,7 @@ src/
       StartMenu.tsx  - menu START
       MiniJogoView.tsx - mostra um mini-jogo na consola (título, jogo, resultado)
       ui.tsx         - escala, sprites em HTML, cursores
-    AgeGate.tsx, FimDeJogo.tsx, FimCidade.tsx, FimMercado.tsx, GrowthChart.tsx
+    AgeGate.tsx, FimDeJogo.tsx, FimCidade.tsx, FimMercado.tsx, FimCasa.tsx, GrowthChart.tsx
 ```
 
 ## Próximos passos (não implementados neste protótipo)

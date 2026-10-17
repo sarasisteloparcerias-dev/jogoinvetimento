@@ -58,10 +58,25 @@ const TEXTOS = {
       'Cada noite na cama passa um mês. Em START abres o painel: banco, corretora, orçamento do mês, jornal e metas. Boa sorte!',
     ],
   },
+  casa: {
+    sprites: framesAdolescente,
+    boasVindas: [
+      'Olá! Boas-vindas ao nível A Casa!',
+      'Sou o Mestre Moedas. Este é o passo seguinte da vida adulta: comprar casa.',
+      'Vais escolher uma casa, pedir um crédito à habitação, decidir entre taxa fixa e variável e aprender o que custa ter casa: prestação, condomínio, seguros, IMI e obras.',
+      'Como sempre: é uma simulação educativa, com valores simplificados e entidades inventadas. Nada aqui é aconselhamento financeiro.',
+      'Como te chamas?',
+    ],
+    fim: (n: string) => [
+      `${n}, vamos a isso!`,
+      'O nível dura 24 meses. Objetivo: comprar casa sem apertar demasiado o orçamento e chegar a 30.000€ de património líquido.',
+      'Cada noite na cama passa um mês. Em START abres o painel. Boa sorte!',
+    ],
+  },
 }
 
 interface PropsIntro {
-  modo?: 'reino' | 'cidade' | 'mercado'
+  modo?: 'reino' | 'cidade' | 'mercado' | 'casa'
   /** Personagem que vem do nível anterior: não se volta a pedir nome nem aspeto. */
   existente?: { nome: string; avatar: AvatarConfig; linhas: string[] }
   onConcluir: (nome: string, avatar: AvatarConfig) => void

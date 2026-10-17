@@ -5,9 +5,9 @@ import { novoEstadoMercado, patrimonioM } from './mercado/economia'
 import type { EstadoMercado } from './mercado/tipos'
 import type { PlayerState } from './types'
 
-export const NOME_MODO: Record<Modo, string> = { reino: 'Vila Moeda', cidade: 'A Cidade', mercado: 'O Mercado' }
+export const NOME_MODO: Record<Modo, string> = { reino: 'Vila Moeda', cidade: 'A Cidade', mercado: 'O Mercado', casa: 'A Casa' }
 
-export const PROXIMO: Partial<Record<Modo, Modo>> = { reino: 'cidade', cidade: 'mercado' }
+export const PROXIMO: Partial<Record<Modo, Modo>> = { reino: 'cidade', cidade: 'mercado', mercado: 'casa' }
 
 /** Passa a mesma personagem para o nível seguinte, levando parte do que juntou. Devolve o novo estado e o que o Mestre Moedas explica. */
 export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: unknown; linhas: string[] } | null {
@@ -40,6 +40,30 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
       ],
     }
   }
+  if (modo === 'mercado') {
+    const s = estado as EstadoMercado
+    const n: EstadoMercado = {
+      ...s,
+      nivel: 'casa',
+      mes: 1,
+      gameOver: false,
+      crachas: [],
+      salarioBruto: Math.round(s.salarioBruto * 1.1),
+      turnos: 0,
+      movimentos: [],
+      flags: [...s.flags.filter((f) => f === 'investir'), 'veio_do_mercado'],
+      noticias: [{ semana: 1, titulo: 'Começa um novo ano', texto: 'Fala-se muito de juros e de casas.' }],
+      history: [{ week: 0, saldo: s.conta, poupanca: s.poupanca + s.ppr, investimento: 0 }],
+    }
+    return {
+      modo: 'casa',
+      estado: n,
+      linhas: [
+        `${s.name}, juntaste ${euros(patrimonioM(s))}. Chegou a hora de pensar em comprar casa!`,
+        `Com a experiência dos últimos anos, o teu salário subiu para ${euros(n.salarioBruto)} brutos.`,
+      ],
+    }
+  }
   return null
 }
 
@@ -54,5 +78,6 @@ export function resumoGravacao(modo: Modo, estado: unknown, fim: boolean): strin
     return fim ? `${s.name} acabou A Cidade` : `${s.name} · A Cidade · semana ${Math.min(s.semana, 24)}/24`
   }
   const s = estado as EstadoMercado
-  return fim ? `${s.name} acabou O Mercado (${euros(patrimonioM(s))})` : `${s.name} · O Mercado · mês ${Math.min(s.mes, 24)}/24`
+  const nome = modo === 'casa' ? 'A Casa' : 'O Mercado'
+  return fim ? `${s.name} acabou ${nome} (${euros(patrimonioM(s))})` : `${s.name} · ${nome} · mês ${Math.min(s.mes, 24)}/24`
 }

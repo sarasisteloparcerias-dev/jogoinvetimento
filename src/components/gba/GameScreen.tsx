@@ -56,7 +56,9 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     async cracha(id) {
       const s = estadoRef.current
       if (s.crachas.includes(id)) return
-      const c = modo.conquistas.find((x) => x.id === id)!
+      const c = modo.conquistas.find((x) => x.id === id)
+      // cada nível tem as suas conquistas: as dos outros níveis ignoram-se
+      if (!c) return
       definir({ ...s, crachas: [...s.crachas, id] })
       setCracha(id)
       await dlg.say(`${s.name} ganhou: ${c.nome.toUpperCase()}!`)

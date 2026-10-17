@@ -1,6 +1,7 @@
 import { round2 } from '../cidade/economia'
 import { clamp } from '../data'
 import type { AvatarConfig } from '../types'
+import { casaVenda, CONDOMINIO, imi, SEGUROS_CASA, taxaAnual, calcularPrestacao } from './habitacao'
 import { PROFISSOES } from './profissoes'
 import type { AtivoM, Casa, EstadoMercado, Noticia, StatsAdulto } from './tipos'
 
@@ -31,6 +32,7 @@ export const CASAS: Record<Casa, { nome: string; renda: number; contas: number; 
   pais: { nome: 'Casa dos pais', renda: 150, contas: 0, descricao: 'Ajudas em casa com 150€. Poupas muito, mas tens menos independência.' },
   quarto: { nome: 'Quarto partilhado', renda: 380, contas: 0, descricao: 'Um quarto num apartamento com mais duas pessoas. Contas incluídas.' },
   t1: { nome: 'T1 sozinho', renda: 620, contas: 70, descricao: 'Um apartamento só para ti. Mais espaço e sossego, mais caro.' },
+  propria: { nome: 'A tua casa', renda: 0, contas: 70, descricao: 'Casa própria, comprada com crédito à habitação.' },
 }
 
 export interface AtivoMercado {
@@ -130,13 +132,22 @@ export function custoSupermercado(s: EstadoMercado) {
 
 export function custoTransportes(s: EstadoMercado) {
   // com carro já não precisa do passe: fica só o telemóvel
-  return round2((s.carro ? 25 : 65) * s.indicePrecos)
+  const longe = s.hipoteca ? (casaVenda(s.hipoteca.casa)?.transportes ?? 0) : 0
+  return round2(((s.carro ? 25 : 65) + longe) * s.indicePrecos)
 }
 
 /** As despesas fixas de um mês (sem investimentos nem extras). */
 export function despesasFixas(s: EstadoMercado): { texto: string; valor: number }[] {
+  const casa = s.hipoteca
+    ? [
+        { texto: 'Prestação da casa', valor: s.hipoteca.prestacao },
+        { texto: 'Água, luz e gás', valor: round2(70 * s.indicePrecos) },
+        { texto: 'Condomínio', valor: CONDOMINIO },
+        { texto: 'Seguros da casa', valor: SEGUROS_CASA },
+      ]
+    : [{ texto: CASAS[s.casa].nome, valor: custoCasa(s) }]
   const l = [
-    { texto: CASAS[s.casa].nome, valor: custoCasa(s) },
+    ...casa,
     { texto: 'Supermercado', valor: custoSupermercado(s) },
     { texto: 'Passe e telemóvel', valor: custoTransportes(s) },
   ]
@@ -150,6 +161,7 @@ export function totalFixas(s: EstadoMercado) {
 }
 
 export function taxaDeposito(s: EstadoMercado) {
+  if (s.nivel === 'casa') return 0.02
   return s.mes >= 9 ? 0.015 : 0.025
 }
 
@@ -172,7 +184,8 @@ export function dividaPrestacoes(s: EstadoMercado) {
 
 /** Património líquido: tudo o que tens menos o que deves (cartão e prestações). */
 export function patrimonioM(s: EstadoMercado) {
-  return s.conta + s.poupanca + s.ppr + carteiraM(s) - s.divida - dividaPrestacoes(s)
+  const casa = s.hipoteca ? s.hipoteca.valorCasa - s.hipoteca.divida : 0
+  return s.conta + s.poupanca + s.ppr + carteiraM(s) - s.divida - dividaPrestacoes(s) + casa
 }
 
 export function novoEstadoMercado(name: string, avatar: AvatarConfig): EstadoMercado {
@@ -213,6 +226,12 @@ export function novoEstadoMercado(name: string, avatar: AvatarConfig): EstadoMer
   }
 }
 
+/** Começar diretamente no nível "A Casa": já com dinheiro para a entrada. */
+export function novoEstadoCasa(name: string, avatar: AvatarConfig): EstadoMercado {
+  const n = novoEstadoMercado(name, avatar)
+  return { ...n, nivel: 'casa', conta: 2500, poupanca: 12500, history: [{ week: 0, saldo: 2500, poupanca: 12500, investimento: 0 }] }
+}
+
 /** Compra com comissão. Devolve null se não houver dinheiro. */
 export function comprarM(s: EstadoMercado, id: AtivoM, valor: number): EstadoMercado | null {
   if (s.conta < valor + COMISSAO) return null
@@ -243,8 +262,19 @@ export function venderM(s: EstadoMercado, id: AtivoM): { estado: EstadoMercado; 
   }
 }
 
+/** No nível "A Casa", as notícias contam a história dos juros (Euribor). */
+const NOTICIAS_CASA: Record<number, NoticiaDef> = {
+  2: { titulo: 'Preço das casas continua a subir', texto: 'Há poucas casas à venda e muita procura.', choque: {} },
+  7: { titulo: 'Juros sobem: Euribor a 3,5%', texto: 'O banco central aperta para travar a inflação. Quem tem taxa variável vai pagar mais.', choque: { obrig: -0.02, pixel: -0.03 } },
+  9: { titulo: 'Bolsas hesitam com os juros altos', texto: 'Os investidores estão cautelosos.', choque: { etf: -0.03, pixel: -0.05, eco: -0.04 } },
+  13: { titulo: 'Euribor chega aos 4%', texto: 'As prestações das casas com taxa variável voltam a subir.', choque: { obrig: -0.02, pixel: -0.04 } },
+  16: { titulo: 'Economia resiste', texto: 'As empresas continuam a lucrar.', choque: { etf: 0.03, brisa: 0.02 } },
+  19: { titulo: 'Inflação controlada: Euribor desce', texto: 'A Euribor cai para 2,75%. Alívio para quem tem taxa variável.', choque: { obrig: 0.03, etf: 0.03 } },
+  22: { titulo: 'Bom ano nas bolsas', texto: 'Juros mais baixos animam os mercados.', choque: { etf: 0.03, pixel: 0.04 } },
+}
+
 function escolherNoticia(s: EstadoMercado): NoticiaDef {
-  const fixa = NOTICIAS_FIXAS[s.mes]
+  const fixa = (s.nivel === 'casa' ? NOTICIAS_CASA : NOTICIAS_FIXAS)[s.mes]
   if (fixa) return fixa
   const usadas = new Set(s.noticias.map((n) => n.titulo))
   const livres = NOTICIAS_SOLTAS.filter((n) => !usadas.has(n.titulo))
@@ -291,6 +321,7 @@ export function avancarMes(antes: EstadoMercado): { estado: EstadoMercado; notic
 
   const sal = salarioLiquido(s)
   s = mov({ ...s, conta: round2(s.conta + sal.liquido) }, emBaixa(s) ? 'Baixa médica (70%)' : emLayoff(s) ? 'Salário (lay-off, 2/3)' : 'Salário líquido', sal.liquido)
+  if (s.flags.includes('inquilino')) s = mov({ ...s, conta: round2(s.conta + 225) }, 'Renda do quarto (já sem 25% de imposto)', 225)
   const prof = PROFISSOES[s.profissao]
   if (prof.gorjetas > 0) {
     const gorjetas = round2(prof.gorjetas * (0.7 + Math.random() * 0.6) * (emLayoff(s) ? 0.5 : 1))
@@ -298,6 +329,21 @@ export function avancarMes(antes: EstadoMercado): { estado: EstadoMercado; notic
   }
 
   for (const d of despesasFixas(s)) s = pagar(s, d.valor, d.texto)
+  if (s.hipoteca) {
+    const h = { ...s.hipoteca }
+    const juro = round2((h.divida * taxaAnual(h, s.mes)) / 12)
+    h.divida = round2(Math.max(0, h.divida - (h.prestacao - juro)))
+    h.jurosPagos = round2(h.jurosPagos + juro)
+    h.meses -= 1
+    h.valorCasa = round2(h.valorCasa * 1.003)
+    // a taxa variável é revista de 6 em 6 meses
+    if (h.taxa === 'variavel' && (s.mes === 7 || s.mes === 13 || s.mes === 19)) {
+      h.prestacao = calcularPrestacao(h.divida, taxaAnual(h, s.mes), h.meses)
+      s = { ...s, flags: [...s.flags, `revisao_${s.mes}`] }
+    }
+    s = { ...s, hipoteca: h }
+    if (s.mes === 5 || s.mes === 17) s = pagar(s, imi(h), 'IMI (imposto da casa)')
+  }
   s.pagamentos = s.pagamentos.flatMap((p) => (p.restam === null ? [p] : p.restam > 1 ? [{ ...p, restam: p.restam - 1 }] : []))
 
   if (s.divida > 0 && s.conta > 0) {

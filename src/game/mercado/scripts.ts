@@ -29,6 +29,24 @@ import {
   valorAtivoM,
 } from './economia'
 import { escolherEventoMercado } from './eventos'
+import {
+  calcularPrestacao,
+  CASAS_VENDA,
+  casaVenda,
+  CONDOMINIO,
+  custosEntrada,
+  euribor,
+  FINANCIAMENTO,
+  imi,
+  LIMITE_ESFORCO,
+  META_PATRIMONIO_CASA,
+  PRAZO_MESES,
+  SEGUROS_CASA,
+  SPREAD,
+  TAXA_FIXA,
+  taxaAnual,
+  type Hipoteca,
+} from './habitacao'
 import { LISTA_PROFISSOES, PROFISSOES, type Profissao } from './profissoes'
 import type { AtivoM, Casa, EstadoMercado, Noticia, StatsAdulto } from './tipos'
 
@@ -87,7 +105,9 @@ export async function verificarConquistasM(ctx: Ctx) {
   if (s.poupanca >= 3 * totalFixas(s)) await ctx.cracha('emergencia')
   if (ativosNaCarteiraM(s).length >= 3) await ctx.cracha('diversificada')
   if (s.mesesInvestidos.length >= 6) await ctx.cracha('regular')
-  if (patrimonioM(ctx.estado()) >= META_CASA) await ctx.cracha('casa')
+  if (s.nivel === 'casa') {
+    if (patrimonioM(ctx.estado()) >= META_PATRIMONIO_CASA) await ctx.cracha('patrimonio')
+  } else if (patrimonioM(ctx.estado()) >= META_CASA) await ctx.cracha('casa')
 }
 
 // ---------------------------------------------------------------------------
@@ -282,7 +302,7 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
       [`Olá! Neste momento vives em: ${CASAS[s.casa].nome}.`, `Uma regra prática: a casa não deve levar mais de um terço do salário líquido. Para ti, uns ${euros(liquido / 3)}.`],
       quem,
     )
-    const opcoes: { casa: Casa; texto: string }[] = (Object.keys(CASAS) as Casa[]).filter((c) => c !== s.casa).map((c) => ({ casa: c, texto: `${CASAS[c].nome.toUpperCase()} (${euros(CASAS[c].renda)})` }))
+    const opcoes: { casa: Casa; texto: string }[] = (Object.keys(CASAS) as Casa[]).filter((c) => c !== s.casa && c !== 'propria').map((c) => ({ casa: c, texto: `${CASAS[c].nome.toUpperCase()} (${euros(CASAS[c].renda)})` }))
     const r = await ctx.ask('Queres mudar de casa?', [...opcoes.map((o) => o.texto), 'FICAR ONDE ESTOU'], quem, opcoes.length)
     if (r === opcoes.length) return ctx.say('Quando quiseres, estou cá.', quem)
     const nova = opcoes[r].casa
@@ -752,7 +772,8 @@ async function dormir(ctx: Ctx, texto = 'Zzz... Passa um mês...') {
   await ctx.fade(0, 500)
   await manhaMercado(ctx, antes, depois, noticia)
   if (ctx.estado().gameOver) {
-    await resumoFinalMercado(ctx)
+    if (ctx.estado().nivel === 'casa') await resumoFinalCasa(ctx)
+    else await resumoFinalMercado(ctx)
     ctx.terminar()
   }
 }
@@ -833,7 +854,8 @@ export async function manhaMercado(ctx: Ctx, antes: EstadoMercado, depois: Estad
   const valorAntes = Object.values(ATIVO_M).reduce((t, a) => t + valorCom(antes, antes.precos, a.id), 0)
   const valorDepois = carteiraM(ctx.estado())
   if (valorAntes >= 5) await ctx.say(`A tua carteira valia ${euros(valorAntes)} e agora vale ${euros(valorDepois)} (${pct(valorDepois / valorAntes - 1)}).`, 'CORRETORA')
-  await licoes(ctx, antes, ctx.estado())
+  if (depois.nivel === 'casa') await licoesCasa(ctx, antes, ctx.estado())
+  else await licoes(ctx, antes, ctx.estado())
 
   const { relacoes, saude, carreira } = ctx.estado().stats
   const menor = Math.min(relacoes, saude, carreira)
@@ -921,3 +943,226 @@ export async function resumoFinalMercado(ctx: Ctx) {
 }
 
 export { objetivoMercado }
+
+// ---------------------------------------------------------------------------
+// Nível "A Casa"
+
+function pctAno(t: number) {
+  return `${(Math.round(t * 1000) / 10).toLocaleString('pt-PT')}%`
+}
+
+/** Taxa de esforço: quanto do rendimento líquido vai para prestações de créditos. */
+function taxaEsforco(s: EstadoMercado, prestacaoCasa: number) {
+  const outras = s.pagamentos.filter((p) => p.restam !== null).reduce((t, p) => t + p.valor, 0)
+  return (prestacaoCasa + outras) / salarioLiquido(s).liquido
+}
+
+export async function tutorialCasa(ctx: Ctx) {
+  const quem = 'Mestre Moedas (telefone)'
+  let s = ctx.estado()
+  if (!s.flags.includes('veio_do_mercado')) {
+    await ctx.say(`${s.name}, sou o Mestre Moedas! Antes de mais: em que trabalhas?`, quem)
+    const p = (await escolherProfissao(ctx, LISTA_PROFISSOES, 'Escolhe a tua profissão:'))!
+    aplicarProfissao(ctx, p, false)
+    mudar(ctx, (x) => ({ ...x, salarioBruto: round2(x.salarioBruto * 1.1), stats: { ...x.stats, carreira: x.stats.carreira + 10 } }))
+    s = ctx.estado()
+  }
+  await ctx.say(
+    [
+      `${s.name}, chegou o grande momento: comprar casa! Tens ${euros(s.conta + s.poupanca)} entre conta e depósito.`,
+      `Passo 1: na Imobiliária, a Carla mostra-te casas. O banco só empresta ${Math.round(FINANCIAMENTO * 100)}% do valor: tu pagas os outros 10%, mais uns 3% de escritura, registos e impostos.`,
+      'Passo 2: no Banco Ponte, a Rita trata do crédito à habitação. Vais escolher entre taxa FIXA e taxa VARIÁVEL (Euribor + spread).',
+      `Este banco só aprova se as prestações não passarem de ${Math.round(LIMITE_ESFORCO * 100)}% do teu rendimento líquido. É a taxa de esforço.`,
+      `Depois: prestação, condomínio, seguros obrigatórios e o IMI todos os anos. Objetivo: comprar casa, manter as contas saudáveis e chegar a ${euros(META_PATRIMONIO_CASA)} de património.`,
+      'Valores simplificados e empresas inventadas, como sempre. Boa sorte!',
+    ],
+    quem,
+  )
+  comFlag(ctx, 'tutorial')
+}
+
+async function carlaCasa(ctx: Ctx) {
+  const quem = 'Carla'
+  const s = ctx.estado()
+  if (s.hipoteca) {
+    const h = s.hipoteca
+    return ctx.say([`A tua casa já vale uns ${euros(h.valorCasa)}.`, `Ainda deves ao banco ${euros(h.divida)}. O que é teu, de facto, é a diferença: ${euros(h.valorCasa - h.divida)}.`], quem)
+  }
+  await ctx.say('Tenho três casas que podem interessar-te:', quem)
+  for (;;) {
+    const r = await ctx.ask(
+      'Qual queres ver?',
+      [...CASAS_VENDA.map((c) => `${c.nome.toUpperCase()} (${euros(c.preco)})`), 'ADEUS'],
+      quem,
+      CASAS_VENDA.length,
+    )
+    if (r === CASAS_VENDA.length) return ctx.say('Comprar casa é a maior compra da vida. Pensa com calma!', quem)
+    const c = CASAS_VENDA[r]
+    const { entrada, custos, emprestimo } = custosEntrada(c.preco)
+    const prest = calcularPrestacao(emprestimo, TAXA_FIXA, PRAZO_MESES)
+    await ctx.say(
+      [
+        `${c.nome}: ${euros(c.preco)}. ${c.nota}`,
+        `Precisas de ${euros(entrada)} de entrada e uns ${euros(custos)} de custos: ${euros(entrada + custos)} no total.`,
+        `O banco empresta ${euros(emprestimo)}. A 30 anos, a prestação anda pelos ${euros(prest)} por mês, mais condomínio (${euros(CONDOMINIO)}) e seguros (${euros(SEGUROS_CASA)}).`,
+      ],
+      quem,
+    )
+    const ok = await ctx.ask('Queres avançar com esta?', ['SIM, É ESTA', 'VER OUTRA'], quem, 1)
+    if (ok === 0) {
+      mudar(ctx, (x) => ({ ...x, casaEscolhida: c.id }))
+      return ctx.say('Ótima escolha! Agora vai ao Banco Ponte e fala com a Rita sobre o crédito à habitação.', quem)
+    }
+  }
+}
+
+async function ritaCasa(ctx: Ctx) {
+  const quem = 'Rita'
+  const s = ctx.estado()
+  if (s.hipoteca) {
+    const h = s.hipoteca
+    const r = await ctx.ask(
+      `O teu crédito: deves ${euros(h.divida)}, prestação de ${euros(h.prestacao)} (taxa ${h.taxa}, ${pctAno(taxaAnual(h, s.mes))}).`,
+      ['AMORTIZAR 1.000€', 'COMO FUNCIONA A PRESTAÇÃO?', 'ADEUS'],
+      quem,
+      2,
+    )
+    if (r === 1) {
+      return ctx.say(
+        [
+          `Este mês, da tua prestação, uns ${euros((h.divida * taxaAnual(h, s.mes)) / 12)} são juros para o banco. O resto abate à dívida.`,
+          'No início quase tudo são juros; com os anos, cada prestação abate mais à dívida.',
+        ],
+        quem,
+      )
+    }
+    if (r !== 0) return ctx.say('Até breve!', quem)
+    const comissao = h.taxa === 'fixa' ? 0.02 : 0.005
+    const total = round2(1000 * (1 + comissao))
+    if (s.conta < total) return ctx.say(`Precisas de ${euros(total)} na conta (1.000€ mais ${pctAno(comissao)} de comissão).`, quem)
+    const novaDivida = round2(h.divida - 1000)
+    const novaPrest = calcularPrestacao(novaDivida, taxaAnual(h, s.mes), h.meses)
+    mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - total), hipoteca: { ...h, divida: novaDivida, prestacao: novaPrest } }))
+    await ctx.say(
+      [`Amortizaste 1.000€ (mais ${euros(total - 1000)} de comissão, por ser taxa ${h.taxa}).`, `A prestação desce de ${euros(h.prestacao)} para ${euros(novaPrest)}, e vais pagar menos juros no total.`],
+      quem,
+    )
+    return ctx.cracha('amortizar')
+  }
+  const c = casaVenda(s.casaEscolhida)!
+  const { entrada, custos, emprestimo } = custosEntrada(c.preco)
+  await ctx.say([`Vamos ao crédito para o ${c.nome}: ${euros(emprestimo)} a 30 anos.`, 'Tens duas opções de taxa de juro:'], quem)
+  for (;;) {
+    const variavelHoje = euribor(s.mes) + SPREAD
+    const prestFixa = calcularPrestacao(emprestimo, TAXA_FIXA, PRAZO_MESES)
+    const prestVar = calcularPrestacao(emprestimo, variavelHoje, PRAZO_MESES)
+    const r = await ctx.ask(
+      `FIXA: ${pctAno(TAXA_FIXA)} sempre, ${euros(prestFixa)}/mês. VARIÁVEL: Euribor + ${pctAno(SPREAD)} = ${pctAno(variavelHoje)} hoje, ${euros(prestVar)}/mês.`,
+      ['TAXA FIXA', 'TAXA VARIÁVEL', 'EXPLICA-ME', 'AGORA NÃO'],
+      quem,
+      3,
+    )
+    if (r === 3) return ctx.say('Quando quiseres, estou aqui.', quem)
+    if (r === 2) {
+      await ctx.say(
+        [
+          'Com taxa FIXA, a prestação nunca muda: começas a pagar um pouco mais, mas dormes descansado se os juros subirem.',
+          'Com taxa VARIÁVEL, a prestação acompanha a Euribor e é revista de 6 em 6 meses: se os juros descerem, pagas menos; se subirem, pagas mais.',
+          'A pergunta certa: se a prestação subir 150€, o teu orçamento aguenta?',
+        ],
+        quem,
+      )
+      continue
+    }
+    const taxa: Hipoteca['taxa'] = r === 0 ? 'fixa' : 'variavel'
+    const prestacao = taxa === 'fixa' ? prestFixa : prestVar
+    const esforco = taxaEsforco(s, prestacao)
+    if (esforco > LIMITE_ESFORCO) {
+      return ctx.say(
+        [
+          `A prestação levaria ${pctAno(esforco)} do teu rendimento líquido. O banco não aprova acima de ${pctAno(LIMITE_ESFORCO)}.`,
+          'Podes escolher uma casa mais barata, pagar outros créditos primeiro ou esperar por um aumento.',
+        ],
+        quem,
+      )
+    }
+    const precisa = round2(entrada + custos)
+    if (s.conta + s.poupanca < precisa) {
+      return ctx.say(`Crédito aprovado em princípio! Mas precisas de ${euros(precisa)} entre conta e depósito, e só tens ${euros(s.conta + s.poupanca)}. Faltam ${euros(precisa - s.conta - s.poupanca)}.`, quem)
+    }
+    const ok = await ctx.ask(`Taxa de esforço: ${pctAno(esforco)}. Vais pagar ${euros(precisa)} agora (entrada e custos). Assinamos?`, ['ASSINAR', 'AINDA NÃO'], quem, 1)
+    if (ok !== 0) return ctx.say('Sem pressa: é uma decisão para 30 anos.', quem)
+    // paga-se primeiro com o depósito (a poupança juntada para isto) e o resto com a conta
+    const doDeposito = Math.min(s.poupanca, precisa)
+    mudar(ctx, (x) => ({
+      ...x,
+      poupanca: round2(x.poupanca - doDeposito),
+      conta: round2(x.conta - (precisa - doDeposito)),
+      casa: 'propria',
+      hipoteca: { casa: c.id, valorCasa: c.preco, divida: round2(emprestimo), taxa, prestacao, meses: PRAZO_MESES, jurosPagos: 0 },
+    }))
+    await ctx.fade(1, 400)
+    await ctx.say('Uns dias depois, no notário: escritura assinada, impostos e registos pagos...')
+    await ctx.fade(0, 400)
+    await ctx.say(
+      [
+        'Aqui estão as chaves da tua casa!',
+        `A partir do próximo mês, pagas ${euros(prestacao)} de prestação, mais condomínio e seguros. Já não pagas renda.`,
+        'O IMI, o imposto anual da casa, vem em maio.',
+      ],
+      quem,
+    )
+    await ctx.cracha('chave')
+    return verificarConquistasM(ctx)
+  }
+}
+
+export async function executarInteracaoCasa(i: Interacao, ctx: Ctx) {
+  const s = ctx.estado()
+  if (i.tipo === 'npc' && i.npc.script === 'carla') return carlaCasa(ctx)
+  if (i.tipo === 'npc' && i.npc.script === 'rita' && (s.hipoteca || s.casaEscolhida)) return ritaCasa(ctx)
+  return executarInteracaoMercado(i, ctx)
+}
+
+async function licoesCasa(ctx: Ctx, antes: EstadoMercado, depois: EstadoMercado) {
+  const h = depois.hipoteca
+  if (!h) {
+    if (depois.mes === 3 || depois.mes === 9) await ctx.say('Ainda não compraste casa. Fala com a Carla, na Imobiliária, e depois com a Rita, no banco.', MESTRE)
+    if (depois.mes === 7) await ctx.say('A Euribor subiu: quem pedir agora crédito com taxa variável começa a pagar mais.', MESTRE)
+    return
+  }
+  if (depois.flags.includes(`revisao_${depois.mes}`) && antes.hipoteca) {
+    const sobe = h.prestacao > antes.hipoteca.prestacao
+    await ctx.say(
+      [
+        `Revisão da taxa variável: a Euribor está agora nos ${pctAno(euribor(depois.mes))}.`,
+        `A tua prestação ${sobe ? 'sobe' : 'desce'} de ${euros(antes.hipoteca.prestacao)} para ${euros(h.prestacao)}.`,
+        sobe ? 'É o risco da taxa variável. Ter folga no orçamento faz toda a diferença.' : 'É a vantagem da taxa variável quando os juros descem.',
+      ],
+      'BANCO',
+    )
+  } else if (h.taxa === 'fixa' && (depois.mes === 7 || depois.mes === 13)) {
+    await ctx.say('A Euribor subiu, mas a tua prestação não mudou: é a vantagem da taxa fixa.', MESTRE)
+  }
+  if ((depois.mes === 5 || depois.mes === 17) && antes.hipoteca) {
+    await ctx.say(`Pagaste o IMI: ${euros(imi(antes.hipoteca))}. Todos os anos, em maio, a câmara cobra este imposto a quem tem casa.`, 'FINANÇAS')
+    await ctx.cracha('imi')
+  }
+}
+
+export async function resumoFinalCasa(ctx: Ctx) {
+  const s = ctx.estado()
+  const h = s.hipoteca
+  await ctx.say(
+    [
+      `${s.name}, passaram mais 2 anos!`,
+      h
+        ? `A tua casa vale ${euros(h.valorCasa)} e ainda deves ${euros(h.divida)} ao banco. Em 2 anos pagaste ${euros(h.jurosPagos)} só de juros.`
+        : 'Não chegaste a comprar casa. Também é uma decisão válida: arrendar dá flexibilidade.',
+      `Património líquido: ${euros(patrimonioM(s))}.`,
+      'Uma casa não é só a prestação: há condomínio, seguros, IMI e obras. E um crédito dura décadas, por isso a folga no orçamento é o mais importante.',
+      'Lembra-te: valores simplificados e entidades inventadas. Na vida real, compara propostas de vários bancos e pede sempre a ficha de informação (FINE).',
+    ],
+    MESTRE,
+  )
+}
