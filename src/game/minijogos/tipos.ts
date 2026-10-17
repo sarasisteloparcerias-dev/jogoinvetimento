@@ -1,4 +1,15 @@
-export type TipoMiniJogo = 'futebol' | 'bicicleta' | 'gelado' | 'cafe'
+export type TipoMiniJogo =
+  | 'futebol'
+  | 'bicicleta'
+  | 'gelado'
+  | 'cafe'
+  | 'supermercado'
+  | 'ginasio'
+  | 'entregas'
+  | 'babysitting'
+  | 'explicacoes'
+  | 'emails'
+  | 'bowling'
 
 export type TeclaJogo = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'A' | 'B'
 
@@ -46,4 +57,21 @@ export function textoContorno(
   for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.fillText(texto, x + dx, y + dy)
   ctx.fillStyle = cor
   ctx.fillText(texto, x, y)
+}
+
+/** Texto com contorno partido em várias linhas para caber numa largura. Devolve onde acabou (y). */
+export function textoQuebrado(ctx: CanvasRenderingContext2D, texto: string, x: number, y: number, largura: number, cor: string, tamanho = 8, entrelinha = 11) {
+  ctx.font = `${tamanho}px 'Press Start 2P'`
+  const linhas: string[] = []
+  let atual = ''
+  for (const palavra of texto.split(' ')) {
+    const tentativa = atual ? `${atual} ${palavra}` : palavra
+    if (atual && ctx.measureText(tentativa).width > largura) {
+      linhas.push(atual)
+      atual = palavra
+    } else atual = tentativa
+  }
+  if (atual) linhas.push(atual)
+  linhas.forEach((l, i) => textoContorno(ctx, l, x, y + i * entrelinha, cor, 'left', tamanho))
+  return y + linhas.length * entrelinha
 }

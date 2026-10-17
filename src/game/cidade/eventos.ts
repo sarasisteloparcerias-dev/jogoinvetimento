@@ -1,6 +1,7 @@
 import { clamp } from '../data'
 import type { StatKey } from '../types'
 import { comprar, euros, round2 } from './economia'
+import { TRABALHOS_CIDADE } from './trabalhos'
 import type { EstadoCidade } from './tipos'
 
 export interface OpcaoEvento {
@@ -40,6 +41,8 @@ function pagar(s: EstadoCidade, v: number): EstadoCidade | null {
 function flag(s: EstadoCidade, f: string): EstadoCidade {
   return { ...s, flags: [...s.flags, f] }
 }
+
+const chefe = (s: EstadoCidade) => (s.emprego ? TRABALHOS_CIDADE[s.emprego].chefe : 'O teu chefe')
 
 const SEM_DINHEIRO = (v: number) => `Não tens ${euros(v)} na conta. Às vezes é o próprio saldo que decide por nós!`
 
@@ -235,8 +238,8 @@ export const EVENTOS_CIDADE: EventoCidade[] = [
   {
     id: 'exames',
     titulo: 'Semana de exames',
-    condicao: (s) => s.emprego,
-    texto: () => 'Esta semana há exames. A Dona Clara pede-te um turno extra no sábado (+20€). O que escolhes?',
+    condicao: (s) => !!s.emprego,
+    texto: (s) => `Esta semana há exames. ${chefe(s)} pede-te um turno extra no sábado (+20€). O que escolhes?`,
     opcoes: [
       { label: 'ESTUDAR', aplicar: (s) => ({ estado: stats(s, { educacao: 8 }), texto: 'Correu-te muito bem nos exames! Investir em ti também rende.' }) },
       {
@@ -340,8 +343,8 @@ export const EVENTOS_CIDADE: EventoCidade[] = [
   {
     id: 'turno_extra',
     titulo: 'Turno extra',
-    condicao: (s) => s.emprego,
-    texto: () => 'A Dona Clara está aflita: falta alguém no domingo. Fazes um turno extra (+20€)?',
+    condicao: (s) => !!s.emprego,
+    texto: (s) => `${chefe(s)} precisa de ajuda: falta alguém no domingo. Fazes um turno extra (+20€)?`,
     opcoes: [
       {
         label: 'ACEITAR',

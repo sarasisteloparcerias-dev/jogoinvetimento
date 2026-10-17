@@ -3,6 +3,7 @@ import { CONQUISTAS_CIDADE, objetivoCidade } from '../../game/cidade/conquistas'
 import { ATIVO, ATIVOS, comprar, euros, META_VIAGEM, moverPoupanca, patrimonio, poupadoViagem, valorAtivo, valorCarteira, vender } from '../../game/cidade/economia'
 import { verificarConquistas } from '../../game/cidade/scripts'
 import type { AtivoId, EstadoCidade } from '../../game/cidade/tipos'
+import { TRABALHOS_CIDADE } from '../../game/cidade/trabalhos'
 import { iconeCracha } from '../../game/pixel/cenario'
 import { GrowthChart } from '../GrowthChart'
 import type { PropsMenu } from './modo'
@@ -256,7 +257,7 @@ export function Telemovel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoCid
       conteudo = (
         <>
           <div style={{ marginBottom: u(3) }}>
-            Semana {Math.min(s.semana, 24)}/24 · {s.emprego ? 'Part-time no Café' : 'Sem emprego'}
+            Semana {Math.min(s.semana, 24)}/24 · {s.emprego ? `Part-time: ${TRABALHOS_CIDADE[s.emprego].curto}` : 'Sem emprego'}
           </div>
           <Barra nome="Relações" valor={s.stats.relacoes} cor="#f06090" />
           <Barra nome="Saúde" valor={s.stats.saude} cor="#48b870" />

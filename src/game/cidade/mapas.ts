@@ -16,6 +16,8 @@ export const AVATARES_CIDADE = {
   tomas: { pele: '#8d5524', cabelo: '#2d1b0e', roupa: '#f97316' },
   cliente: { pele: '#e0ac69', cabelo: '#d4a017', roupa: '#10b981' },
   vendedor: { pele: '#f1c27d', cabelo: '#4a2c14', roupa: '#e0709a' },
+  marco: { pele: '#c68642', cabelo: '#2d1b0e', roupa: '#f0c040' },
+  helena: { pele: '#ffe0bd', cabelo: '#7a4a1e', roupa: '#9468cc', cabeloComprido: true },
 }
 
 const W = 36
@@ -93,6 +95,8 @@ export const CIDADE: MapaDef = {
     { id: 'rui', nome: 'Rui', avatar: AVATARES_CIDADE.rui, x: 8, y: 26, dir: 'right', script: 'amigos' },
     { id: 'ines', nome: 'Inês', avatar: AVATARES_CIDADE.ines, x: 10, y: 26, dir: 'left', script: 'amigos' },
     { id: 'duarte', nome: 'Duarte', avatar: AVATARES_CIDADE.duarte, x: 23, y: 24, dir: 'right', script: 'duarte' },
+    { id: 'marco', nome: 'Marco', avatar: AVATARES_CIDADE.marco, x: 19, y: 14, dir: 'left', script: 'marco' },
+    { id: 'helena', nome: 'Sra. Helena', avatar: AVATARES_CIDADE.helena, x: 14, y: 24, dir: 'left', script: 'helena' },
     { id: 'kiko', nome: 'Kiko', avatar: AVATARES_CIDADE.kiko, x: 29, y: 19, dir: 'down', script: 'influencer' },
     { id: 'amelia', nome: 'D. Amélia', avatar: AVATARES_CIDADE.amelia, x: 13, y: 17, dir: 'down', script: 'amelia', vaguear: { x0: 9, y0: 17, x1: 15, y1: 18 } },
     { id: 'beatriz', nome: 'Beatriz', avatar: AVATARES_CIDADE.beatriz, x: 29, y: 9, dir: 'down', script: 'beatriz', vaguear: { x0: 27, y0: 9, x1: 33, y1: 9 } },

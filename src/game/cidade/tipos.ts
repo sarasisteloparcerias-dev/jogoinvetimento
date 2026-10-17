@@ -1,5 +1,6 @@
 import type { EstadoBase } from '../modo'
 import type { HistoryPoint, Stats } from '../types'
+import type { TrabalhoCidade } from './trabalhos'
 
 export type AtivoId = 'ot' | 'etf' | 'pixel' | 'brisa' | 'lua'
 
@@ -50,7 +51,7 @@ export interface EstadoCidade extends EstadoBase {
   custo: Record<AtivoId, number>
   precos: Record<AtivoId, number>
   historicoPrecos: Record<AtivoId, number[]>
-  emprego: boolean
+  emprego: TrabalhoCidade | null
   turnos: number
   stats: Stats
   /** Quanto custam as coisas comparado com o início do ano (1 = igual, 1,05 = 5% mais caro). */

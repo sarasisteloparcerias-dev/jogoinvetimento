@@ -19,13 +19,13 @@ import {
   patrimonio,
   poupadoViagem,
   round2,
-  SALARIO_TURNO,
   SEMANAS,
   valorAtivo,
   valorCarteira,
 } from './economia'
 import { escolherEventoCidade } from './eventos'
 import type { AtivoId, EstadoCidade, Noticia } from './tipos'
+import { TRABALHOS_CIDADE, type TrabalhoCidade } from './trabalhos'
 
 export type CtxCidade = CtxJogo<EstadoCidade>
 type Ctx = CtxCidade
@@ -165,61 +165,93 @@ async function estudar(ctx: Ctx, quem: string | undefined, onde: string) {
   await ctx.say([`Passaste a tarde a estudar ${onde}. Educação +6.`, 'Estudar é grátis e é dos melhores investimentos que há: o que aprendes ninguém te tira.'], quem)
 }
 
+async function entrevistaCafe(ctx: Ctx, quem: string) {
+  await ctx.say('Vamos fazer uma pequena entrevista.', quem)
+  const r1 = await ctx.ask('Porque queres trabalhar aqui?', ['QUERO O MEU DINHEIRO', 'GOSTO DE PESSOAS', 'NÃO SEI...'], quem)
+  await ctx.say(['Honesto! Ganhar o teu próprio dinheiro dá muita liberdade.', 'Ótimo, aqui falamos com muita gente todos os dias.', 'Ninguém sabe tudo à primeira. Gosto de sinceridade.'][r1], quem)
+  const r2 = await ctx.ask('Um cliente diz que o café está frio. O que fazes?', ['PEÇO DESCULPA E FAÇO OUTRO', 'DIGO QUE ESTÁ BOM', 'CHAMO-A A SI'], quem)
+  await ctx.say(['Perfeito! O cliente fica contente e volta.', 'Hmm... o cliente tem sempre razão, pelo menos aqui!', 'Pedir ajuda também está certo.'][r2], quem)
+}
+
+/** Conversa com quem dá trabalho: contratar, trocar de trabalho, fazer um turno ou despedir-se. */
+async function patrao(ctx: Ctx, id: TrabalhoCidade) {
+  const t = TRABALHOS_CIDADE[id]
+  const quem = t.chefe
+  let s = ctx.estado()
+  if (s.emprego !== id) {
+    const falta = t.requisito?.(s)
+    if (falta) return ctx.say(falta, quem)
+    await ctx.say(t.descricao, quem)
+    if (id === 'cafe') await entrevistaCafe(ctx, quem)
+    const antes = s.emprego ? `Já trabalhas em ${TRABALHOS_CIDADE[s.emprego].curto}: se aceitares, deixas esse trabalho. ` : ''
+    const r = await ctx.ask(`${antes}Aceitas?`, ['SIM', 'NÃO'], quem, 1)
+    if (r !== 0) return ctx.say('Se mudares de ideias, já sabes onde estou.', quem)
+    const primeiro = !comFlag(ctx, 'trabalhou')
+    mudar(ctx, (x) => ({ ...x, emprego: id }))
+    await ctx.say(
+      [
+        'Combinado! Boas-vindas!',
+        `São no máximo ${MAX_TURNOS} turnos por semana: ${euros(t.base)} cada, mais o extra ${t.textoExtra}.`,
+        ...(primeiro ? ['O trabalho para jovens tem regras: poucas horas, nunca à noite e com autorização dos pais. Os teus já assinaram!'] : []),
+      ],
+      quem,
+    )
+    s = ctx.estado()
+  }
+  if (!s.conta) return ctx.say('Pago por transferência, por isso preciso do teu IBAN. Abre uma conta no Banco Ponte e volta cá!', quem)
+  if (s.turnos >= MAX_TURNOS) return ctx.say(`Já fizeste ${MAX_TURNOS} turnos esta semana. Vai descansar e estudar!`, quem)
+  const r = await ctx.ask(`Vamos a um turno? (${s.turnos}/${MAX_TURNOS} esta semana)`, ['SIM', 'NÃO', 'DEIXAR O TRABALHO'], quem, 1)
+  if (r === 2) {
+    mudar(ctx, (x) => ({ ...x, emprego: null }))
+    return ctx.say('Tenho pena! Agradeço o teu trabalho. Se quiseres voltar, fala comigo.', quem)
+  }
+  if (r !== 0) return ctx.say('Está bem. Estou cá quando quiseres.', quem)
+  await ctx.say(t.instrucao, quem)
+  const jogo = await ctx.jogar(t.minijogo)
+  const extra = round2(t.extra(jogo))
+  const total = round2(t.base + extra)
+  const turnos = s.turnos + 1
+  mudar(ctx, (x) => ({ ...x, dinheiro: round2(x.dinheiro + total), salarioTotal: round2(x.salarioTotal + total), turnos }))
+  const cansaco = turnos >= 2 && id !== 'explicacoes' ? { educacao: (t.efeitos.educacao ?? 0) - 3 } : {}
+  stats(ctx, { ...t.efeitos, ...cansaco })
+  const efeitos = Object.entries({ ...t.efeitos, ...cansaco })
+    .filter(([, v]) => v)
+    .map(([k, v]) => `${{ relacoes: 'Relações', saude: 'Saúde', educacao: 'Educação' }[k]} ${v! > 0 ? '+' : ''}${v}`)
+    .join(' · ')
+  await ctx.say([`${jogo.texto}. Bom trabalho!`, `Ganhaste ${euros(t.base)} + ${euros(extra)} ${t.textoExtra} = ${euros(total)}, já na tua conta.`], quem)
+  await ctx.say(turnos >= 2 && id !== 'explicacoes' ? `Dois turnos na mesma semana tiram tempo ao estudo. ${efeitos}.` : `${efeitos}.`)
+  await ctx.cracha('salario')
+  await verificarConquistas(ctx)
+}
+
 const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async mae(ctx) {
     const s = ctx.estado()
     await ctx.say(`Olá, ${s.name}! ${DICAS_MAE[s.semana % DICAS_MAE.length]}`, MAE)
     if (!s.conta) return ctx.say('Ainda não abriste conta? O Banco Ponte é o prédio azul, ao lado da praça.', MAE)
-    if (!s.emprego) return ctx.say('O Café Grão Dourado ainda procura alguém para o fim de semana. Porque não vais lá?', MAE)
+    if (!s.emprego) {
+      return ctx.say(
+        [
+          'Há vários part-times para a tua idade. Escolhe o que combina contigo:',
+          'o Café Grão Dourado, entregas de bicicleta (o Marco, ao pé do cruzamento), babysitting (a Sra. Helena, no parque) ou explicações (o Prof. Nuno, se tiveres boas notas).',
+        ],
+        MAE,
+      )
+    }
     const obj = objetivoCidade(s.crachas)
     if (obj) await ctx.say(`Próximo desafio: ${obj.objetivo}`, MAE)
   },
 
   async clara(ctx) {
-    const quem = 'D. Clara'
-    let s = ctx.estado()
-    if (!s.emprego) {
-      await ctx.say(['Olá! Vieste pelo anúncio do part-time?', 'Então vamos fazer uma pequena entrevista.'], quem)
-      const r1 = await ctx.ask('Porque queres trabalhar aqui?', ['QUERO O MEU DINHEIRO', 'GOSTO DE PESSOAS', 'NÃO SEI...'], quem)
-      await ctx.say(
-        ['Honesto! Ganhar o teu próprio dinheiro dá muita liberdade.', 'Ótimo, aqui falamos com muita gente todos os dias.', 'Ninguém sabe tudo à primeira. Gosto de sinceridade.'][r1],
-        quem,
-      )
-      const r2 = await ctx.ask('Um cliente diz que o café está frio. O que fazes?', ['PEÇO DESCULPA E FAÇO OUTRO', 'DIGO QUE ESTÁ BOM', 'CHAMO-A A SI'], quem)
-      await ctx.say(
-        ['Perfeito! O cliente fica contente e volta.', 'Hmm... o cliente tem sempre razão, pelo menos aqui!', 'Pedir ajuda também está certo.'][r2],
-        quem,
-      )
-      mudar(ctx, (x) => ({ ...x, emprego: true }))
-      await ctx.say(
-        [
-          'Ficas com o lugar! Boas-vindas à equipa.',
-          `São no máximo ${MAX_TURNOS} turnos por semana: ${SALARIO_TURNO}€ por turno, mais as gorjetas.`,
-          'O trabalho para jovens tem regras: poucas horas, nunca à noite e com autorização dos pais. Os teus já assinaram!',
-        ],
-        quem,
-      )
-      s = ctx.estado()
-    }
-    if (!s.conta) return ctx.say('Pagamos por transferência, por isso preciso do teu IBAN. Abre uma conta no Banco Ponte e volta cá!', quem)
-    if (s.turnos >= MAX_TURNOS) return ctx.say(`Já fizeste ${MAX_TURNOS} turnos esta semana. Vai descansar e estudar!`, quem)
-    const r = await ctx.ask(`Vamos a um turno? (${s.turnos}/${MAX_TURNOS} esta semana)`, ['SIM', 'NÃO'], quem, 1)
-    if (r !== 0) return ctx.say('Está bem. Estamos cá quando quiseres.', quem)
-    await ctx.say('Serve a cada cliente o que ele pediu. Depressa, que as gorjetas dependem disso!', quem)
-    const jogo = await ctx.jogar('cafe')
-    const gorjetas = jogo.valor ?? 0
-    const total = round2(SALARIO_TURNO + gorjetas)
-    const turnos = s.turnos + 1
-    mudar(ctx, (x) => ({ ...x, dinheiro: round2(x.dinheiro + total), salarioTotal: round2(x.salarioTotal + total), turnos }))
-    stats(ctx, turnos >= 2 ? { saude: -3, educacao: -3 } : { saude: -2 })
-    await ctx.say(
-      [`${jogo.texto}. Bom trabalho!`, `Ganhaste ${euros(SALARIO_TURNO)} + ${euros(gorjetas)} de gorjetas = ${euros(total)}, já transferidos para a tua conta.`],
-      quem,
-    )
-    if (turnos >= 2) await ctx.say('Dois turnos na mesma semana cansam... e sobra menos tempo para estudar. Saúde -3 · Educação -3.')
-    else await ctx.say('Trabalhar cansa um bocadinho. Saúde -2.')
-    await ctx.cracha('salario')
-    await verificarConquistas(ctx)
+    await patrao(ctx, 'cafe')
+  },
+
+  async marco(ctx) {
+    await patrao(ctx, 'entregas')
+  },
+
+  async helena(ctx) {
+    await patrao(ctx, 'babysitting')
   },
 
   async cliente_cafe(ctx) {
@@ -317,7 +349,8 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async prof(ctx) {
     const quem = 'Prof. Nuno'
     if (!comFlag(ctx, 'prof')) await ctx.say(['Olá! Sou o Professor Nuno, de Economia.', 'Às vezes dou explicações grátis depois das aulas.'], quem)
-    const r = await ctx.ask('Queres ter uma explicação de Economia?', ['SIM', 'NÃO'], quem, 1)
+    const r = await ctx.ask('Em que posso ajudar?', ['EXPLICAÇÃO GRÁTIS', ctx.estado().emprego === 'explicacoes' ? 'DAR EXPLICAÇÕES' : 'TRABALHAR A DAR EXPLICAÇÕES', 'ADEUS'], quem, 2)
+    if (r === 1) return patrao(ctx, 'explicacoes')
     if (r !== 0) return ctx.say('Está bem! A biblioteca também está aberta, ali à direita.', quem)
     const s = ctx.estado()
     const licoes = [
@@ -337,20 +370,33 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async amigos(ctx) {
     const quem = 'Rui e Inês'
     const s = ctx.estado()
-    const preco = round2(5 * s.indicePrecos)
-    const r = await ctx.ask(`Vamos de bicicleta até ao miradouro e lanchar lá? Fica a ${euros(preco)}.`, ['SIM', 'SÓ CONVERSAR', 'NÃO'], quem, 2)
-    if (r === 2) return ctx.say('Combinado, fica para a próxima!', quem)
-    if (r === 1) {
+    const lanche = round2(5 * s.indicePrecos)
+    const bowling = round2(8 * s.indicePrecos)
+    const r = await ctx.ask(
+      `O que fazemos hoje? Bicicleta e lanche (${euros(lanche)}), bowling (${euros(bowling)}) ou só conversar (grátis)?`,
+      ['BICICLETA', 'BOWLING', 'SÓ CONVERSAR', 'NÃO'],
+      quem,
+      3,
+    )
+    if (r === 3) return ctx.say('Combinado, fica para a próxima!', quem)
+    if (r === 2) {
       if (comFlag(ctx, `conversou_${s.semana}`)) return ctx.say('Já pusemos a conversa em dia esta semana!', quem)
       stats(ctx, { relacoes: 3 })
       return ctx.say(['Ficaram a conversar no parque a tarde toda. Relações +3.', 'Estar com amigos não tem de custar dinheiro.'])
     }
-    if (s.dinheiro < preco) return ctx.say(`Não tens ${euros(preco)} na conta. Ficam a conversar no parque, que é grátis!`, quem)
+    const preco = r === 0 ? lanche : bowling
+    if (s.dinheiro < preco) return ctx.say(`Não tens ${euros(preco)} na conta. Ficamos a conversar no parque, que é grátis!`, quem)
     mudar(ctx, (x) => ({ ...x, dinheiro: round2(x.dinheiro - preco) }))
-    await ctx.say('Bora! Cuidado com os cones e as poças!', quem)
-    const jogo = await ctx.jogar('bicicleta')
-    stats(ctx, { relacoes: jogo.pontos >= 10 ? 5 : 3, saude: 2 })
-    await ctx.say([`Que passeio! (${jogo.texto})`, `-${euros(preco)} do lanche · Relações +${jogo.pontos >= 10 ? 5 : 3} · Saúde +2.`])
+    if (r === 0) {
+      await ctx.say('Bora! Cuidado com os cones e as poças!', quem)
+      const jogo = await ctx.jogar('bicicleta')
+      stats(ctx, { relacoes: jogo.pontos >= 10 ? 5 : 3, saude: 2 })
+      return ctx.say([`Que passeio! (${jogo.texto})`, `-${euros(preco)} do lanche · Relações +${jogo.pontos >= 10 ? 5 : 3} · Saúde +2.`])
+    }
+    await ctx.say('Ao bowling! Quem fizer menos pinos paga as pipocas... a brincar!', quem)
+    const jogo = await ctx.jogar('bowling')
+    stats(ctx, { relacoes: jogo.pontos >= 25 ? 6 : 4 })
+    await ctx.say([`${jogo.texto}!`, `-${euros(preco)} · Relações +${jogo.pontos >= 25 ? 6 : 4}.`])
   },
 
   async duarte(ctx) {
@@ -450,10 +496,10 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
   async pc(ctx) {
     const s = ctx.estado()
     const fixos = custoDespesas(s) + (s.conta === 'standard' ? COMISSAO_STANDARD : 0) + s.pagamentos.reduce((t, p) => t + p.valor, 0)
-    const trabalho = s.emprego ? MAX_TURNOS * (SALARIO_TURNO + 2) : 0
+    const trabalho = s.emprego ? MAX_TURNOS * (TRABALHOS_CIDADE[s.emprego].base + 2) : 0
     await ctx.say([
       'Abres a folha de cálculo do teu ORÇAMENTO semanal:',
-      `ENTRA: mesada ${euros(MESADA)}${s.emprego ? ` + café até ${euros(trabalho)}` : ''}.`,
+      `ENTRA: mesada ${euros(MESADA)}${s.emprego ? ` + ${TRABALHOS_CIDADE[s.emprego].curto.toLowerCase()} até ${euros(trabalho)}` : ''}.`,
       `SAI (fixo): ${euros(fixos)} (lanche, passe${s.conta === 'standard' ? ', comissão' : ''}${s.pagamentos.length ? ', pagamentos automáticos' : ''}).`,
       `SOBRA até ${euros(MESADA + trabalho - fixos)} por semana para poupar, investir ou gastar.`,
     ])

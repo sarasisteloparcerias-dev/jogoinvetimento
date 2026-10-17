@@ -1,5 +1,6 @@
 import { clamp } from '../data'
 import { comprarM, euros, round2 } from './economia'
+import { PROFISSOES } from './profissoes'
 import type { EstadoMercado, StatsAdulto } from './tipos'
 
 export interface OpcaoEventoM {
@@ -70,7 +71,7 @@ export const EVENTOS_MERCADO: EventoMercado[] = [
     id: 'colega_lua',
     mes: 4,
     titulo: 'O colega da LuaCoin',
-    texto: () => 'O Tiago, do escritório, diz que a LuaCoin já subiu 40% e que pediu um crédito para comprar mais. Entras com 300€?',
+    texto: () => 'O teu amigo Tiago diz que a LuaCoin já subiu 40% e que pediu um crédito para comprar mais. Entras com 300€?',
     opcoes: [
       {
         label: 'COMPRAR 300€',
@@ -108,7 +109,7 @@ export const EVENTOS_MERCADO: EventoMercado[] = [
     id: 'layoff',
     mes: 8,
     titulo: 'Lay-off na empresa',
-    texto: () => 'Por causa da recessão, a Nexo vai pôr toda a gente em lay-off: nos próximos 2 meses recebes só 2/3 do salário.',
+    texto: (s) => `Por causa da recessão, a ${PROFISSOES[s.profissao].empresa} vai pôr toda a gente em lay-off: nos próximos 2 meses recebes só 2/3 do salário.`,
     opcoes: [
       {
         label: 'OK...',
@@ -140,7 +141,7 @@ export const EVENTOS_MERCADO: EventoMercado[] = [
     id: 'avaliacao',
     mes: 12,
     titulo: 'Avaliação anual',
-    texto: (s) => `A tua chefe faz a avaliação do ano. A tua Carreira está em ${Math.round(s.stats.carreira)}/100. Pedes aumento?`,
+    texto: (s) => `${PROFISSOES[s.profissao].chefe} faz a avaliação do ano. A tua Carreira está em ${Math.round(s.stats.carreira)}/100. Pedes aumento?`,
     opcoes: [
       {
         label: 'PEDIR AUMENTO',

@@ -176,7 +176,7 @@ export function novoEstadoCidade(name: string, avatar: AvatarConfig): EstadoCida
     custo: porAtivo(() => 0),
     precos,
     historicoPrecos: porAtivo((id) => [precos[id]]),
-    emprego: false,
+    emprego: null,
     turnos: 0,
     stats: { relacoes: 60, saude: 70, educacao: 55 },
     indicePrecos: 1,

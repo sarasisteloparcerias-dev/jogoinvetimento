@@ -1,6 +1,7 @@
 import type { Movimento, Noticia, Pagamento } from '../cidade/tipos'
 import type { EstadoBase } from '../modo'
 import type { HistoryPoint } from '../types'
+import type { Profissao } from './profissoes'
 
 export type { Movimento, Noticia, Pagamento }
 
@@ -27,6 +28,7 @@ export interface EstadoMercado extends EstadoBase {
   divida: number
   cartaoCredito: boolean
   salarioBruto: number
+  profissao: Profissao
   casa: Casa
   marcaBranca: boolean
   ginasio: boolean

@@ -1,7 +1,8 @@
 import { round2 } from '../cidade/economia'
 import { clamp } from '../data'
 import type { AvatarConfig } from '../types'
-import type { AtivoM, Casa, EstadoMercado, Noticia } from './tipos'
+import { PROFISSOES } from './profissoes'
+import type { AtivoM, Casa, EstadoMercado, Noticia, StatsAdulto } from './tipos'
 
 export { euros, round2 } from '../cidade/economia'
 
@@ -119,7 +120,8 @@ export function custoCasa(s: EstadoMercado) {
 
 export function custoSupermercado(s: EstadoMercado) {
   if (s.casa === 'pais') return 0
-  return round2(220 * s.indicePrecos * (s.marcaBranca ? 0.8 : 1))
+  const lista = s.flags.includes(`lista_${s.mes}`) ? 0.9 : 1
+  return round2(220 * s.indicePrecos * (s.marcaBranca ? 0.8 : 1) * lista)
 }
 
 export function custoTransportes(s: EstadoMercado) {
@@ -184,6 +186,7 @@ export function novoEstadoMercado(name: string, avatar: AvatarConfig): EstadoMer
     divida: 0,
     cartaoCredito: false,
     salarioBruto: SALARIO_INICIAL,
+    profissao: 'escritorio',
     casa: 'quarto',
     marcaBranca: false,
     ginasio: false,
@@ -283,6 +286,11 @@ export function avancarMes(antes: EstadoMercado): { estado: EstadoMercado; notic
 
   const sal = salarioLiquido(s)
   s = mov({ ...s, conta: round2(s.conta + sal.liquido) }, emLayoff(s) ? 'Salário (lay-off, 2/3)' : 'Salário líquido', sal.liquido)
+  const prof = PROFISSOES[s.profissao]
+  if (prof.gorjetas > 0) {
+    const gorjetas = round2(prof.gorjetas * (0.7 + Math.random() * 0.6) * (emLayoff(s) ? 0.5 : 1))
+    s = mov({ ...s, conta: round2(s.conta + gorjetas) }, 'Gorjetas do mês', gorjetas)
+  }
 
   for (const d of despesasFixas(s)) s = pagar(s, d.valor, d.texto)
   s.pagamentos = s.pagamentos.flatMap((p) => (p.restam === null ? [p] : p.restam > 1 ? [{ ...p, restam: p.restam - 1 }] : []))
@@ -320,10 +328,11 @@ export function avancarMes(antes: EstadoMercado): { estado: EstadoMercado; notic
   const noticia = { semana: s.mes, titulo: def.titulo, texto: def.texto }
   s.noticias = [...s.noticias, noticia]
 
+  const efeitos: Partial<StatsAdulto> = prof.efeitosMes
   s.stats = {
-    relacoes: clamp(s.stats.relacoes - 3),
-    saude: clamp(s.stats.saude - 3 + (s.casa === 't1' ? 1 : 0)),
-    carreira: clamp(s.stats.carreira - 1),
+    relacoes: clamp(s.stats.relacoes - 3 + (efeitos.relacoes ?? 0)),
+    saude: clamp(s.stats.saude - 3 + (s.casa === 't1' ? 1 : 0) + (efeitos.saude ?? 0)),
+    carreira: clamp(s.stats.carreira - 1 + (efeitos.carreira ?? 0)),
   }
   s.history = [...s.history, { week: antes.mes, saldo: s.conta, poupanca: round2(s.poupanca + s.ppr), investimento: round2(carteiraM(s)) }]
   s.gameOver = s.mes > MESES

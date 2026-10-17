@@ -61,6 +61,7 @@ export const RUA: MapaDef = {
     { id: 'rui', nome: 'Rui', avatar: AVATARES.rui, x: 8, y: 26, dir: 'right', script: 'amigos' },
     { id: 'ines', nome: 'Inês', avatar: AVATARES.ines, x: 10, y: 26, dir: 'left', script: 'amigos' },
     { id: 'duarte', nome: 'Duarte', avatar: AVATARES.duarte, x: 28, y: 24, dir: 'right', script: 'duarte' },
+    { id: 'marco', nome: 'Marco', avatar: AVATARES.marco, x: 19, y: 14, dir: 'left', script: 'marco' },
     { id: 'kiko', nome: 'Kiko', avatar: AVATARES.kiko, x: 33, y: 19, dir: 'down', script: 'finfluencer' },
     { id: 'amelia', nome: 'D. Amélia', avatar: AVATARES.amelia, x: 13, y: 17, dir: 'down', script: 'amelia', vaguear: { x0: 9, y0: 17, x1: 15, y1: 18 } },
   ],

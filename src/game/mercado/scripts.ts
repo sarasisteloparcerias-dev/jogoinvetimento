@@ -29,6 +29,7 @@ import {
   valorAtivoM,
 } from './economia'
 import { escolherEventoMercado } from './eventos'
+import { LISTA_PROFISSOES, PROFISSOES, type Profissao } from './profissoes'
 import type { AtivoM, Casa, EstadoMercado, Noticia, StatsAdulto } from './tipos'
 
 export type CtxMercado = CtxJogo<EstadoMercado>
@@ -83,20 +84,73 @@ export async function verificarConquistasM(ctx: Ctx) {
 
 // ---------------------------------------------------------------------------
 
+async function escolherProfissao(ctx: Ctx, opcoes: Profissao[], pergunta: string, cancelavel = false): Promise<Profissao | null> {
+  for (;;) {
+    const extra = cancelavel ? ['COMPARAR', 'VOLTAR'] : ['COMPARAR']
+    const r = await ctx.ask(pergunta, [...opcoes.map((p) => PROFISSOES[p].nome.toUpperCase()), ...extra], undefined, cancelavel ? opcoes.length + 1 : undefined)
+    if (r < opcoes.length) return opcoes[r]
+    if (r > opcoes.length) return null
+    await ctx.say(opcoes.flatMap((p) => PROFISSOES[p].descricao))
+  }
+}
+
+function aplicarProfissao(ctx: Ctx, p: Profissao, mudanca: boolean) {
+  const d = PROFISSOES[p]
+  mudar(ctx, (x) => ({
+    ...x,
+    profissao: p,
+    salarioBruto: d.salario,
+    stats: { ...x.stats, carreira: mudanca ? Math.max(30, x.stats.carreira - 10) : d.carreira },
+  }))
+}
+
 export async function tutorialMercado(ctx: Ctx) {
   const s = ctx.estado()
+  const mae = 'Mãe (telefone)'
+  await ctx.say(
+    [`${s.name}, sou eu, a Mãe! Acabaste os estudos e já tens três propostas de emprego. Que orgulho!`, 'Pensa bem: o salário não é tudo. Conta também o horário, o cansaço e o futuro.'],
+    mae,
+  )
+  const p = (await escolherProfissao(ctx, LISTA_PROFISSOES, 'Qual aceitas?'))!
+  aplicarProfissao(ctx, p, false)
+  const d = PROFISSOES[p]
   await ctx.say(
     [
-      `${s.name}, sou eu, a Mãe! Estou a ligar para te dar os parabéns pelo primeiro emprego a sério!`,
-      `Na Nexo Digital vais ganhar ${euros(s.salarioBruto)} brutos por mês. Mas atenção: ao bruto tiram a Segurança Social e o IRS. O que chega à conta é o LÍQUIDO.`,
+      `${d.empresa}, boa escolha! Vais ganhar ${euros(d.salario)} brutos por mês${d.gorjetas ? ', mais gorjetas' : ''}. Mas atenção: ao bruto tiram a Segurança Social e o IRS. O que chega à conta é o LÍQUIDO.`,
+      `Uma vez por mês podes ter um dia de trabalho intenso ${d.local}: fala com ${d.chefe}. Conta para a Carreira!`,
       `Tens ${euros(s.conta)} na conta e um quarto partilhado aqui na cidade. Renda, supermercado e passe saem todos os meses.`,
       'Em abril não te esqueças de entregar o IRS nas Finanças!',
       `O objetivo: em 2 anos, juntar ${euros(META_CASA)} para a entrada de uma casa. Os teus pais estão aqui perto, ao lado do parque.`,
-      'O teu painel (START) mostra as contas, os investimentos e o orçamento. E cada noite na cama passa um mês.',
+      'O teu painel (START) mostra as contas, os investimentos e o orçamento. No computador do quarto podes procurar outro emprego. Cada noite na cama passa um mês.',
     ],
-    'Mãe (telefone)',
+    mae,
   )
   comFlag(ctx, 'tutorial')
+}
+
+/** Dia de trabalho intenso (uma vez por mês): mini-jogo da profissão, conta para a Carreira. */
+async function diaDeTrabalho(ctx: Ctx) {
+  const s = ctx.estado()
+  const d = PROFISSOES[s.profissao]
+  const quem = d.chefe
+  await ctx.say(`Olá, ${s.name}. A tua Carreira está em ${Math.round(s.stats.carreira)}/100. A avaliação anual é em dezembro.`, quem)
+  if (tem(ctx, `dia_${s.mes}`)) return ctx.say('Este mês já deste tudo! Vai descansar.', quem)
+  const r = await ctx.ask('Hoje há muito trabalho. Dás o teu melhor num dia intenso?', ['SIM', 'NÃO'], quem, 1)
+  if (r !== 0) return ctx.say('Sem problema. O equilíbrio também é importante.', quem)
+  comFlag(ctx, `dia_${s.mes}`)
+  const jogo = await ctx.jogar(d.minijogo)
+  const bom = s.profissao === 'escritorio' ? jogo.pontos >= 14 : s.profissao === 'restaurante' ? jogo.pontos >= 8 : jogo.pontos >= 10
+  const carreira = bom ? 7 : 3
+  let extra = 0
+  if (s.profissao === 'restaurante') extra = round2((jogo.valor ?? 0) * 3)
+  if (s.profissao === 'estafeta') extra = round2(jogo.pontos * 2)
+  mudar(ctx, (x) => ({ ...x, conta: round2(x.conta + extra) }))
+  stats(ctx, { carreira, saude: -3 })
+  await ctx.say(
+    [`${jogo.texto}.`, `${bom ? 'Excelente trabalho!' : 'Bom esforço!'} Carreira +${carreira} · Saúde -3${extra ? ` · +${euros(extra)} ${s.profissao === 'restaurante' ? 'de gorjetas' : 'de bónus por entregas'}` : ''}.`],
+    quem,
+  )
+  await verificarConquistasM(ctx)
 }
 
 const TOPICOS_MESTRE: { titulo: string; linhas: (s: EstadoMercado) => string[] }[] = [
@@ -172,14 +226,13 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   },
 
   async chefe(ctx) {
-    const quem = 'Eng.ª Sofia'
-    const s = ctx.estado()
-    await ctx.say(`Olá, ${s.name}. A tua Carreira está em ${Math.round(s.stats.carreira)}/100. A avaliação anual é em dezembro.`, quem)
-    const r = await ctx.ask('Precisamos de alguém para acabar um projeto esta semana. Ficas até mais tarde?', ['SIM', 'NÃO'], quem, 1)
-    if (r !== 0) return ctx.say('Sem problema. O equilíbrio também é importante.', quem)
-    if (comFlag(ctx, `extra_${s.mes}`)) return ctx.say('Já ficaste até tarde este mês. Vai descansar!', quem)
-    stats(ctx, { carreira: 5, saude: -3, relacoes: -1 })
-    await ctx.say('Projeto entregue! Carreira +5 · Saúde -3 · Relações -1.', quem)
+    if (ctx.estado().profissao === 'escritorio') return diaDeTrabalho(ctx)
+    await ctx.say('Não trabalhas cá, mas se um dia quiseres mudar, temos vagas. Procura no computador do teu quarto.', 'Eng.ª Sofia')
+  },
+
+  async marco(ctx) {
+    if (ctx.estado().profissao === 'estafeta') return diaDeTrabalho(ctx)
+    await ctx.say('Precisamos sempre de estafetas! Se quiseres mudar, candidata-te no computador do teu quarto.', 'Marco')
   },
 
   async tiago(ctx) {
@@ -243,11 +296,12 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     if (s.casa === 'pais') return ctx.say('Os teus pais fazem as compras da casa, não é? Que sorte!', quem)
     const r = await ctx.ask(
       `Gastas uns ${euros(despesasFixas(s).find((d) => d.texto === 'Supermercado')?.valor ?? 0)} por mês aqui. ${s.marcaBranca ? 'Já compras marca branca.' : 'Sabias que a marca branca é uns 20% mais barata?'}`,
-      s.marcaBranca ? ['VOLTAR ÀS MARCAS', 'ADEUS'] : ['PASSAR A MARCA BRANCA', 'ADEUS'],
+      ['FAZER AS COMPRAS DO MÊS', s.marcaBranca ? 'VOLTAR ÀS MARCAS' : 'PASSAR A MARCA BRANCA', 'ADEUS'],
       quem,
-      1,
+      2,
     )
-    if (r !== 0) return ctx.say('Dica: vem com lista e sem fome. Gasta-se muito menos!', quem)
+    if (r === 0) return compras(ctx)
+    if (r !== 1) return ctx.say('Dica: vem com lista e sem fome. Gasta-se muito menos!', quem)
     mudar(ctx, (x) => ({ ...x, marcaBranca: !x.marcaBranca }))
     await ctx.say(ctx.estado().marcaBranca ? 'Muitas vezes é feita na mesma fábrica! Poupas uns 44€ por mês, 528€ por ano.' : 'Voltaste às marcas. Às vezes vale a pena, às vezes paga-se só o nome.', quem)
   },
@@ -275,6 +329,7 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async clara(ctx) {
     const quem = 'D. Clara'
     const s = ctx.estado()
+    if (s.profissao === 'restaurante') return diaDeTrabalho(ctx)
     if (!comFlag(ctx, 'clara')) await ctx.say(['Olá! Lembro-me de ti, trabalhaste cá quando eras adolescente!', 'Ao fim de semana precisamos de reforço.'], quem)
     if (s.turnos >= MAX_TURNOS) return ctx.say(`Já fizeste ${MAX_TURNOS} turnos este mês. O fim de semana também é para descansar!`, quem)
     const r = await ctx.ask(`Um turno de fim de semana paga ${euros(PAGAMENTO_TURNO)} + gorjetas. Vamos? (${s.turnos}/${MAX_TURNOS} este mês)`, ['SIM', 'NÃO'], quem, 1)
@@ -362,17 +417,27 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async amigos(ctx) {
     const quem = 'Rui e Inês'
     const s = ctx.estado()
-    const preco = round2(25 * s.indicePrecos)
-    const r = await ctx.ask(`Passeio de bicicleta e jantar? Fica a ${euros(preco)}.`, ['SIM', 'SÓ O PASSEIO', 'NÃO'], quem, 2)
-    if (r === 2) return ctx.say('Combinado, fica para a próxima!', quem)
-    if (r === 0) {
+    const jantar = round2(25 * s.indicePrecos)
+    const bowling = round2(12 * s.indicePrecos)
+    const r = await ctx.ask(
+      `Bicicleta e jantar (${euros(jantar)}), bowling (${euros(bowling)}) ou só um passeio (grátis)?`,
+      ['BICICLETA E JANTAR', 'BOWLING', 'SÓ O PASSEIO', 'NÃO'],
+      quem,
+      3,
+    )
+    if (r === 3) return ctx.say('Combinado, fica para a próxima!', quem)
+    const preco = r === 0 ? jantar : r === 1 ? bowling : 0
+    if (preco > 0) {
       if (s.conta < preco) return ctx.say(`Não tens ${euros(preco)} na conta. Vamos só passear!`, quem)
       mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - preco) }))
     }
-    const jogo = await ctx.jogar('bicicleta')
-    const ganho = comFlag(ctx, `amigos_${s.mes}`) ? 0 : r === 0 ? 6 : 3
-    if (ganho) stats(ctx, { relacoes: ganho, saude: 2 })
-    await ctx.say([`Que passeio! (${jogo.texto})`, ganho ? `Relações +${ganho} · Saúde +2${r === 0 ? ` · -${euros(preco)}` : ''}.` : 'Já tinham estado juntos este mês, mas soube bem na mesma.'], quem)
+    const jogo = await ctx.jogar(r === 1 ? 'bowling' : 'bicicleta')
+    const ganho = comFlag(ctx, `amigos_${s.mes}`) ? 0 : r === 2 ? 3 : 6
+    if (ganho) stats(ctx, r === 1 ? { relacoes: ganho } : { relacoes: ganho, saude: 2 })
+    await ctx.say(
+      [`${r === 1 ? 'Que noite!' : 'Que passeio!'} (${jogo.texto})`, ganho ? `Relações +${ganho}${r === 1 ? '' : ' · Saúde +2'}${preco ? ` · -${euros(preco)}` : ''}.` : 'Já tinham estado juntos este mês, mas soube bem na mesma.'],
+      quem,
+    )
   },
 
   async duarte(ctx) {
@@ -419,6 +484,51 @@ async function explicarIrs(ctx: Ctx, quem: string) {
   )
 }
 
+/** Compras do mês com o mini-jogo: seguir a lista baixa a conta do supermercado do mês seguinte. */
+async function compras(ctx: Ctx) {
+  const s = ctx.estado()
+  if (s.casa === 'pais') return ctx.say('Em casa dos pais, as compras são com eles.')
+  if (comFlag(ctx, `compras_${s.mes}`)) return ctx.say('Já fizeste as compras deste mês.')
+  const jogo = await ctx.jogar('supermercado')
+  const impulso = round2(jogo.valor ?? 0)
+  mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - impulso), flags: jogo.pontos >= 5 ? [...x.flags, `lista_${x.mes + 1}`] : x.flags }))
+  await ctx.say([
+    `${jogo.texto}.`,
+    jogo.pontos >= 5
+      ? 'Seguiste a lista: no próximo mês o supermercado fica 10% mais barato.'
+      : 'Faltaram coisas da lista: vais ter de voltar ao supermercado e acabas por gastar mais.',
+    impulso > 0 ? `As compras por impulso custaram ${euros(impulso)}. Pequenas compras somam-se!` : 'Nenhuma compra por impulso. Muito bem!',
+  ])
+}
+
+/** Mudar de emprego: candidatura, entrevista e novo salário a partir do mês seguinte. */
+async function procurarEmprego(ctx: Ctx) {
+  const s = ctx.estado()
+  const ultima = s.flags.filter((f) => f.startsWith('mudou_')).map((f) => Number(f.slice(6)))
+  if (ultima.some((m) => s.mes - m < 6)) return ctx.say('Mudaste de emprego há pouco tempo. Espera uns meses antes de voltar a mudar.')
+  const outras = LISTA_PROFISSOES.filter((p) => p !== s.profissao)
+  await ctx.say(`Agora trabalhas como ${PROFISSOES[s.profissao].nome} (${euros(s.salarioBruto)} brutos). Há estas vagas:`)
+  const escolha = await escolherProfissao(ctx, outras, 'Candidatas-te a qual?', true)
+  if (!escolha) return
+  const d = PROFISSOES[escolha]
+  const quem = d.chefe
+  const n = await ctx.ask('Candidatar mesmo? Se te aceitarem, começas lá no próximo mês.', ['SIM', 'NÃO'], undefined, 1)
+  if (n !== 0) return
+  await ctx.say('Entrevista de emprego...', quem)
+  const r1 = await ctx.ask('Porque queres trabalhar connosco?', ['QUERO APRENDER E CRESCER', 'SÓ PELO DINHEIRO', 'NÃO SEI BEM'], quem)
+  const r2 = await ctx.ask('Qual é o teu maior defeito?', ['SOU PERFECCIONISTA', 'ÀS VEZES DESORGANIZO-ME, MAS ESTOU A MELHORAR', 'NÃO TENHO DEFEITOS'], quem)
+  const pontos = (r1 === 0 ? 2 : r1 === 1 ? 1 : 0) + (r2 === 1 ? 2 : r2 === 0 ? 1 : 0) + (s.stats.carreira >= 50 ? 1 : 0)
+  if (pontos < 2) {
+    return ctx.say(['Agradecemos a candidatura, mas escolhemos outra pessoa.', 'Numa entrevista, mostra vontade de aprender e fala com honestidade sobre os teus defeitos.'], quem)
+  }
+  aplicarProfissao(ctx, escolha, true)
+  mudar(ctx, (x) => ({ ...x, flags: [...x.flags, `mudou_${x.mes}`] }))
+  await ctx.say(
+    [`Ficas com o lugar! Começas como ${d.nome}: ${euros(d.salario)} brutos${d.gorjetas ? ' mais gorjetas' : ''}.`, 'Mudar de área tem um custo: a tua Carreira desce um pouco enquanto aprendes. -10 Carreira.'],
+    quem,
+  )
+}
+
 const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
   async cama(ctx) {
     const r = await ctx.ask('Queres ir dormir? Vai passar um mês.', ['SIM', 'NÃO'], undefined, 1)
@@ -426,6 +536,9 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
   },
 
   async pc(ctx) {
+    const r = await ctx.ask('O teu computador. O que queres fazer?', ['VER O ORÇAMENTO', 'PROCURAR EMPREGO', 'NADA'], undefined, 2)
+    if (r === 1) return procurarEmprego(ctx)
+    if (r !== 0) return
     const s = ctx.estado()
     const sal = salarioLiquido(s)
     const fixas = totalFixas(s)
@@ -495,14 +608,22 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
   async prateleira(ctx) {
     const s = ctx.estado()
     await ctx.say(`Prateleiras cheias. Os preços estão ${pct(s.indicePrecos - 1)} acima de quando chegaste.`)
+    if (s.casa !== 'pais' && !tem(ctx, `compras_${s.mes}`)) {
+      const r = await ctx.ask('Fazer as compras do mês?', ['SIM', 'NÃO'], undefined, 1)
+      if (r === 0) await compras(ctx)
+    }
   },
 
   async treinar(ctx) {
     const s = ctx.estado()
     if (!s.ginasio) return ctx.say('Para usar as máquinas tens de te inscrever com o Nuno, ao balcão.')
-    if (comFlag(ctx, `treino_${s.mes}`)) return ctx.say('Já treinaste a sério este mês. Descansar também faz parte!')
-    stats(ctx, { saude: 8 })
-    await ctx.say('Um mês de treinos a sério. Saúde +8!')
+    const jaTreinou = tem(ctx, `treino_${s.mes}`)
+    const jogo = await ctx.jogar('ginasio')
+    if (jaTreinou) return ctx.say([`${jogo.texto}.`, 'Já tinhas treinado a sério este mês, mas mexer o corpo nunca faz mal!'])
+    comFlag(ctx, `treino_${s.mes}`)
+    const ganho = Math.min(12, 4 + Math.floor(jogo.pontos / 2))
+    stats(ctx, { saude: ganho })
+    await ctx.say([`${jogo.texto}.`, `Um mês de treinos a sério. Saúde +${ganho}!`])
   },
 }
 

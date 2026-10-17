@@ -23,6 +23,7 @@ import {
   venderM,
 } from '../../game/mercado/economia'
 import { verificarConquistasM } from '../../game/mercado/scripts'
+import { PROFISSOES } from '../../game/mercado/profissoes'
 import type { AtivoM, EstadoMercado } from '../../game/mercado/tipos'
 import { iconeCracha } from '../../game/pixel/cenario'
 import { GrowthChart } from '../GrowthChart'
@@ -317,7 +318,7 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
       conteudo = (
         <>
           <div style={{ fontSize: u(5.5), marginBottom: u(3) }}>
-            {CASAS[s.casa].nome} · Bruto {euros(s.salarioBruto)}
+            {PROFISSOES[s.profissao].nome} ({PROFISSOES[s.profissao].empresa}) · {euros(s.salarioBruto)} brutos · {CASAS[s.casa].nome}
           </div>
           <Barra nome="Relações" valor={s.stats.relacoes} cor="#f06090" />
           <Barra nome="Saúde" valor={s.stats.saude} cor="#48b870" />

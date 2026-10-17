@@ -128,10 +128,10 @@ financeiro.
   | Orçamento semanal | Computador do quarto |
   | Primeira conta: Conta Jovem (sem custos) ou Conta Standard (brinde, mas 1€/semana) | Rita, no Banco Ponte |
   | Aprender sobre ações, ETFs, obrigações, cripto, inflação, diversificar, risco | Mestre Moedas, consultor no Banco Ponte (abre a app INVESTIR) |
-  | Primeiro emprego: entrevista e até 2 turnos por semana (15€ + gorjetas) | D. Clara, no Café Grão Dourado (mini-jogo **Turno no Café**) |
+  | Primeiro emprego (escolhe um, até 2 turnos por semana) | Café (D. Clara, mini-jogo **Turno no Café**, 15€ + gorjetas), **Entregas** de bicicleta (Marco, ao pé do cruzamento, 12€ + 1€ por entrega), **Babysitting** (Sra. Helena, no parque, jogo de memória, 16€ + extra) ou **Explicações** (Prof. Nuno, quiz, 20€ + 1€ por resposta certa, pede Educação 60) |
   | Estudar (grátis, 1 vez por semana) | Biblioteca e Prof. Nuno, na Escola Secundária |
   | Compras por impulso, com a regra das 48 horas | Montras da MegaStore |
-  | Passeio de bicicleta (lanche pago) ou só conversar (grátis) | Rui e Inês, no parque |
+  | Bicicleta (lanche pago), **bowling** ou só conversar (grátis) | Rui e Inês, no parque |
   | Penáltis (grátis) | Duarte, no campo de jogos |
   | Publicidade disfarçada de conselho | Kiko, o influencer da LuaCoin |
 
@@ -167,8 +167,14 @@ tens menos o que deves) para a entrada de uma casa. Os termos são reais e os va
 simplificados; os ativos são inventados. O jogo avisa na introdução e no fim que é uma
 simulação educativa e não aconselhamento financeiro.
 
-- **Salário**: 1.300€ brutos. O recibo (computador do quarto e app MÊS) mostra
-  bruto − Segurança Social − retenção de IRS = líquido.
+- **Profissão à escolha** no início: assistente de projeto na Nexo Digital (1.300€,
+  mini-jogo **Caixa de entrada**: separar trabalho de spam e burlas), serviço de mesa no
+  Café (1.050€ + gorjetas, Turno no Café) ou estafeta na RapidEntregas (1.100€, mais
+  saúde, mini-jogo **Entregas**). Uma vez por mês há um dia de trabalho intenso que conta
+  para a Carreira. No computador do quarto podes **procurar outro emprego** (entrevista,
+  e a Carreira desce um pouco ao mudar de área).
+- **Salário**: o recibo (computador do quarto e app MÊS) mostra bruto − Segurança
+  Social − retenção de IRS = líquido.
 - **Casa**: quarto partilhado (380€), T1 (620€ + contas) ou voltar para casa dos pais
   (150€ de ajuda). Muda-se na Imobiliária, com caução de 2 rendas e a regra de um terço
   do salário.
@@ -185,9 +191,11 @@ simulação educativa e não aconselhamento financeiro.
   numa empresa e a moda das renováveis.
 - **Finanças**: o IRS entrega-se de abril a junho (reembolso, mais a dedução do PPR);
   fora do prazo há multa.
-- **Trabalho e vida**: ficar até mais tarde (Carreira), avaliação anual com pedido de
-  aumento, turnos ao fim de semana no Café (mini-jogo), ginásio (pagar não chega, é
-  preciso ir), almoço em casa dos pais, futebol e passeios de bicicleta.
+- **Trabalho e vida**: avaliação anual com pedido de aumento, turnos ao fim de semana no
+  Café, **compras do mês** no supermercado (mini-jogo: apanhar o que está na lista e
+  fugir às compras por impulso; seguir a lista baixa a conta do mês seguinte),
+  **treino no ginásio** (mini-jogo de força; pagar não chega, é preciso ir), almoço em
+  casa dos pais, futebol, bicicleta e bowling com os amigos.
 - **20 eventos** da vida adulta: subscrições, o colega da LuaCoin, esquema em pirâmide,
   phishing, lay-off, Black Friday, crédito para férias, telemóvel a prestações,
   casamento, herança, seguro de saúde, dentista, formação, trabalho extra, adotar um cão,
@@ -211,7 +219,8 @@ src/
       sprites.ts  - personagens 16×24 (crianças) e 16×32 (adolescentes), 4 direções × 3 frames
       cenario.ts  - tiles, edifícios, mobília e ícones dos crachás
     minijogos/
-      futebol.ts, bicicleta.ts, gelado.ts, cafe.ts - os mini-jogos (update/render em canvas)
+      futebol.ts, bicicleta.ts, gelado.ts, cafe.ts, supermercado.ts, ginasio.ts,
+      entregas.ts, babysitting.ts, explicacoes.ts, emails.ts, bowling.ts - os 11 mini-jogos
       tipos.ts, index.ts                  - interface comum e criação por tipo
     modo.ts       - o que todos os modos partilham (estado base e ações dos guiões)
     world/
@@ -222,10 +231,12 @@ src/
     cidade/
       tipos.ts, economia.ts - estado, ativos, notícias, inflação e a semana d'A Cidade
       eventos.ts, conquistas.ts - eventos e conquistas desta idade
+      trabalhos.ts              - os 4 part-times (pagamento, mini-jogo, efeitos)
       mapas.ts, scripts.ts      - a cidade, os interiores e as conversas
     mercado/
       tipos.ts, economia.ts - estado, salário, despesas, impostos, dívidas e o mercado de cada mês
       eventos.ts, conquistas.ts, mapas.ts, scripts.ts - eventos, conquistas, mundo e conversas d'O Mercado
+      profissoes.ts - as 3 profissões (salário, gorjetas, mini-jogo, efeitos)
   components/
     gba/
       Consola.tsx    - ecrã ampliado, teclado e botões tácteis
