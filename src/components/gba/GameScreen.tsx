@@ -98,6 +98,14 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     const m = motorRef.current
     m.onEntrarMapa = (def) => setBanner({ nome: def.nome, k: Date.now() })
     m.onInteragir = (i) => void correr((c) => modo.interagir(i, c))
+    m.onAtropelado = () => {
+      const t = modo.transito
+      if (t) void correr((c) => t.atropelado(c))
+    }
+    m.onForaPassadeira = () => {
+      const t = modo.transito
+      if (t) void correr((c) => t.foraPassadeira(c))
+    }
     const g = canvasRef.current!.getContext('2d')!
     g.imageSmoothingEnabled = false
     let ultimo = performance.now()

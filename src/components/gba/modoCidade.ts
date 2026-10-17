@@ -1,6 +1,6 @@
 import { CONQUISTAS_CIDADE } from '../../game/cidade/conquistas'
 import { MAPAS_CIDADE } from '../../game/cidade/mapas'
-import { executarInteracaoCidade, tutorialCidade } from '../../game/cidade/scripts'
+import { executarInteracaoCidade, TRANSITO_CIDADE_SCRIPTS, tutorialCidade } from '../../game/cidade/scripts'
 import type { EstadoCidade } from '../../game/cidade/tipos'
 import { iconeCracha } from '../../game/pixel/cenario'
 import { framesAdolescente } from '../../game/pixel/sprites'
@@ -17,4 +17,5 @@ export const MODO_CIDADE: ModoJogo<EstadoCidade> = {
   tutorial: tutorialCidade,
   interagir: executarInteracaoCidade,
   Menu: Telemovel,
+  transito: TRANSITO_CIDADE_SCRIPTS,
 }

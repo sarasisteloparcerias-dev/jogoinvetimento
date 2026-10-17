@@ -1,6 +1,6 @@
 import { MENTOR } from '../mentor'
 import { grelhaSala, novaGrelha, ret, texto } from '../world/mapas'
-import type { MapaDef } from '../world/tipos'
+import type { FaixaDef, MapaDef } from '../world/tipos'
 
 export const AVATARES_CIDADE = {
   mae: { pele: '#f1c27d', cabelo: '#2d1b0e', roupa: '#0e7490', cabeloComprido: true },
@@ -22,6 +22,34 @@ export const AVATARES_CIDADE = {
 
 const W = 36
 const H = 30
+
+/** Faixas de rodagem da cidade (circula-se pela direita). */
+export const TRANSITO_CIDADE: FaixaDef[] = [
+  { eixo: 'h', linha: 10, sentido: -1, de: 1, ate: 34, carros: 2 },
+  { eixo: 'h', linha: 11, sentido: 1, de: 1, ate: 34, carros: 2 },
+  { eixo: 'h', linha: 20, sentido: -1, de: 1, ate: 34, carros: 1 },
+  { eixo: 'h', linha: 21, sentido: 1, de: 1, ate: 34, carros: 2 },
+  { eixo: 'v', linha: 17, sentido: 1, de: 1, ate: 28, carros: 1 },
+  { eixo: 'v', linha: 18, sentido: -1, de: 1, ate: 28, carros: 1 },
+]
+
+/** Para onde se vai depois de um atropelamento (não tem porta para a rua). */
+export const HOSPITAL: MapaDef = {
+  id: 'hospital',
+  nome: 'HOSPITAL',
+  tipo: 'interior',
+  grelha: grelhaSala(10, 8, 4),
+  chao: 'azulejo',
+  parede: '#e8f4f0',
+  props: [
+    { tipo: 'cama', x: 1, y: 2, h: 2 },
+    { tipo: 'cama', x: 3, y: 2, h: 2 },
+    { tipo: 'cama', x: 8, y: 2, h: 2 },
+    { tipo: 'planta', x: 5, y: 2 },
+    { tipo: 'computador', x: 6, y: 2 },
+  ],
+  npcs: [{ id: 'medica', nome: 'Dra. Ana', avatar: { pele: '#e0ac69', cabelo: '#2d1b0e', roupa: '#e8eef6', cabeloComprido: true }, x: 5, y: 4, dir: 'left', script: 'medica' }],
+}
 
 export function grelhaCidade(): string[] {
   const g = novaGrelha(W, H, '.')
@@ -57,6 +85,7 @@ export const CIDADE: MapaDef = {
   nome: 'A CIDADE',
   tipo: 'exterior',
   grelha: grelhaCidade(),
+  transito: TRANSITO_CIDADE,
   edificios: [
     { x: 2, y: 3, w: 5, h: 6, cor: 'laranja', estilo: 'predio', porta: 2, janelas: [0, 2, 4], interior: 'casa' },
     { x: 9, y: 4, w: 6, h: 5, cor: 'castanho', estilo: 'predio', porta: 2, janelas: [0, 1, 3, 4, 5], letreiro: 'CAFE', toldo: '#2aa58c', interior: 'cafe' },
@@ -73,9 +102,6 @@ export const CIDADE: MapaDef = {
     { tipo: 'candeeiro', x: 34, y: 18 },
     { tipo: 'semaforo', x: 16, y: 9 },
     { tipo: 'semaforo', x: 19, y: 22 },
-    { tipo: 'carro', x: 1, y: 11, w: 2, cor: '#4a7ad0' },
-    { tipo: 'carro', x: 30, y: 21, w: 2, cor: '#f0c040' },
-    { tipo: 'carro', x: 12, y: 10, w: 2, cor: '#e04848' },
     { tipo: 'caixa_multibanco', x: 8, y: 18, script: 'multibanco' },
     { tipo: 'fonte', x: 11, y: 15, w: 2, h: 2 },
     { tipo: 'banco_jardim', x: 13, y: 13, w: 2 },
@@ -234,4 +260,5 @@ export const MAPAS_CIDADE: Record<string, MapaDef> = {
   banco: BANCO_PONTE,
   escola: ESCOLA_SECUNDARIA,
   megastore: MEGASTORE,
+  hospital: HOSPITAL,
 }

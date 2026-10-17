@@ -743,6 +743,40 @@ export function desenharProp(ctx: CanvasRenderingContext2D, p: PropDef) {
   }
 }
 
+// ---------- carros em movimento ----------
+
+/** Carro de lado (estrada horizontal): 30x16, virado para a direita (sentido 1) ou esquerda. */
+export function desenharCarroH(ctx: CanvasRenderingContext2D, x: number, y: number, cor: string, sentido: 1 | -1) {
+  r(ctx, x, y + 3, 30, 10, K)
+  r(ctx, x + 1, y + 4, 28, 8, cor)
+  r(ctx, x + 7, y, 16, 5, K)
+  r(ctx, x + 8, y + 1, 14, 4, '#9fd6f6')
+  r(ctx, x + 15, y + 1, 1, 4, K)
+  r(ctx, x + 1, y + 6, 28, 1, tom(cor, 0.3))
+  const frente = sentido === 1 ? x + 27 : x + 1
+  const tras = sentido === 1 ? x + 1 : x + 27
+  r(ctx, frente, y + 5, 2, 2, '#fff0a0')
+  r(ctx, tras, y + 5, 2, 2, '#e04848')
+  circulo(ctx, x + 7, y + 13, 2, '#3a3a44', K)
+  circulo(ctx, x + 23, y + 13, 2, '#3a3a44', K)
+}
+
+/** Carro de frente/de trás (estrada vertical): 14x26. */
+export function desenharCarroV(ctx: CanvasRenderingContext2D, x: number, y: number, cor: string, sentido: 1 | -1) {
+  r(ctx, x, y, 14, 26, K)
+  r(ctx, x + 1, y + 1, 12, 24, cor)
+  const vidro = sentido === 1 ? y + 16 : y + 3
+  r(ctx, x + 2, vidro, 10, 6, '#9fd6f6')
+  r(ctx, x + 2, sentido === 1 ? y + 4 : y + 18, 10, 4, tom(cor, -0.2))
+  const luz = sentido === 1 ? y + 23 : y + 1
+  r(ctx, x + 1, luz, 3, 2, '#fff0a0')
+  r(ctx, x + 10, luz, 3, 2, '#fff0a0')
+  r(ctx, x - 1, y + 4, 1, 5, K)
+  r(ctx, x + 14, y + 4, 1, 5, K)
+  r(ctx, x - 1, y + 17, 1, 5, K)
+  r(ctx, x + 14, y + 17, 1, 5, K)
+}
+
 // ---------- camada estática do mapa ----------
 
 export function construirCamada(mapa: MapaDef, frame: number): HTMLCanvasElement {

@@ -254,6 +254,10 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     await patrao(ctx, 'babysitting')
   },
 
+  async medica(ctx) {
+    await ctx.say('Descansa. E da próxima vez, passadeira!', 'Dra. Ana')
+  },
+
   async cliente_cafe(ctx) {
     await ctx.say('Venho cá todos os dias. Um café por dia são uns 25€ por mês! Se calhar devia fazer as contas...', 'Cliente')
   },
@@ -565,9 +569,9 @@ export async function executarInteracaoCidade(i: Interacao, ctx: Ctx) {
 
 // ---------------------------------------------------------------------------
 
-async function dormir(ctx: Ctx) {
+async function dormir(ctx: Ctx, texto = 'Zzz... Zzz... Zzz...') {
   await ctx.fade(1, 500)
-  await ctx.say('Zzz... Zzz... Zzz...')
+  await ctx.say(texto)
   const antes = ctx.estado()
   const { estado: depois, noticia } = avancarSemanaCidade(antes)
   ctx.definir(depois)
@@ -578,6 +582,40 @@ async function dormir(ctx: Ctx) {
     await resumoFinalCidade(ctx)
     ctx.terminar()
   }
+}
+
+const AGENTE = 'Agente Pereira'
+
+/** Trânsito: multa por atravessar fora da passadeira e hospital em caso de atropelamento. */
+export const TRANSITO_CIDADE_SCRIPTS = {
+  async foraPassadeira(ctx: Ctx) {
+    const s = ctx.estado()
+    if (!comFlag(ctx, 'aviso_passadeira')) {
+      return ctx.say(['Ei! Atravessar fora da passadeira é perigoso: os carros só param nas passadeiras.', 'E dá multa! Desta vez fica só o aviso.'], AGENTE)
+    }
+    if (tem(ctx, `multa_peao_${s.semana}`) || Math.random() > 0.35) return
+    comFlag(ctx, `multa_peao_${s.semana}`)
+    mudar(ctx, (x) => ({ ...x, dinheiro: round2(Math.max(0, x.dinheiro - 10)) }))
+    await ctx.say(['Outra vez fora da passadeira! Multa de 10€.', 'Os teus pais pagaram... e descontaram na tua mesada. -10€.'], AGENTE)
+  },
+
+  async atropelado(ctx: Ctx) {
+    await ctx.say('CUIDADO!!!')
+    await ctx.fade(1, 400)
+    await ctx.say(['Um carro não conseguiu travar...', 'Foste de ambulância para o hospital.'])
+    stats(ctx, { saude: -25 })
+    ctx.levar('hospital', 4, 4, 'right')
+    await ctx.fade(0, 400)
+    await ctx.say(
+      [
+        'Tiveste sorte: partiste um braço, mas vais ficar bem.',
+        'No SNS o tratamento não te custou nada... mas perdes uma semana de aulas, de trabalho e de amigos. Saúde -25.',
+        'Os carros só param nas passadeiras. Atravessa sempre nelas, e olha para os dois lados!',
+      ],
+      'Dra. Ana',
+    )
+    await dormir(ctx, 'Passas a semana no hospital a recuperar...')
+  },
 }
 
 function valorCom(s: EstadoCidade, precos: Record<AtivoId, number>, id: AtivoId) {

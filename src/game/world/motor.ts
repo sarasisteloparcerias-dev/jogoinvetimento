@@ -1,7 +1,7 @@
-import { construirCamada, TILE } from '../pixel/cenario'
+import { construirCamada, desenharCarroH, desenharCarroV, TILE } from '../pixel/cenario'
 import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
-import type { Dir, MapaDef, NpcDef, PlacaDef, PropDef } from './tipos'
+import type { Dir, FaixaDef, MapaDef, NpcDef, PlacaDef, PropDef } from './tipos'
 
 export const ECRA_W = 240
 export const ECRA_H = 160
@@ -12,6 +12,27 @@ const MS_VIRAR = 90
 const DELTA: Record<Dir, [number, number]> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
 const OPOSTO: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right', right: 'left' }
 const SOLIDOS = new Set(['T', 'w', '=', 'W', ' '])
+const VEL_CARRO = 38
+const CORES_CARRO = ['#e04848', '#4a7ad0', '#f0c040', '#3aa870', '#9468cc', '#ececf0', '#283040']
+
+interface Carro {
+  faixa: FaixaDef
+  /** Posição ao longo da faixa, em píxeis (x da traseira/frente para h, y para v). */
+  pos: number
+  vel: number
+  cor: string
+}
+
+/** Retângulo ocupado por um carro, em píxeis do mapa. */
+function retCarro(c: Carro) {
+  const f = c.faixa
+  if (f.eixo === 'h') return { x: c.pos, y: f.linha * TILE, w: 30, h: 16 }
+  return { x: f.linha * TILE + 1, y: c.pos, w: 14, h: 26 }
+}
+
+function sobrepoe(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+}
 
 interface Ator {
   x: number
@@ -136,6 +157,12 @@ export class Motor {
   private esperaTrancado = 0
   onInteragir: (i: Interacao) => void = () => {}
   onEntrarMapa: (m: MapaDef) => void = () => {}
+  /** O jogador foi atropelado. */
+  onAtropelado: () => void = () => {}
+  /** O jogador entrou na estrada fora da passadeira. */
+  onForaPassadeira: () => void = () => {}
+  carros: Carro[] = []
+  private atropelado = false
 
   private defs: Record<string, MapaDef>
   private sprites: FabricaSprites
@@ -160,7 +187,89 @@ export class Motor {
     this.mapa = this.obterMapa(id)
     Object.assign(this.jogador, { x, y, ox: x, oy: y, t: 0, movendo: false, dir })
     this.npcs = (this.mapa.def.npcs ?? []).map((n) => criarAtor(this.sprites(n.avatar), n.x, n.y, n.dir, MS_PASSO_NPC, n))
+    this.carros = (this.mapa.def.transito ?? []).flatMap((f) => {
+      const comp = (f.ate - f.de + 1) * TILE
+      return Array.from({ length: f.carros }, (_, i) => ({
+        faixa: f,
+        pos: f.de * TILE + ((i + 0.3 + Math.random() * 0.4) * comp) / f.carros,
+        vel: VEL_CARRO,
+        cor: CORES_CARRO[Math.floor(Math.random() * CORES_CARRO.length)],
+      }))
+    })
+    this.atropelado = false
     this.onEntrarMapa(this.mapa.def)
+  }
+
+  private tile(x: number, y: number) {
+    const g = this.mapa.def.grelha
+    return y < 0 || y >= g.length || x < 0 || x >= g[0].length ? '' : g[y][x]
+  }
+
+  /** O jogador (ou o tile para onde está a ir) está dentro de um retângulo? */
+  private jogadorEm(ret: { x: number; y: number; w: number; h: number }) {
+    const j = this.jogador
+    const tiles = [
+      [j.x, j.y],
+      [j.ox, j.oy],
+    ]
+    return tiles.some(([x, y]) => sobrepoe(ret, { x: x * TILE + 3, y: y * TILE + 3, w: 10, h: 10 }))
+  }
+
+  private carroEm(x: number, y: number) {
+    return this.carros.some((c) => sobrepoe(retCarro(c), { x: x * TILE + 2, y: y * TILE + 2, w: 12, h: 12 }))
+  }
+
+  /** Carros: andam pela faixa, param atrás de outros carros, nos cruzamentos ocupados e quando há alguém na passadeira. */
+  private atualizarCarros(dt: number) {
+    const s = dt / 1000
+    for (const c of this.carros) {
+      const f = c.faixa
+      const len = f.eixo === 'h' ? 30 : 26
+      const frente = f.sentido === 1 ? c.pos + len : c.pos
+      const olhar = (d: number) => {
+        // retângulo à frente do carro, até d píxeis
+        const r0 = retCarro(c)
+        if (f.eixo === 'h') return { x: f.sentido === 1 ? frente : frente - d, y: r0.y, w: d, h: r0.h }
+        return { x: r0.x, y: f.sentido === 1 ? frente : frente - d, w: r0.w, h: d }
+      }
+      let parar = false
+      // outro carro na mesma faixa
+      for (const o of this.carros) if (o !== c && o.faixa === f && sobrepoe(olhar(10), retCarro(o))) parar = true
+      // passadeira com alguém em cima (pelo tile da passadeira à frente)
+      const zona = olhar(18)
+      const j = this.jogador
+      for (const [tx, ty] of [
+        [j.x, j.y],
+        [j.ox, j.oy],
+      ]) {
+        if (this.tile(tx, ty) !== 'Z') continue
+        const faixaPassadeira = f.eixo === 'h' ? { x: tx * TILE, y: (f.linha - 1) * TILE, w: TILE, h: TILE * 3 } : { x: (f.linha - 1) * TILE, y: ty * TILE, w: TILE * 3, h: TILE }
+        if (sobrepoe(zona, faixaPassadeira)) parar = true
+      }
+      // cruzamento ocupado por um carro de outra direção
+      const cruz = olhar(6)
+      for (const o of this.carros) {
+        if (o === c || o.faixa.eixo === f.eixo) continue
+        const ro = retCarro(o)
+        if (sobrepoe(cruz, ro) || sobrepoe(retCarro(c), ro)) {
+          // quem já está dentro passa primeiro
+          const dentroC = sobrepoe(retCarro(c), ro)
+          if (!dentroC || f.eixo === 'v') parar = true
+        }
+      }
+      c.vel = parar ? 0 : Math.min(VEL_CARRO, c.vel + 60 * s)
+      c.pos += f.sentido * c.vel * s
+      const ini = f.de * TILE - len
+      const fim = (f.ate + 1) * TILE
+      if (f.sentido === 1 && c.pos > fim) c.pos = ini
+      if (f.sentido === -1 && c.pos < ini) c.pos = fim
+      // atropelamento: o carro não pára para quem está na estrada fora da passadeira
+      if (!this.atropelado && !this.bloqueado && this.jogadorEm(retCarro(c)) && this.tile(j.x, j.y) === 'R') {
+        this.atropelado = true
+        this.dirs = []
+        this.onAtropelado()
+      }
+    }
   }
 
   get mapaId() {
@@ -240,6 +349,7 @@ export class Motor {
     const m = this.mapa
     if (x < 0 || y < 0 || x >= m.w || y >= m.h) return true
     if (m.solido[y * m.w + x]) return true
+    if (this.carroEm(x, y)) return true
     const j = this.jogador
     if (quem !== j) {
       if ((j.x === x && j.y === y) || (j.ox === x && j.oy === y)) return true
@@ -288,14 +398,18 @@ export class Motor {
       }
     }
 
+    if (!this.transicao) this.atualizarCarros(dt)
+
     const j = this.jogador
     if (j.movendo) {
       j.t += dt / j.ms
       if (j.t >= 1) {
         j.t = 0
         j.movendo = false
+        const vinha = this.tile(j.ox, j.oy)
         j.ox = j.x
         j.oy = j.y
+        if (this.tile(j.x, j.y) === 'R' && vinha !== 'R' && vinha !== 'Z') this.onForaPassadeira()
         const w = this.mapa.warps.get(k(j.x, j.y))
         if (w) {
           void this.warp(w)
@@ -364,6 +478,12 @@ export class Motor {
     ctx.fillStyle = '#10121c'
     ctx.fillRect(0, 0, ECRA_W, ECRA_H)
     ctx.drawImage(this.mapa.camadas[Math.floor(this.agora / 650) % 2], -cx, -cy)
+
+    for (const c of this.carros) {
+      const rc = retCarro(c)
+      if (c.faixa.eixo === 'h') desenharCarroH(ctx, Math.round(rc.x - cx), Math.round(rc.y - cy), c.cor, c.faixa.sentido)
+      else desenharCarroV(ctx, Math.round(rc.x - cx), Math.round(rc.y - cy), c.cor, c.faixa.sentido)
+    }
 
     const atores = [...this.npcs, j].map((a) => ({ a, p: pos(a) })).sort((u, v) => u.p.y - v.p.y)
     for (const { a, p } of atores) {

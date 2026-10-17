@@ -30,4 +30,9 @@ export interface ModoJogo<S extends EstadoBase> {
   tutorial(ctx: CtxJogo<S>): Promise<void>
   interagir(i: Interacao, ctx: CtxJogo<S>): Promise<void>
   Menu: ComponentType<PropsMenu<S>>
+  /** O que acontece no trânsito (só nos modos com estradas). */
+  transito?: {
+    atropelado(ctx: CtxJogo<S>): Promise<void>
+    foraPassadeira(ctx: CtxJogo<S>): Promise<void>
+  }
 }

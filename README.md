@@ -122,9 +122,14 @@ inflação, comissões); o dinheiro e as empresas são inventados. O jogo diz is
 claramente na introdução e no fim: é uma simulação educativa, não aconselhamento
 financeiro.
 
-- **Cidade** de 36×30 tiles com estradas, passadeiras, passeios, semáforos, carros
-  estacionados, uma praça em calçada portuguesa com fonte, parque com lago e campo de
-  jogos. Prédios de vários andares, com montras e toldos nas lojas.
+- **Cidade** de 36×30 tiles com estradas, passadeiras, passeios, semáforos, uma praça
+  em calçada portuguesa com fonte, parque com lago e campo de jogos.
+- **Trânsito**: os carros circulam pela direita e **só param nas passadeiras** quando
+  há alguém nelas (e nos cruzamentos, uns pelos outros). Atravessar fora da passadeira
+  dá um aviso do Agente Pereira e depois multa (10€ n'A Cidade, 20€ n'O Mercado). Quem
+  fica na estrada pode ser atropelado: vai para o hospital, perde Saúde e a semana (ou,
+  n'O Mercado, um mês de baixa médica a 70% do salário, mais custos se não tiver seguro
+  de saúde). Ninguém morre: o jogo é para todas as idades. Prédios de vários andares, com montras e toldos nas lojas.
 - **Personagens adolescentes** de 16×32 (dois tiles de altura), com proporções mais
   próximas das reais.
 - **Onde se faz cada coisa**:

@@ -343,6 +343,10 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     await verificarConquistasM(ctx)
   },
 
+  async medica(ctx) {
+    await ctx.say('Descansa. E da próxima vez, passadeira!', 'Dra. Ana')
+  },
+
   async cliente_cafe(ctx) {
     await ctx.say('Um café por dia a 1€ são 365€ por ano. Não é muito... mas é a soma das pequenas coisas que pesa.', 'Cliente')
   },
@@ -636,9 +640,9 @@ export async function executarInteracaoMercado(i: Interacao, ctx: Ctx) {
 
 // ---------------------------------------------------------------------------
 
-async function dormir(ctx: Ctx) {
+async function dormir(ctx: Ctx, texto = 'Zzz... Passa um mês...') {
   await ctx.fade(1, 500)
-  await ctx.say('Zzz... Passa um mês...')
+  await ctx.say(texto)
   const antes = ctx.estado()
   const { estado: depois, noticia } = avancarMes(antes)
   ctx.definir(depois)
@@ -649,6 +653,47 @@ async function dormir(ctx: Ctx) {
     await resumoFinalMercado(ctx)
     ctx.terminar()
   }
+}
+
+const AGENTE = 'Agente Pereira'
+
+/** Trânsito: multa por atravessar fora da passadeira e hospital (com baixa médica) em caso de atropelamento. */
+export const TRANSITO_MERCADO_SCRIPTS = {
+  async foraPassadeira(ctx: Ctx) {
+    const s = ctx.estado()
+    if (!comFlag(ctx, 'aviso_passadeira')) {
+      return ctx.say(['Atravessar fora da passadeira é perigoso: os carros só param nas passadeiras.', 'E os peões também podem levar multa! Desta vez é só um aviso.'], AGENTE)
+    }
+    if (tem(ctx, `multa_peao_${s.mes}`) || Math.random() > 0.35) return
+    comFlag(ctx, `multa_peao_${s.mes}`)
+    mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - 20) }))
+    await ctx.say(['Outra vez fora da passadeira! Multa de 20€.', 'Pagar a tempo evita que fique mais cara. -20€.'], AGENTE)
+  },
+
+  async atropelado(ctx: Ctx) {
+    await ctx.say('CUIDADO!!!')
+    await ctx.fade(1, 400)
+    await ctx.say(['Um carro não conseguiu travar...', 'Foste de ambulância para o hospital.'])
+    const s = ctx.estado()
+    const seguro = s.pagamentos.some((p) => p.id === 'seguro')
+    const custo = seguro ? 30 : 250
+    stats(ctx, { saude: -25, carreira: -3 })
+    mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - custo), flags: [...x.flags, `baixa_${x.mes + 1}`] }))
+    ctx.levar('hospital', 4, 4, 'right')
+    await ctx.fade(0, 400)
+    await ctx.say(
+      [
+        'Partiste uma perna. Vais ficar bem, mas precisas de um mês de recuperação.',
+        'Vais estar de baixa médica: a Segurança Social paga só uma parte do salário (aqui, 70%).',
+        seguro
+          ? `A fisioterapia ficou em ${euros(custo)}, graças ao teu seguro de saúde.`
+          : `A fisioterapia e os medicamentos custaram ${euros(custo)}. Um seguro de saúde teria ajudado.`,
+        'Os carros só param nas passadeiras. Atravessa sempre nelas!',
+      ],
+      'Dra. Ana',
+    )
+    await dormir(ctx, 'Passas o mês a recuperar...')
+  },
 }
 
 function valorCom(s: EstadoMercado, precos: Record<AtivoM, number>, id: AtivoM) {

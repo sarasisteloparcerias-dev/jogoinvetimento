@@ -1,4 +1,4 @@
-import { AVATARES_CIDADE, BANCO_PONTE, CAFE, CASA_CIDADE, grelhaCidade } from '../cidade/mapas'
+import { AVATARES_CIDADE, BANCO_PONTE, CAFE, CASA_CIDADE, grelhaCidade, HOSPITAL, TRANSITO_CIDADE } from '../cidade/mapas'
 import { grelhaSala } from '../world/mapas'
 import type { MapaDef } from '../world/tipos'
 
@@ -18,6 +18,7 @@ export const RUA: MapaDef = {
   nome: 'A CIDADE',
   tipo: 'exterior',
   grelha: grelhaCidade(),
+  transito: TRANSITO_CIDADE,
   edificios: [
     { x: 2, y: 3, w: 5, h: 6, cor: 'laranja', estilo: 'predio', porta: 2, janelas: [0, 2, 4], interior: 'casa' },
     { x: 9, y: 4, w: 6, h: 5, cor: 'castanho', estilo: 'predio', porta: 2, janelas: [0, 1, 3, 4, 5], letreiro: 'CAFE', toldo: '#2aa58c', interior: 'cafe' },
@@ -38,10 +39,6 @@ export const RUA: MapaDef = {
     { tipo: 'candeeiro', x: 34, y: 18 },
     { tipo: 'semaforo', x: 16, y: 9 },
     { tipo: 'semaforo', x: 19, y: 22 },
-    { tipo: 'carro', x: 1, y: 11, w: 2, cor: '#4a7ad0' },
-    { tipo: 'carro', x: 30, y: 21, w: 2, cor: '#f0c040' },
-    { tipo: 'carro', x: 12, y: 10, w: 2, cor: '#e04848' },
-    { tipo: 'carro', x: 22, y: 11, w: 2, cor: '#283040' },
     { tipo: 'caixa_multibanco', x: 8, y: 18, script: 'multibanco' },
     { tipo: 'fonte', x: 11, y: 15, w: 2, h: 2 },
     { tipo: 'banco_jardim', x: 13, y: 13, w: 2 },
@@ -202,4 +199,5 @@ export const MAPAS_MERCADO: Record<string, MapaDef> = {
   supermercado: SUPERMERCADO,
   ginasio: GINASIO,
   casa_pais: CASA_PAIS,
+  hospital: HOSPITAL,
 }

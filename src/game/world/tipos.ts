@@ -83,6 +83,18 @@ export interface PlacaDef {
   texto: string
 }
 
+/** Uma faixa de rodagem com carros a circular (h: ao longo de uma linha; v: ao longo de uma coluna). */
+export interface FaixaDef {
+  eixo: 'h' | 'v'
+  /** Linha (h) ou coluna (v) da faixa. */
+  linha: number
+  sentido: 1 | -1
+  /** Primeiro e último tile da faixa. */
+  de: number
+  ate: number
+  carros: number
+}
+
 export interface MapaDef {
   id: string
   nome: string
@@ -96,4 +108,5 @@ export interface MapaDef {
   parede?: string
   /** Tile do tapete de saída (interiores). */
   saida?: { x: number; y: number }
+  transito?: FaixaDef[]
 }

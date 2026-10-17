@@ -101,8 +101,12 @@ function porAtivo<T>(f: (id: AtivoM) => T): Record<AtivoM, T> {
   return Object.fromEntries(IDS.map((id) => [id, f(id)])) as Record<AtivoM, T>
 }
 
+export function emBaixa(s: EstadoMercado) {
+  return s.flags.includes(`baixa_${s.mes}`)
+}
+
 export function salarioLiquido(s: EstadoMercado) {
-  const bruto = s.salarioBruto * (emLayoff(s) ? 2 / 3 : 1)
+  const bruto = s.salarioBruto * (emLayoff(s) ? 2 / 3 : 1) * (emBaixa(s) ? 0.7 : 1)
   const ss = round2(bruto * TAXA_SS)
   const irs = round2(bruto * TAXA_IRS)
   return { bruto: round2(bruto), ss, irs, liquido: round2(bruto - ss - irs) }
@@ -285,7 +289,7 @@ export function avancarMes(antes: EstadoMercado): { estado: EstadoMercado; notic
   }
 
   const sal = salarioLiquido(s)
-  s = mov({ ...s, conta: round2(s.conta + sal.liquido) }, emLayoff(s) ? 'Salário (lay-off, 2/3)' : 'Salário líquido', sal.liquido)
+  s = mov({ ...s, conta: round2(s.conta + sal.liquido) }, emBaixa(s) ? 'Baixa médica (70%)' : emLayoff(s) ? 'Salário (lay-off, 2/3)' : 'Salário líquido', sal.liquido)
   const prof = PROFISSOES[s.profissao]
   if (prof.gorjetas > 0) {
     const gorjetas = round2(prof.gorjetas * (0.7 + Math.random() * 0.6) * (emLayoff(s) ? 0.5 : 1))
