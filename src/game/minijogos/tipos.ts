@@ -1,4 +1,4 @@
-export type TipoMiniJogo = 'futebol' | 'bicicleta' | 'gelado'
+export type TipoMiniJogo = 'futebol' | 'bicicleta' | 'gelado' | 'cafe'
 
 export type TeclaJogo = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'A' | 'B'
 
@@ -13,6 +13,8 @@ export interface ResultadoMiniJogo {
   pontos: number
   /** Frase curta para o ecrã final, ex. "3 golos em 5". */
   texto: string
+  /** Dinheiro ganho no mini-jogo (só nos trabalhos, ex. gorjetas no Café). */
+  valor?: number
 }
 
 export interface MiniJogo {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AVATAR_PADRAO, CORES_CABELO, CORES_PELE, CORES_ROUPA } from '../../game/data'
 import { MENTOR } from '../../game/mentor'
+import { framesAdolescente, framesPersonagem } from '../../game/pixel/sprites'
 import type { AvatarConfig } from '../../game/types'
 import { Consola } from './Consola'
 import { CaixaDialogo, useDialogo, type Tecla } from './dialogo'
@@ -9,7 +10,42 @@ import { Cursor, SpriteView, u } from './ui'
 type Fase = 'falas' | 'nome' | 'aspeto' | 'fim'
 const LINHAS = ['PELE', 'CABELO', 'PENTEADO', 'ROUPA', 'PRONTO!'] as const
 
-export function Intro({ onConcluir }: { onConcluir: (nome: string, avatar: AvatarConfig) => void }) {
+const TEXTOS = {
+  reino: {
+    sprites: framesPersonagem,
+    boasVindas: [
+      'Olá! Bem-vindo à Vila Moeda!',
+      'Chamo-me Mestre Moedas. Aqui na vila, toda a gente aprende a cuidar do seu dinheiro.',
+      'Com o dinheiro podes fazer três coisas: GASTAR, POUPAR e INVESTIR. Cada escolha tem consequências!',
+      'Não te preocupes: ninguém nasce a saber. Aqui aprende-se a jogar, e errar também ensina.',
+      'Mas primeiro, diz-me... como te chamas?',
+    ],
+    fim: (n: string) => [
+      `${n}! Que nome fantástico!`,
+      'A tua aventura dura 20 semanas. Ganha os 6 crachás do dinheiro e aprende tudo sobre poupar e investir.',
+      'Lembra-te: carrega em A para falar com as pessoas, e em START para abrir o menu. Até já!',
+    ],
+  },
+  cidade: {
+    sprites: framesAdolescente,
+    boasVindas: [
+      'Olá! Boas-vindas à Cidade!',
+      'Sou o Mestre Moedas. Talvez me conheças da Vila Moeda... agora sou consultor no Banco Ponte.',
+      'Este ano vais ter o teu primeiro trabalho, a tua primeira conta no banco e os teus primeiros investimentos.',
+      'Vais ouvir falar de ações, ETFs, obrigações, cripto e inflação. Eu explico tudo pelo caminho.',
+      'Atenção: isto é uma simulação educativa. O dinheiro é a fingir e as empresas são inventadas. Nada aqui é um conselho para investir a sério.',
+      'Agora diz-me... como te chamas?',
+    ],
+    fim: (n: string) => [
+      `${n}, muito prazer!`,
+      'O ano letivo dura 24 semanas. O objetivo: juntar 400€ para a Viagem de Finalistas, sem esquecer a escola, a saúde e os amigos.',
+      'Carrega em A para falar com as pessoas. Em START abres o teu telemóvel: banco, investimentos, notícias e objetivo. Boa sorte!',
+    ],
+  },
+}
+
+export function Intro({ modo = 'reino', onConcluir }: { modo?: 'reino' | 'cidade'; onConcluir: (nome: string, avatar: AvatarConfig) => void }) {
+  const textos = TEXTOS[modo]
   const dlg = useDialogo()
   const [fase, setFase] = useState<Fase>('falas')
   const [nome, setNome] = useState('')
@@ -27,19 +63,10 @@ export function Intro({ onConcluir }: { onConcluir: (nome: string, avatar: Avata
     if (iniciado.current) return
     iniciado.current = true
     void (async () => {
-      await dlg.say(
-        [
-          'Olá! Bem-vindo à Vila Moeda!',
-          'Chamo-me Mestre Moedas. Aqui na vila, toda a gente aprende a cuidar do seu dinheiro.',
-          'Com o dinheiro podes fazer três coisas: GASTAR, POUPAR e INVESTIR. Cada escolha tem consequências!',
-          'Não te preocupes: ninguém nasce a saber. Aqui aprende-se a jogar, e errar também ensina.',
-          'Mas primeiro, diz-me... como te chamas?',
-        ],
-        'Mestre Moedas',
-      )
+      await dlg.say(textos.boasVindas, 'Mestre Moedas')
       setFase('nome')
     })()
-  }, [dlg])
+  }, [dlg, textos])
 
   function mudar(l: number, passo: number) {
     const ciclo = (lista: string[], atual: string) => lista[(lista.indexOf(atual) + passo + lista.length) % lista.length]
@@ -52,14 +79,7 @@ export function Intro({ onConcluir }: { onConcluir: (nome: string, avatar: Avata
   async function terminar() {
     setFase('fim')
     const n = nome.trim()
-    await dlg.say(
-      [
-        `${n}! Que nome fantástico!`,
-        'A tua aventura dura 20 semanas. Ganha os 6 crachás do dinheiro e aprende tudo sobre poupar e investir.',
-        'Lembra-te: carrega em A para falar com as pessoas, e em START para abrir o menu. Até já!',
-      ],
-      'Mestre Moedas',
-    )
+    await dlg.say(textos.fim(n), 'Mestre Moedas')
     onConcluir(n, avatar)
   }
 
@@ -89,7 +109,11 @@ export function Intro({ onConcluir }: { onConcluir: (nome: string, avatar: Avata
       <div style={{ position: 'absolute', left: fase === 'aspeto' ? u(14) : '50%', top: u(14), transform: fase === 'aspeto' ? undefined : 'translateX(-50%)', textAlign: 'center' }}>
         <div className="plataforma" style={{ position: 'absolute', left: '50%', bottom: u(-2), width: u(70), height: u(14), transform: 'translateX(-50%)' }} />
         <div style={{ position: 'relative' }}>
-          {fase === 'aspeto' ? <SpriteView avatar={avatar} escala={u(3)} girar /> : <SpriteView avatar={MENTOR.avatar} escala={u(3)} />}
+          {fase === 'aspeto' ? (
+            <SpriteView avatar={avatar} escala={u(modo === 'cidade' ? 2.5 : 3)} girar sprites={textos.sprites} />
+          ) : (
+            <SpriteView avatar={MENTOR.avatar} escala={u(modo === 'cidade' ? 2.5 : 3)} sprites={textos.sprites} />
+          )}
         </div>
       </div>
 

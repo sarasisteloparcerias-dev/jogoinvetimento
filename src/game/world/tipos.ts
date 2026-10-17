@@ -20,6 +20,16 @@ export type PropTipo =
   | 'banco_jardim'
   | 'candeeiro'
   | 'correio'
+  | 'maquina_cafe'
+  | 'mesa_cafe'
+  | 'montra'
+  | 'computador'
+  | 'cotacoes'
+  | 'sofa'
+  | 'carro'
+  | 'semaforo'
+  | 'fonte'
+  | 'caixa_multibanco'
 
 export interface PropDef {
   tipo: PropTipo
@@ -29,9 +39,11 @@ export interface PropDef {
   h?: number
   /** Id do script a correr quando o jogador carrega A virado para este objeto. */
   script?: string
+  /** Cor (ex. de um carro). */
+  cor?: string
 }
 
-export type CorEdificio = 'laranja' | 'vermelho' | 'azul' | 'verde' | 'lilas' | 'castanho' | 'rosa'
+export type CorEdificio = 'laranja' | 'vermelho' | 'azul' | 'verde' | 'lilas' | 'castanho' | 'rosa' | 'cinza' | 'amarelo'
 
 export interface EdificioDef {
   x: number
@@ -44,6 +56,10 @@ export interface EdificioDef {
   janelas: number[]
   letreiro?: string
   chamine?: boolean
+  /** 'casa' (telhado de telha, padrão) ou 'predio' (vários andares e terraço). */
+  estilo?: 'casa' | 'predio'
+  /** Cor do toldo por cima da montra (lojas em prédios). */
+  toldo?: string
   /** Id do mapa interior para onde a porta leva. */
   interior?: string
   /** Mensagem quando a porta está fechada. */

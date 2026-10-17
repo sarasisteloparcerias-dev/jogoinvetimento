@@ -1,7 +1,6 @@
 import { construirCamada, TILE } from '../pixel/cenario'
-import { framesPersonagem, type FramesPersonagem } from '../pixel/sprites'
+import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
-import { MAPAS } from './mapas'
 import type { Dir, MapaDef, NpcDef, PlacaDef, PropDef } from './tipos'
 
 export const ECRA_W = 240
@@ -57,13 +56,13 @@ interface MapaVivo {
 const k = (x: number, y: number) => `${x},${y}`
 
 /** Para cada interior, onde se aparece ao entrar e onde se volta ao sair. */
-function ligacoesPortas() {
+function ligacoesPortas(mapas: Record<string, MapaDef>) {
   const entrada: Record<string, Destino> = {}
   const retorno: Record<string, Destino> = {}
-  for (const mapa of Object.values(MAPAS)) {
+  for (const mapa of Object.values(mapas)) {
     for (const e of mapa.edificios ?? []) {
       if (!e.interior) continue
-      const interior = MAPAS[e.interior]
+      const interior = mapas[e.interior]
       const portaX = e.x + e.porta
       const portaY = e.y + e.h - 1
       entrada[e.interior] = { mapa: e.interior, x: interior.saida!.x, y: interior.saida!.y - 1, dir: 'up' }
@@ -73,7 +72,7 @@ function ligacoesPortas() {
   return { entrada, retorno }
 }
 
-function construirMapa(def: MapaDef): MapaVivo {
+function construirMapa(def: MapaDef, mapas: Record<string, MapaDef>): MapaVivo {
   const w = def.grelha[0].length
   const h = def.grelha.length
   const solido = def.grelha.flatMap((linha) => linha.split('').map((c) => SOLIDOS.has(c)))
@@ -81,7 +80,7 @@ function construirMapa(def: MapaDef): MapaVivo {
   const placas = new Map<string, PlacaDef>()
   const warps = new Map<string, Destino>()
   const trancados = new Map<string, string>()
-  const { entrada, retorno } = ligacoesPortas()
+  const { entrada, retorno } = ligacoesPortas(mapas)
 
   for (const e of def.edificios ?? []) {
     for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) solido[y * w + x] = true
@@ -111,9 +110,11 @@ function construirMapa(def: MapaDef): MapaVivo {
   return { def, w, h, camadas: [construirCamada(def, 0), construirCamada(def, 1)], solido, props, placas, warps, trancados }
 }
 
-function criarAtor(avatar: AvatarConfig, x: number, y: number, dir: Dir, ms: number, npc?: NpcDef): Ator {
-  return { x, y, ox: x, oy: y, t: 0, movendo: false, dir, passo: 0, frames: framesPersonagem(avatar), ms, npc, espera: 800 + Math.random() * 2000 }
+function criarAtor(frames: FramesPersonagem, x: number, y: number, dir: Dir, ms: number, npc?: NpcDef): Ator {
+  return { x, y, ox: x, oy: y, t: 0, movendo: false, dir, passo: 0, frames, ms, npc, espera: 800 + Math.random() * 2000 }
 }
+
+export type FabricaSprites = (a: AvatarConfig) => FramesPersonagem
 
 export class Motor {
   private mapas = new Map<string, MapaVivo>()
@@ -136,15 +137,20 @@ export class Motor {
   onInteragir: (i: Interacao) => void = () => {}
   onEntrarMapa: (m: MapaDef) => void = () => {}
 
-  constructor(avatar: AvatarConfig, mapa: string, x: number, y: number, dir: Dir) {
-    this.jogador = criarAtor(avatar, x, y, dir, MS_PASSO)
+  private defs: Record<string, MapaDef>
+  private sprites: FabricaSprites
+
+  constructor(defs: Record<string, MapaDef>, sprites: FabricaSprites, avatar: AvatarConfig, mapa: string, x: number, y: number, dir: Dir) {
+    this.defs = defs
+    this.sprites = sprites
+    this.jogador = criarAtor(sprites(avatar), x, y, dir, MS_PASSO)
     this.carregar(mapa, x, y, dir)
   }
 
   private obterMapa(id: string) {
     let m = this.mapas.get(id)
     if (!m) {
-      m = construirMapa(MAPAS[id])
+      m = construirMapa(this.defs[id], this.defs)
       this.mapas.set(id, m)
     }
     return m
@@ -153,7 +159,7 @@ export class Motor {
   carregar(id: string, x: number, y: number, dir: Dir) {
     this.mapa = this.obterMapa(id)
     Object.assign(this.jogador, { x, y, ox: x, oy: y, t: 0, movendo: false, dir })
-    this.npcs = (this.mapa.def.npcs ?? []).map((n) => criarAtor(n.avatar, n.x, n.y, n.dir, MS_PASSO_NPC, n))
+    this.npcs = (this.mapa.def.npcs ?? []).map((n) => criarAtor(this.sprites(n.avatar), n.x, n.y, n.dir, MS_PASSO_NPC, n))
     this.onEntrarMapa(this.mapa.def)
   }
 
@@ -362,11 +368,12 @@ export class Motor {
     const atores = [...this.npcs, j].map((a) => ({ a, p: pos(a) })).sort((u, v) => u.p.y - v.p.y)
     for (const { a, p } of atores) {
       const frame = a.movendo && a.t >= 0.25 && a.t < 0.75 ? 1 + a.passo : 0
+      const img = a.frames[a.dir][frame]
       const x = p.x - cx
-      const y = p.y - cy - 8
+      const y = p.y - cy - (img.height - TILE)
       ctx.fillStyle = 'rgba(0,0,0,0.18)'
-      ctx.fillRect(x + 3, y + 22, 10, 2)
-      ctx.drawImage(a.frames[a.dir][frame], x, y)
+      ctx.fillRect(x + 3, y + img.height - 2, 10, 2)
+      ctx.drawImage(img, x, y)
     }
 
     if (this.fade > 0) {

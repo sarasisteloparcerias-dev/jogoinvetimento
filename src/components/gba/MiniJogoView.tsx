@@ -1,6 +1,7 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
 import { criarMiniJogo } from '../../game/minijogos'
 import { H, W, type ResultadoMiniJogo, type TeclaJogo, type Teclas, type TipoMiniJogo } from '../../game/minijogos/tipos'
+import type { FramesPersonagem } from '../../game/pixel/sprites'
 import type { AvatarConfig } from '../../game/types'
 import type { Tecla } from './dialogo'
 import { u } from './ui'
@@ -13,6 +14,7 @@ export interface ControloMiniJogo {
 interface Props {
   tipo: TipoMiniJogo
   avatar: AvatarConfig
+  sprites: (a: AvatarConfig) => FramesPersonagem
   onFim: (r: ResultadoMiniJogo) => void
   ref: Ref<ControloMiniJogo>
 }
@@ -22,9 +24,9 @@ type Fase = 'titulo' | 'jogo' | 'fim'
 /** Evita que um A carregado a correr (ex. o último remate) salte o título ou o resultado sem a criança os ver. */
 const ESPERA_A_MS = 700
 
-export function MiniJogoView({ tipo, avatar, onFim, ref }: Props) {
+export function MiniJogoView({ tipo, avatar, sprites, onFim, ref }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [jogo] = useState(() => criarMiniJogo(tipo, avatar))
+  const [jogo] = useState(() => criarMiniJogo(tipo, avatar, sprites))
   const [fase, setFaseState] = useState<Fase>('titulo')
   const faseRef = useRef<Fase>('titulo')
   const faseDesde = useRef(0)

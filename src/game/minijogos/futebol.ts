@@ -1,6 +1,6 @@
 import { circulo } from '../pixel/cenario'
 import { hash, r } from '../pixel/draw'
-import { framesPersonagem, type FramesPersonagem } from '../pixel/sprites'
+import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
 import { AVATARES } from '../world/mapas'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
@@ -31,9 +31,9 @@ export class Futebol implements MiniJogo {
   private jogador: FramesPersonagem
   private guardaRedes: FramesPersonagem
 
-  constructor(avatar: AvatarConfig) {
-    this.jogador = framesPersonagem(avatar)
-    this.guardaRedes = framesPersonagem({ ...AVATARES.treinador, roupa: '#f0c020' })
+  constructor(avatar: AvatarConfig, sprites: (a: AvatarConfig) => FramesPersonagem) {
+    this.jogador = sprites(avatar)
+    this.guardaRedes = sprites({ ...AVATARES.treinador, roupa: '#f0c020' })
   }
 
   private get velocidadeMira() {
@@ -99,7 +99,9 @@ export class Futebol implements MiniJogo {
     ctx.save()
     ctx.translate(Math.round(gx), LINHA_BALIZA - 24)
     ctx.rotate((lado * Math.PI) / 2)
-    ctx.drawImage(this.guardaRedes.down[0], -16, -24, 32, 48)
+    const gr = this.guardaRedes.down[0]
+    const grW = Math.round((48 * gr.width) / gr.height)
+    ctx.drawImage(gr, -grW / 2, -24, grW, 48)
     ctx.restore()
 
     // postes por cima do guarda-redes
@@ -124,7 +126,9 @@ export class Futebol implements MiniJogo {
 
     // rematador (de costas)
     const pe = this.fase === 'remate' && this.t < 0.15 ? 1 : 0
-    ctx.drawImage(this.jogador.up[pe], 64, 104, 48, 72)
+    const rem = this.jogador.up[pe]
+    const remW = Math.round((72 * rem.width) / rem.height)
+    ctx.drawImage(rem, 64 + (48 - remW) / 2, 104, remW, 72)
 
     // mira
     if (this.fase === 'mirar') {

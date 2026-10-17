@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AVATAR_PADRAO } from '../game/data'
 import { MENTOR } from '../game/mentor'
+import { framesAdolescente } from '../game/pixel/sprites'
 import { SpriteView } from './gba/ui'
 
 export type Modo = 'reino' | 'cidade' | 'mercado'
@@ -9,14 +10,43 @@ interface AgeGateProps {
   onEscolherModo: (modo: Modo) => void
 }
 
-function modoParaIdade(idade: number): Modo {
-  if (idade <= 14) return 'reino'
+/** 8-11: Vila Moeda · 12-14: escolhem · 15-17: A Cidade · 18+: O Mercado (por construir). */
+function modoParaIdade(idade: number): Modo | 'escolher' {
+  if (idade <= 11) return 'reino'
+  if (idade <= 14) return 'escolher'
   if (idade <= 17) return 'cidade'
   return 'mercado'
 }
 
 export function AgeGate({ onEscolherModo }: AgeGateProps) {
   const [idade, setIdade] = useState<number | ''>('')
+  const [escolher, setEscolher] = useState(false)
+
+  if (escolher) {
+    return (
+      <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
+        <div className="janela" style={{ maxWidth: 520, width: '100%', padding: 24, textAlign: 'center' }}>
+          <h1 className="titulo-jogo" style={{ fontSize: 18 }}>ESCOLHE A AVENTURA</h1>
+          <p style={{ color: '#5a6280', marginBottom: 16 }}>Com {idade} anos podes jogar qualquer uma.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            <button className="cartao-modo" onClick={() => onEscolherModo('reino')}>
+              <SpriteView avatar={AVATAR_PADRAO} escala="3px" />
+              <strong>VILA MOEDA</strong>
+              <span>Poupar, investir e ganhar crachás numa vila tranquila. Mais simples.</span>
+            </button>
+            <button className="cartao-modo" onClick={() => onEscolherModo('cidade')}>
+              <SpriteView avatar={AVATAR_PADRAO} escala="3px" sprites={framesAdolescente} />
+              <strong>A CIDADE</strong>
+              <span>Primeiro emprego, conta no banco, ações, ETFs e cripto. Mais desafiante.</span>
+            </button>
+          </div>
+          <button onClick={() => setEscolher(false)} style={{ marginTop: 16, color: '#8890a8', fontSize: 12 }}>
+            Voltar
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
@@ -25,12 +55,16 @@ export function AgeGate({ onEscolherModo }: AgeGateProps) {
         style={{ maxWidth: 420, width: '100%', padding: 24, textAlign: 'center' }}
         onSubmit={(e) => {
           e.preventDefault()
-          if (idade !== '') onEscolherModo(modoParaIdade(idade))
+          if (idade === '') return
+          const m = modoParaIdade(idade)
+          if (m === 'escolher') setEscolher(true)
+          else onEscolherModo(m)
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 16, marginBottom: 8 }}>
           <SpriteView avatar={MENTOR.avatar} escala="4px" />
           <SpriteView avatar={AVATAR_PADRAO} escala="4px" />
+          <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#0ea5e9', cabeloComprido: true }} escala="3px" sprites={framesAdolescente} />
         </div>
         <h1 className="titulo-jogo">VILA MOEDA</h1>
         <p style={{ color: '#5a6280', marginBottom: 20 }}>Uma aventura para aprender a poupar e a investir.</p>

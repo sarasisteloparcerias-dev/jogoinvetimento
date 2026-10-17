@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { framesPersonagem, type Dir } from '../../game/pixel/sprites'
+import { framesPersonagem, type Dir, type FramesPersonagem } from '../../game/pixel/sprites'
 import type { AvatarConfig } from '../../game/types'
 
 /** Converte píxeis "nativos" do GBA (240x160) em píxeis de ecrã, usando a escala --s do ecrã. */
@@ -19,7 +19,19 @@ export function PixelImg({ src, escala, style }: { src: HTMLCanvasElement; escal
   )
 }
 
-export function SpriteView({ avatar, dir = 'down', escala, girar = false }: { avatar: AvatarConfig; dir?: Dir; escala: string; girar?: boolean }) {
+export function SpriteView({
+  avatar,
+  dir = 'down',
+  escala,
+  girar = false,
+  sprites = framesPersonagem,
+}: {
+  avatar: AvatarConfig
+  dir?: Dir
+  escala: string
+  girar?: boolean
+  sprites?: (a: AvatarConfig) => FramesPersonagem
+}) {
   const [i, setI] = useState(0)
   useEffect(() => {
     if (!girar) return
@@ -28,7 +40,7 @@ export function SpriteView({ avatar, dir = 'down', escala, girar = false }: { av
   }, [girar])
   const ordem: Dir[] = ['down', 'left', 'up', 'right']
   const d = girar ? ordem[i % 4] : dir
-  const frames = framesPersonagem(avatar)
+  const frames = sprites(avatar)
   return <PixelImg src={frames[d][0]} escala={escala} />
 }
 

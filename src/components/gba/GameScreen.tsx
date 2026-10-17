@@ -1,34 +1,31 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { CRACHAS } from '../../game/crachas'
-import { avancarSemana } from '../../game/engine'
 import type { ResultadoMiniJogo, TipoMiniJogo } from '../../game/minijogos/tipos'
-import { iconeCracha } from '../../game/pixel/cenario'
 import type { Dir } from '../../game/pixel/sprites'
 import { ECRA_H, ECRA_W, Motor } from '../../game/world/motor'
-import { executarInteracao, manha, resumoFinal, tutorial, type Ctx } from '../../game/world/scripts'
-import type { PlayerState } from '../../game/types'
 import { Consola } from './Consola'
 import { CaixaDialogo, useDialogo, type Tecla } from './dialogo'
 import { MiniJogoView, type ControloMiniJogo } from './MiniJogoView'
-import { OPCOES_MENU, StartMenu, type EstadoMenu } from './StartMenu'
+import type { ControloMenu, CtxJogo, EstadoBase, ModoJogo } from './modo'
 import { PixelImg, u } from './ui'
 
 const DIRS: Partial<Record<Tecla, Dir>> = { UP: 'up', DOWN: 'down', LEFT: 'left', RIGHT: 'right' }
 
-interface Props {
-  estadoInicial: PlayerState
-  onMudar: (s: PlayerState) => void
-  onFim: (s: PlayerState) => void
+interface Props<S extends EstadoBase> {
+  modo: ModoJogo<S>
+  estadoInicial: S
+  onMudar: (s: S) => void
+  onFim: (s: S) => void
 }
 
-export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
+export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar, onFim }: Props<S>) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const motorRef = useRef<Motor | null>(null)
   const estadoRef = useRef(estadoInicial)
   const [estado, setEstado] = useState(estadoInicial)
   const dlg = useDialogo()
-  const [menu, setMenuState] = useState<EstadoMenu | null>(null)
-  const menuRef = useRef<EstadoMenu | null>(null)
+  const [menuAberto, setMenuAbertoState] = useState(false)
+  const menuAbertoRef = useRef(false)
+  const menuRef = useRef<ControloMenu | null>(null)
   const [cracha, setCracha] = useState<string | null>(null)
   const [banner, setBanner] = useState<{ nome: string; k: number } | null>(null)
   const [mini, setMini] = useState<{ tipo: TipoMiniJogo; k: number; resolver: (r: ResultadoMiniJogo) => void } | null>(null)
@@ -40,19 +37,18 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
     callbacks.current = { onMudar, onFim }
   })
 
-  const setMenu = useCallback((m: EstadoMenu | null) => {
-    menuRef.current = m
-    setMenuState(m)
+  const setMenuAberto = useCallback((v: boolean) => {
+    menuAbertoRef.current = v
+    setMenuAbertoState(v)
   }, [])
 
-  const definir = useCallback((s: PlayerState) => {
+  const definir = useCallback((s: S) => {
     estadoRef.current = s
     setEstado(s)
     callbacks.current.onMudar(s)
   }, [])
 
-  const ctxRef = useRef<Ctx | null>(null)
-  ctxRef.current ??= {
+  const [ctx] = useState<CtxJogo<S>>(() => ({
     say: dlg.say,
     ask: dlg.ask,
     estado: () => estadoRef.current,
@@ -60,82 +56,74 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
     async cracha(id) {
       const s = estadoRef.current
       if (s.crachas.includes(id)) return
-      const c = CRACHAS.find((x) => x.id === id)!
+      const c = modo.conquistas.find((x) => x.id === id)!
       definir({ ...s, crachas: [...s.crachas, id] })
       setCracha(id)
-      await dlg.say(`${s.name} ganhou o ${c.nome.toUpperCase()}!`)
-      await dlg.say(c.licao, 'Mestre Moedas')
+      await dlg.say(`${s.name} ganhou: ${c.nome.toUpperCase()}!`)
+      await dlg.say(c.licao, modo.mentor)
       setCracha(null)
     },
     jogar(tipo) {
       motorRef.current?.limparTeclas()
       return new Promise<ResultadoMiniJogo>((resolver) => setMini({ tipo, k: Date.now(), resolver }))
     },
-    async dormir() {
-      const m = motorRef.current!
-      m.limparTeclas()
-      await m.fadeTo(1, 500)
-      await dlg.say('Zzz... Zzz... Zzz...')
-      const antes = estadoRef.current
-      const { estado: depois, evento } = avancarSemana(antes)
-      definir(depois)
-      m.carregar('casa', 7, 3, 'down')
-      await m.fadeTo(0, 500)
-      await manha(ctxRef.current!, antes, depois, evento)
-      if (estadoRef.current.gameOver) {
-        await resumoFinal(ctxRef.current!)
-        callbacks.current.onFim(estadoRef.current)
+    fade(alvo, ms) {
+      motorRef.current?.limparTeclas()
+      return motorRef.current!.fadeTo(alvo, ms)
+    },
+    levar(mapa, x, y, dir) {
+      motorRef.current!.carregar(mapa, x, y, dir)
+    },
+    terminar() {
+      callbacks.current.onFim(estadoRef.current)
+    },
+  }))
+
+  const correr = useCallback(
+    async (fn: (c: CtxJogo<S>) => Promise<void>) => {
+      if (scriptAtivo.current) return
+      scriptAtivo.current = true
+      try {
+        await fn(ctx)
+      } finally {
+        scriptAtivo.current = false
       }
     },
-  }
-
-  const correr = useCallback(async (fn: (c: Ctx) => Promise<void>) => {
-    if (scriptAtivo.current) return
-    scriptAtivo.current = true
-    try {
-      await fn(ctxRef.current!)
-    } finally {
-      scriptAtivo.current = false
-    }
-  }, [])
+    [ctx],
+  )
 
   useEffect(() => {
-    motorRef.current ??= new Motor(estadoRef.current.avatar, 'casa', 7, 3, 'down')
+    const { mapa, x, y, dir } = modo.inicio
+    motorRef.current ??= new Motor(modo.mapas, modo.sprites, estadoRef.current.avatar, mapa, x, y, dir)
     const m = motorRef.current
     m.onEntrarMapa = (def) => setBanner({ nome: def.nome, k: Date.now() })
-    m.onInteragir = (i) => void correr((c) => executarInteracao(i, c))
-    const ctx = canvasRef.current!.getContext('2d')!
-    ctx.imageSmoothingEnabled = false
+    m.onInteragir = (i) => void correr((c) => modo.interagir(i, c))
+    const g = canvasRef.current!.getContext('2d')!
+    g.imageSmoothingEnabled = false
     let ultimo = performance.now()
     let raf = 0
     const ciclo = (t: number) => {
       const dt = Math.max(0, Math.min(50, t - ultimo))
       ultimo = t
-      m.bloqueado = scriptAtivo.current || menuRef.current !== null
+      m.bloqueado = scriptAtivo.current || menuAbertoRef.current
       m.update(dt)
-      m.render(ctx)
+      m.render(g)
       raf = requestAnimationFrame(ciclo)
     }
     raf = requestAnimationFrame(ciclo)
     if (!iniciado.current) {
       iniciado.current = true
       setBanner({ nome: m.mapa.def.nome, k: Date.now() })
-      if (!estadoRef.current.flags.includes('tutorial')) void correr(tutorial)
+      if (!estadoRef.current.flags.includes('tutorial')) void correr(modo.tutorial)
     }
     return () => cancelAnimationFrame(raf)
-  }, [correr])
+  }, [correr, modo])
 
   useEffect(() => {
     if (!banner) return
     const t = setTimeout(() => setBanner(null), 1800)
     return () => clearTimeout(t)
   }, [banner])
-
-  const escolherMenu = (i: number) => {
-    const opcao = OPCOES_MENU[i]
-    if (opcao === 'FECHAR') setMenu(null)
-    else setMenu({ indice: i, aba: opcao })
-  }
 
   const premir = (t: Tecla) => {
     const m = motorRef.current
@@ -144,23 +132,12 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
     const dir = DIRS[t]
     if (dir) m.premir(dir)
     if (dlg.aberto()) return dlg.tecla(t)
-    const mn = menuRef.current
-    if (mn) {
-      if (mn.aba) {
-        if (t === 'A' || t === 'B' || t === 'START') setMenu({ ...mn, aba: null })
-        return
-      }
-      const n = OPCOES_MENU.length
-      if (t === 'UP' || t === 'DOWN') setMenu({ ...mn, indice: (mn.indice + (t === 'UP' ? -1 : 1) + n) % n })
-      else if (t === 'A') escolherMenu(mn.indice)
-      else if (t === 'B' || t === 'START') setMenu(null)
-      return
-    }
+    if (menuAbertoRef.current) return menuRef.current?.tecla(t)
     if (scriptAtivo.current) return
     if (t === 'A') m.botaoA()
     else if (t === 'START') {
       m.limparTeclas()
-      setMenu({ indice: 0, aba: null })
+      setMenuAberto(true)
     }
   }
 
@@ -169,6 +146,8 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
     const dir = DIRS[t]
     if (dir) motorRef.current?.soltar(dir)
   }
+
+  const Menu = modo.Menu
 
   return (
     <Consola onPremir={premir} onSoltar={soltar}>
@@ -185,17 +164,18 @@ export function GameScreen({ estadoInicial, onMudar, onFim }: Props) {
           className="janela brilho"
           style={{ position: 'absolute', left: '50%', top: u(10), transform: 'translateX(-50%)', padding: u(6), textAlign: 'center' }}
         >
-          <PixelImg src={iconeCracha(cracha, true)} escala={u(3)} />
+          <PixelImg src={modo.iconeConquista(cracha, true)} escala={u(3)} />
         </div>
       )}
 
-      {menu && <StartMenu estado={estado} menu={menu} onEscolher={escolherMenu} onVoltar={() => setMenu({ ...menu, aba: null })} />}
+      {menuAberto && <Menu estado={estado} ctx={ctx} onFechar={() => setMenuAberto(false)} ref={menuRef} />}
 
       {mini && (
         <MiniJogoView
           key={mini.k}
           tipo={mini.tipo}
           avatar={estado.avatar}
+          sprites={modo.sprites}
           ref={miniRef}
           onFim={(r) => {
             setMini(null)

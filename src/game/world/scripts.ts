@@ -1,21 +1,13 @@
 import { CRACHAS, META_OBJETIVO, objetivoAtual } from '../crachas'
 import { clamp } from '../data'
-import { executarAcao, registarLog } from '../engine'
+import { avancarSemana, executarAcao, registarLog } from '../engine'
 import { MENTOR } from '../mentor'
 import { MARTA, TIAGO } from '../npcs'
-import type { ResultadoMiniJogo, TipoMiniJogo } from '../minijogos/tipos'
+import type { CtxJogo } from '../modo'
 import type { ActionId, GameEvent, PlayerState, StatKey } from '../types'
 import type { Interacao } from './motor'
 
-export interface Ctx {
-  say(texto: string | string[], quem?: string): Promise<void>
-  ask(texto: string, opcoes: string[], quem?: string, cancelar?: number): Promise<number>
-  estado(): PlayerState
-  definir(s: PlayerState): void
-  cracha(id: string): Promise<void>
-  dormir(): Promise<void>
-  jogar(tipo: TipoMiniJogo): Promise<ResultadoMiniJogo>
-}
+export type Ctx = CtxJogo<PlayerState>
 
 export function fmt(n: number): string {
   return (Math.round(n * 100) / 100).toLocaleString('pt-PT', { maximumFractionDigits: 2 })
@@ -270,7 +262,7 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
 
   async cama(ctx) {
     const r = await ctx.ask('Queres ir dormir? Vai passar uma semana.', ['SIM', 'NÃO'], undefined, 1)
-    if (r === 0) await ctx.dormir()
+    if (r === 0) await dormir(ctx)
   },
 
   async tv(ctx) {
@@ -315,6 +307,22 @@ export async function executarInteracao(i: Interacao, ctx: Ctx) {
 }
 
 // ---------------------------------------------------------------------------
+
+/** Dormir: passa uma semana e acorda-se no quarto, ao lado da cama. */
+async function dormir(ctx: Ctx) {
+  await ctx.fade(1, 500)
+  await ctx.say('Zzz... Zzz... Zzz...')
+  const antes = ctx.estado()
+  const { estado: depois, evento } = avancarSemana(antes)
+  ctx.definir(depois)
+  ctx.levar('casa', 7, 3, 'down')
+  await ctx.fade(0, 500)
+  await manha(ctx, antes, depois, evento)
+  if (ctx.estado().gameOver) {
+    await resumoFinal(ctx)
+    ctx.terminar()
+  }
+}
 
 /** A manhã depois de dormir: a Mãe explica, com os números reais do jogo, o que aconteceu ao dinheiro. */
 export async function manha(ctx: Ctx, antes: PlayerState, depois: PlayerState, evento: GameEvent) {

@@ -1,37 +1,50 @@
+import { useImperativeHandle, useState } from 'react'
 import { CRACHAS, objetivoAtual } from '../../game/crachas'
 import { iconeCracha } from '../../game/pixel/cenario'
 import { fmt } from '../../game/world/scripts'
 import type { PlayerState } from '../../game/types'
 import { GrowthChart } from '../GrowthChart'
+import type { PropsMenu } from './modo'
 import { Cursor, PixelImg, SpriteView, u } from './ui'
 
 export const OPCOES_MENU = ['MOCHILA', 'FICHA', 'CRACHÁS', 'OBJETIVO', 'GRÁFICO', 'FECHAR'] as const
-export type Aba = (typeof OPCOES_MENU)[number]
+type Aba = (typeof OPCOES_MENU)[number]
 
-export interface EstadoMenu {
-  indice: number
-  aba: Aba | null
-}
+export function StartMenu({ estado, onFechar, ref }: PropsMenu<PlayerState>) {
+  const [indice, setIndice] = useState(0)
+  const [aba, setAba] = useState<Aba | null>(null)
 
-interface Props {
-  estado: PlayerState
-  menu: EstadoMenu
-  onEscolher: (i: number) => void
-  onVoltar: () => void
-}
+  const escolher = (i: number) => {
+    const opcao = OPCOES_MENU[i]
+    setIndice(i)
+    if (opcao === 'FECHAR') onFechar()
+    else setAba(opcao)
+  }
 
-export function StartMenu({ estado, menu, onEscolher, onVoltar }: Props) {
-  if (menu.aba) {
+  useImperativeHandle(ref, () => ({
+    tecla(t) {
+      if (aba) {
+        if (t === 'A' || t === 'B' || t === 'START') setAba(null)
+        return
+      }
+      const n = OPCOES_MENU.length
+      if (t === 'UP' || t === 'DOWN') setIndice((indice + (t === 'UP' ? -1 : 1) + n) % n)
+      else if (t === 'A') escolher(indice)
+      else if (t === 'B' || t === 'START') onFechar()
+    },
+  }))
+
+  if (aba) {
     return (
       <div className="janela" style={{ position: 'absolute', inset: u(3), padding: u(8), display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: u(5) }}>
-          <span style={{ fontSize: u(12), fontWeight: 700, color: '#3a4262' }}>{menu.aba}</span>
-          <button onClick={onVoltar} style={{ fontSize: u(8), color: '#8890a8' }}>
+          <span style={{ fontSize: u(12), fontWeight: 700, color: '#3a4262' }}>{aba}</span>
+          <button onClick={() => setAba(null)} style={{ fontSize: u(8), color: '#8890a8' }}>
             B: voltar
           </button>
         </div>
         <div style={{ flex: 1, minHeight: 0, fontSize: u(8), lineHeight: u(11), overflow: 'auto' }}>
-          <Conteudo aba={menu.aba} estado={estado} />
+          <Conteudo aba={aba} estado={estado} />
         </div>
       </div>
     )
@@ -39,8 +52,8 @@ export function StartMenu({ estado, menu, onEscolher, onVoltar }: Props) {
   return (
     <div className="janela" style={{ position: 'absolute', top: u(3), right: u(3), width: u(132), padding: `${u(5)} ${u(6)}` }}>
       {OPCOES_MENU.map((o, i) => (
-        <div key={o} onClick={() => onEscolher(i)} style={{ display: 'flex', alignItems: 'center', fontSize: u(9), lineHeight: u(16), cursor: 'pointer', whiteSpace: 'nowrap' }}>
-          <Cursor visivel={i === menu.indice} />
+        <div key={o} onClick={() => escolher(i)} style={{ display: 'flex', alignItems: 'center', fontSize: u(9), lineHeight: u(16), cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <Cursor visivel={i === indice} />
           {o}
         </div>
       ))}

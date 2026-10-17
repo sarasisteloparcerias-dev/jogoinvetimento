@@ -1,10 +1,15 @@
 # Vila Moeda — jogo de literacia financeira ao estilo Game Boy Advance (protótipo)
 
 Protótipo jogável de um simulador de vida focado em literacia financeira, seguindo a
-[especificação](#especificação) de um jogo com 3 modos por faixa etária. Este protótipo
-implementa **apenas o modo 8-14** (título de trabalho original: "O Reino"; no jogo, a
-vila chama-se **Vila Moeda**), conforme a recomendação da especificação de validar
-primeiro a mecânica com o modo mais simples.
+[especificação](#especificação) de um jogo com 3 modos por faixa etária. Estão feitos
+dois modos:
+
+| Idade | Modo |
+|---|---|
+| 8-11 | **Vila Moeda** (título de trabalho original: "O Reino") |
+| 12-14 | escolhem entre os dois no ecrã inicial |
+| 15-17 | **A Cidade** |
+| 18+ | "O Mercado" (por construir; aparece um ecrã a explicar) |
 
 Jogar online: https://sarasisteloparcerias-dev.github.io/jogoinvetimento/
 
@@ -102,6 +107,58 @@ npm run preview
 - **Fim das 20 semanas**: o Mestre Moedas faz o resumo e aparece o ecrã final com
   crachás, totais e gráfico.
 
+## A Cidade (12-17 anos)
+
+Usa o mesmo motor (andar, portas, diálogos, mini-jogos), mas com um mundo, personagens
+e dinheiro próprios desta idade. Os termos são reais (ações, ETFs, obrigações, cripto,
+inflação, comissões); o dinheiro e as empresas são inventados. O jogo diz isto
+claramente na introdução e no fim: é uma simulação educativa, não aconselhamento
+financeiro.
+
+- **Cidade** de 36×30 tiles com estradas, passadeiras, passeios, semáforos, carros
+  estacionados, uma praça em calçada portuguesa com fonte, parque com lago e campo de
+  jogos. Prédios de vários andares, com montras e toldos nas lojas.
+- **Personagens adolescentes** de 16×32 (dois tiles de altura), com proporções mais
+  próximas das reais.
+- **Onde se faz cada coisa**:
+
+  | O quê | Onde |
+  |---|---|
+  | Mesada (10€/semana), lanche e passe (~6€) | Casa (a Mãe explica de manhã) |
+  | Orçamento semanal | Computador do quarto |
+  | Primeira conta: Conta Jovem (sem custos) ou Conta Standard (brinde, mas 1€/semana) | Rita, no Banco Ponte |
+  | Aprender sobre ações, ETFs, obrigações, cripto, inflação, diversificar, risco | Mestre Moedas, consultor no Banco Ponte (abre a app INVESTIR) |
+  | Primeiro emprego: entrevista e até 2 turnos por semana (15€ + gorjetas) | D. Clara, no Café Grão Dourado (mini-jogo **Turno no Café**) |
+  | Estudar (grátis, 1 vez por semana) | Biblioteca e Prof. Nuno, na Escola Secundária |
+  | Compras por impulso, com a regra das 48 horas | Montras da MegaStore |
+  | Passeio de bicicleta (lanche pago) ou só conversar (grátis) | Rui e Inês, no parque |
+  | Penáltis (grátis) | Duarte, no campo de jogos |
+  | Publicidade disfarçada de conselho | Kiko, o influencer da LuaCoin |
+
+- **Telemóvel** (START) em vez do menu: BANCO (conta, poupança a 3% ao ano,
+  débitos diretos que se podem cancelar), INVESTIR (5 ativos, comprar 10€ ou
+  50€, vender, gráfico do preço, risco de 1 a 5), JORNAL (notícias), OBJETIVO (Viagem de
+  Finalistas e conquistas) e PERFIL (estatísticas e gráfico).
+- **5 ativos fictícios**: Obrigações do Tesouro (risco 1), ETF Mundo (3), PixelSoft (4),
+  Refrescos Brisa (3) e LuaCoin (5). Os preços mudam todas as semanas com uma notícia.
+  Algumas notícias são fixas para contar uma história: a LuaCoin sobe com a moda e cai
+  70%, há uma crise a meio do ano seguida de recuperação, e um escândalo afunda só a
+  Brisa (quem diversificou quase não sente).
+- **Cada manhã**: movimentos da conta (mesada, despesas, comissões, prestações, juro),
+  inflação (~0,3% por semana; a Mãe mostra o lanche a ficar mais caro), a notícia, o
+  que aconteceu à tua carteira, lições do Mestre Moedas nos momentos certos e um
+  evento da semana.
+- **17 eventos** desta idade: streaming (2€/semana), a colega que jura que a LuaCoin vai
+  triplicar, uma burla por SMS, "compra agora, paga depois" (prestações com multa se
+  falhares), anúncios nas redes, emprestar dinheiro a um amigo, ecrã partido, semana de
+  exames vs. turno extra, festa de anos, concerto, vender roupa usada, prenda da avó,
+  gripe, voluntariado, turno extra e telemóvel novo.
+- **7 conquistas**: Primeira Conta, Primeiro Salário, Carteira Diversificada, Mão Firme
+  (não vender na crise), Anti-Burla, Fundo de Emergência (100€) e Viagem de Finalistas
+  (400€ entre poupança e investimentos, o objetivo do ano).
+- **24 semanas** (um ano letivo). No fim, bolsa de mérito de 100€ para quem tiver
+  Educação alta, balanço do Mestre Moedas e ecrã final com o gráfico.
+
 ## Estrutura do código
 
 ```
@@ -112,26 +169,33 @@ src/
     crachas.ts                                - os 6 crachás, objetivos e lições
     pixel/
       draw.ts     - utilitários de pixel art (grelhas de caracteres → imagem, cores)
-      sprites.ts  - personagens 16×24, 4 direções × 3 frames, recoloridas pelo avatar
+      sprites.ts  - personagens 16×24 (crianças) e 16×32 (adolescentes), 4 direções × 3 frames
       cenario.ts  - tiles, edifícios, mobília e ícones dos crachás
     minijogos/
-      futebol.ts, bicicleta.ts, gelado.ts - os três mini-jogos (update/render em canvas)
+      futebol.ts, bicicleta.ts, gelado.ts, cafe.ts - os mini-jogos (update/render em canvas)
       tipos.ts, index.ts                  - interface comum e criação por tipo
+    modo.ts       - o que todos os modos partilham (estado base e ações dos guiões)
     world/
       tipos.ts    - tipos de mapas, edifícios, objetos, NPCs
       mapas.ts    - a Vila Moeda e os interiores
-      motor.ts    - movimento, colisões, câmara, portas, NPCs, transições, desenho
-      scripts.ts  - todas as conversas e a manhã de cada semana
+      motor.ts    - movimento, colisões, câmara, portas, NPCs, transições, desenho (recebe os mapas e sprites do modo)
+      scripts.ts  - conversas da Vila Moeda e a manhã de cada semana
+    cidade/
+      tipos.ts, economia.ts - estado, ativos, notícias, inflação e a semana d'A Cidade
+      eventos.ts, conquistas.ts - eventos e conquistas desta idade
+      mapas.ts, scripts.ts      - a cidade, os interiores e as conversas
   components/
     gba/
       Consola.tsx    - ecrã ampliado, teclado e botões tácteis
-      GameScreen.tsx - liga o motor, os diálogos, o menu, os crachás e o dormir
+      GameScreen.tsx - liga o motor, os diálogos, o menu e as conquistas de qualquer modo
+      modo.ts, modoVila.ts, modoCidade.ts - o que define cada modo (mapas, sprites, guiões, menu)
+      Telemovel.tsx  - o telemóvel d'A Cidade
       Intro.tsx      - introdução, nome e aspeto
       dialogo.tsx    - caixa de texto letra a letra e caixa de escolha
       StartMenu.tsx  - menu START
       MiniJogoView.tsx - mostra um mini-jogo na consola (título, jogo, resultado)
       ui.tsx         - escala, sprites em HTML, cursores
-    AgeGate.tsx, ModoIndisponivel.tsx, FimDeJogo.tsx, GrowthChart.tsx
+    AgeGate.tsx, ModoIndisponivel.tsx, FimDeJogo.tsx, FimCidade.tsx, GrowthChart.tsx
 ```
 
 ## Próximos passos (não implementados neste protótipo)
@@ -139,8 +203,6 @@ src/
 - Guardar o progresso (continuar o jogo noutro dia).
 - Som e música.
 - Mais zonas para explorar fora da vila e mais personagens com histórias.
-- **Modo 15-17 ("A Cidade")**: termos reais (ações, ETFs, obrigações, inflação) com
-  dinheiro simulado, primeiro emprego, notícias de mercado simuladas e diversificação.
 - **Modo 18+ ("O Mercado")**: painel mais sério, ativos fictícios com padrões de
   volatilidade real, comissões e impostos, eventos de vida adulta — com aviso claro de
   que é uma simulação educativa, não aconselhamento financeiro.

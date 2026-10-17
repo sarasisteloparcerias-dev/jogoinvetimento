@@ -1,5 +1,5 @@
 import { grelha, r } from '../pixel/draw'
-import { framesPersonagem, type FramesPersonagem } from '../pixel/sprites'
+import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
 import { AVATARES } from '../world/mapas'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
@@ -79,12 +79,14 @@ export class Bicicleta implements MiniJogo {
   private proximo = 1
   private obstaculos: Obstaculo[] = []
   private jogador: FramesPersonagem
-  private leo = framesPersonagem(AVATARES.leo)
-  private bia = framesPersonagem(AVATARES.bia)
+  private leo: FramesPersonagem
+  private bia: FramesPersonagem
   private decor = Array.from({ length: 10 }, (_, i) => ({ x: i % 2 ? 8 + (i * 7) % 20 : 206 + (i * 5) % 22, y: i * 20 }))
 
-  constructor(avatar: AvatarConfig) {
-    this.jogador = framesPersonagem(avatar)
+  constructor(avatar: AvatarConfig, sprites: (a: AvatarConfig) => FramesPersonagem) {
+    this.jogador = sprites(avatar)
+    this.leo = sprites(AVATARES.leo)
+    this.bia = sprites(AVATARES.bia)
   }
 
   private get velocidade() {
@@ -206,7 +208,9 @@ export class Bicicleta implements MiniJogo {
     r(ctx, x + 3, yy + 26, 26, 2, '#9aa0b0')
     r(ctx, x + 1, yy + 25, 4, 4, '#283040')
     r(ctx, x + 27, yy + 25, 4, 4, '#283040')
-    ctx.drawImage(f.up[1 + pedal], x, yy, 32, 48)
+    const img = f.up[1 + pedal]
+    const larg = Math.round((48 * img.width) / img.height)
+    ctx.drawImage(img, x + (32 - larg) / 2, yy, larg, 48)
   }
 
   resultado() {

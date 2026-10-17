@@ -5,12 +5,7 @@ interface ModoIndisponivelProps {
   onVoltar: () => void
 }
 
-const INFO: Record<Exclude<Modo, 'reino'>, { titulo: string; descricao: string }> = {
-  cidade: {
-    titulo: 'A Cidade (15-17 anos)',
-    descricao:
-      'Este modo vai introduzir ações, ETFs, obrigações e inflação simulados, primeiro emprego e diversificação de carteira. Ainda está por construir — começámos pelo modo 8-14 para validar a mecânica principal.',
-  },
+const INFO: Record<'mercado', { titulo: string; descricao: string }> = {
   mercado: {
     titulo: 'O Mercado (18+ anos)',
     descricao:
@@ -19,7 +14,7 @@ const INFO: Record<Exclude<Modo, 'reino'>, { titulo: string; descricao: string }
 }
 
 export function ModoIndisponivel({ modo, onVoltar }: ModoIndisponivelProps) {
-  if (modo === 'reino') return null
+  if (modo !== 'mercado') return null
   const info = INFO[modo]
 
   return (
@@ -28,7 +23,7 @@ export function ModoIndisponivel({ modo, onVoltar }: ModoIndisponivelProps) {
         <h2 style={{ fontSize: 22, marginBottom: 8 }}>{info.titulo}</h2>
         <p style={{ color: '#5a6280', marginBottom: 16 }}>{info.descricao}</p>
         <p style={{ color: '#7a8298', fontSize: 14, marginBottom: 20 }}>
-          Por agora, experimenta a <strong>Vila Moeda (8-14 anos)</strong> — é onde o jogo já está pronto.
+          Por agora, experimenta <strong>A Cidade</strong> (o modo dos 12 aos 17 anos): primeiro emprego, conta no banco, ações, ETFs e cripto.
         </p>
         <button onClick={onVoltar} className="botao-pixel" style={{ width: '100%', fontSize: 18, padding: 10 }}>
           Voltar

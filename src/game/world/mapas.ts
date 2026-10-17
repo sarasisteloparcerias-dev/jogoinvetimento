@@ -4,15 +4,15 @@ import type { MapaDef } from './tipos'
 
 type Grelha = string[][]
 
-function novaGrelha(w: number, h: number, c: string): Grelha {
+export function novaGrelha(w: number, h: number, c: string): Grelha {
   return Array.from({ length: h }, () => Array(w).fill(c))
 }
 
-function ret(g: Grelha, x0: number, y0: number, x1: number, y1: number, c: string) {
+export function ret(g: Grelha, x0: number, y0: number, x1: number, y1: number, c: string) {
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) g[y][x] = c
 }
 
-function texto(g: Grelha) {
+export function texto(g: Grelha) {
   return g.map((l) => l.join(''))
 }
 
@@ -36,7 +36,7 @@ function grelhaVila(): string[] {
   return texto(g)
 }
 
-function grelhaSala(w: number, h: number, saidaX: number): string[] {
+export function grelhaSala(w: number, h: number, saidaX: number): string[] {
   const g = novaGrelha(w, h, '_')
   ret(g, 0, 0, w - 1, 1, 'W')
   g[h - 1][saidaX] = 'X'
