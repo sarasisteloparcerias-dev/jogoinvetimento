@@ -7,7 +7,7 @@ interface GrowthChartProps {
 
 const WIDTH = 520
 const HEIGHT = 220
-const PAD_LEFT = 40
+const PAD_LEFT = 56
 const PAD_RIGHT = 16
 const PAD_TOP = 16
 const PAD_BOTTOM = 28

@@ -42,9 +42,25 @@ const TEXTOS = {
       'Carrega em A para falar com as pessoas. Em START abres o teu telemóvel: banco, investimentos, notícias e objetivo. Boa sorte!',
     ],
   },
+  mercado: {
+    sprites: framesAdolescente,
+    boasVindas: [
+      'Olá! Boas-vindas à vida adulta!',
+      'Sou o Mestre Moedas. Agora sou planeador financeiro no Banco Ponte.',
+      'Acabaste de conseguir o teu primeiro emprego a tempo inteiro. Vais receber salário, pagar renda, impostos e contas, e decidir o que fazer ao que sobra.',
+      'Os termos são reais: salário bruto e líquido, IRS, TAEG, comissões, ETFs, PPR. Os valores são simplificados.',
+      'Importante: isto é uma simulação educativa. As empresas e os ativos são inventados e nada aqui é um conselho para investir a sério.',
+      'Como te chamas?',
+    ],
+    fim: (n: string) => [
+      `${n}, vamos a isso!`,
+      'O jogo dura 24 meses. O objetivo: juntar 8.000€ de património líquido para a entrada de uma casa, sem descuidar a saúde, as relações e a carreira.',
+      'Cada noite na cama passa um mês. Em START abres o painel: banco, corretora, orçamento do mês, jornal e metas. Boa sorte!',
+    ],
+  },
 }
 
-export function Intro({ modo = 'reino', onConcluir }: { modo?: 'reino' | 'cidade'; onConcluir: (nome: string, avatar: AvatarConfig) => void }) {
+export function Intro({ modo = 'reino', onConcluir }: { modo?: 'reino' | 'cidade' | 'mercado'; onConcluir: (nome: string, avatar: AvatarConfig) => void }) {
   const textos = TEXTOS[modo]
   const dlg = useDialogo()
   const [fase, setFase] = useState<Fase>('falas')
@@ -110,9 +126,9 @@ export function Intro({ modo = 'reino', onConcluir }: { modo?: 'reino' | 'cidade
         <div className="plataforma" style={{ position: 'absolute', left: '50%', bottom: u(-2), width: u(70), height: u(14), transform: 'translateX(-50%)' }} />
         <div style={{ position: 'relative' }}>
           {fase === 'aspeto' ? (
-            <SpriteView avatar={avatar} escala={u(modo === 'cidade' ? 2.5 : 3)} girar sprites={textos.sprites} />
+            <SpriteView avatar={avatar} escala={u(modo === 'reino' ? 3 : 2.5)} girar sprites={textos.sprites} />
           ) : (
-            <SpriteView avatar={MENTOR.avatar} escala={u(modo === 'cidade' ? 2.5 : 3)} sprites={textos.sprites} />
+            <SpriteView avatar={MENTOR.avatar} escala={u(modo === 'reino' ? 3 : 2.5)} sprites={textos.sprites} />
           )}
         </div>
       </div>

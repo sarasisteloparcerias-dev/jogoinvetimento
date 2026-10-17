@@ -21,7 +21,7 @@ export const AVATARES_CIDADE = {
 const W = 36
 const H = 30
 
-function grelhaCidade(): string[] {
+export function grelhaCidade(): string[] {
   const g = novaGrelha(W, H, '.')
   ret(g, 0, 0, W - 1, 0, 'T')
   ret(g, 0, H - 1, W - 1, H - 1, 'T')

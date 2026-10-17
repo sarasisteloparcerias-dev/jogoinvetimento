@@ -1,15 +1,15 @@
 # Vila Moeda — jogo de literacia financeira ao estilo Game Boy Advance (protótipo)
 
 Protótipo jogável de um simulador de vida focado em literacia financeira, seguindo a
-[especificação](#especificação) de um jogo com 3 modos por faixa etária. Estão feitos
-dois modos:
+[especificação](#especificação) de um jogo com 3 modos por faixa etária. Os três
+modos estão feitos:
 
 | Idade | Modo |
 |---|---|
 | 8-11 | **Vila Moeda** (título de trabalho original: "O Reino") |
 | 12-14 | escolhem entre os dois no ecrã inicial |
 | 15-17 | **A Cidade** |
-| 18+ | "O Mercado" (por construir; aparece um ecrã a explicar) |
+| 18+ | **O Mercado** (vida adulta) |
 
 Jogar online: https://sarasisteloparcerias-dev.github.io/jogoinvetimento/
 
@@ -159,6 +159,45 @@ financeiro.
 - **24 semanas** (um ano letivo). No fim, bolsa de mérito de 100€ para quem tiver
   Educação alta, balanço do Mestre Moedas e ecrã final com o gráfico.
 
+## O Mercado (18+)
+
+A vida adulta, na mesma cidade e com o mesmo motor. Cada noite na cama passa **um mês**;
+o jogo dura **24 meses**. O objetivo é juntar **8.000€ de património líquido** (o que
+tens menos o que deves) para a entrada de uma casa. Os termos são reais e os valores
+simplificados; os ativos são inventados. O jogo avisa na introdução e no fim que é uma
+simulação educativa e não aconselhamento financeiro.
+
+- **Salário**: 1.300€ brutos. O recibo (computador do quarto e app MÊS) mostra
+  bruto − Segurança Social − retenção de IRS = líquido.
+- **Casa**: quarto partilhado (380€), T1 (620€ + contas) ou voltar para casa dos pais
+  (150€ de ajuda). Muda-se na Imobiliária, com caução de 2 rendas e a regra de um terço
+  do salário.
+- **Despesas todos os meses**: renda, supermercado (a marca branca poupa 20%), passe e
+  telemóvel, ginásio, débitos diretos e prestações. Inflação de ~3% ao ano.
+- **Banco Ponte**: depósito (2,5% ao ano, desce para 1,5% quando o banco central baixa os
+  juros; 28% de imposto sobre os juros), PPR (desconta 20% no IRS, até 400€), cartão de
+  crédito (~21% ao ano se não pagares tudo) e crédito pessoal com TAEG. Se o dinheiro não
+  chegar, sai do depósito e depois fica em dívida, com juros.
+- **Corretora** (aberta pelo Mestre Moedas, agora planeador financeiro): 6 ativos com
+  oscilações mensais realistas, comissão de 1€ por ordem, 28% de imposto sobre o lucro
+  ao vender e um **plano mensal** automático no ETF Mundo (custo médio). Ao longo dos 2
+  anos há uma bolha da LuaCoin, uma recessão com lay-off, a recuperação, um escândalo
+  numa empresa e a moda das renováveis.
+- **Finanças**: o IRS entrega-se de abril a junho (reembolso, mais a dedução do PPR);
+  fora do prazo há multa.
+- **Trabalho e vida**: ficar até mais tarde (Carreira), avaliação anual com pedido de
+  aumento, turnos ao fim de semana no Café (mini-jogo), ginásio (pagar não chega, é
+  preciso ir), almoço em casa dos pais, futebol e passeios de bicicleta.
+- **20 eventos** da vida adulta: subscrições, o colega da LuaCoin, esquema em pirâmide,
+  phishing, lay-off, Black Friday, crédito para férias, telemóvel a prestações,
+  casamento, herança, seguro de saúde, dentista, formação, trabalho extra, adotar um cão,
+  subida da renda, multa...
+- **9 conquistas**: Fundo de Emergência (3 meses de despesas), IRS Entregue, Investidor
+  Regular, Carteira Diversificada, Mão Firme, Anti-Burla, Aumento, Zero Juros e Entrada
+  da Casa.
+- **Painel** (START): BANCO, INVESTIR, MÊS (orçamento e taxa de poupança), JORNAL, METAS
+  e PERFIL.
+
 ## Estrutura do código
 
 ```
@@ -184,18 +223,23 @@ src/
       tipos.ts, economia.ts - estado, ativos, notícias, inflação e a semana d'A Cidade
       eventos.ts, conquistas.ts - eventos e conquistas desta idade
       mapas.ts, scripts.ts      - a cidade, os interiores e as conversas
+    mercado/
+      tipos.ts, economia.ts - estado, salário, despesas, impostos, dívidas e o mercado de cada mês
+      eventos.ts, conquistas.ts, mapas.ts, scripts.ts - eventos, conquistas, mundo e conversas d'O Mercado
   components/
     gba/
       Consola.tsx    - ecrã ampliado, teclado e botões tácteis
       GameScreen.tsx - liga o motor, os diálogos, o menu e as conquistas de qualquer modo
-      modo.ts, modoVila.ts, modoCidade.ts - o que define cada modo (mapas, sprites, guiões, menu)
+      modo.ts, modoVila.ts, modoCidade.ts, modoMercado.ts - o que define cada modo (mapas, sprites, guiões, menu)
+      telefone.tsx   - moldura e peças comuns do telemóvel e do painel
       Telemovel.tsx  - o telemóvel d'A Cidade
+      Painel.tsx     - o painel d'O Mercado
       Intro.tsx      - introdução, nome e aspeto
       dialogo.tsx    - caixa de texto letra a letra e caixa de escolha
       StartMenu.tsx  - menu START
       MiniJogoView.tsx - mostra um mini-jogo na consola (título, jogo, resultado)
       ui.tsx         - escala, sprites em HTML, cursores
-    AgeGate.tsx, ModoIndisponivel.tsx, FimDeJogo.tsx, FimCidade.tsx, GrowthChart.tsx
+    AgeGate.tsx, FimDeJogo.tsx, FimCidade.tsx, FimMercado.tsx, GrowthChart.tsx
 ```
 
 ## Próximos passos (não implementados neste protótipo)
@@ -203,9 +247,6 @@ src/
 - Guardar o progresso (continuar o jogo noutro dia).
 - Som e música.
 - Mais zonas para explorar fora da vila e mais personagens com histórias.
-- **Modo 18+ ("O Mercado")**: painel mais sério, ativos fictícios com padrões de
-  volatilidade real, comissões e impostos, eventos de vida adulta — com aviso claro de
-  que é uma simulação educativa, não aconselhamento financeiro.
 
 ## Perguntas em aberto (da especificação original)
 

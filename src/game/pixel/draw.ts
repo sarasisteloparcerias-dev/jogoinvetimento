@@ -87,6 +87,9 @@ const FONTE_3x5: Record<string, string[]> = {
   R: ['110', '101', '110', '101', '101'],
   T: ['111', '010', '010', '010', '010'],
   U: ['101', '101', '101', '101', '111'],
+  X: ['101', '101', '010', '101', '101'],
+  Y: ['101', '101', '010', '010', '010'],
+  Ç: ['011', '100', '100', '100', '011', '010'],
   ' ': ['0', '0', '0', '0', '0'],
 }
 
@@ -97,7 +100,7 @@ export function textoMini(ctx: CanvasRenderingContext2D, texto: string, x: numbe
   for (const letra of texto) {
     const g = FONTE_3x5[letra]
     if (!g) continue
-    for (let gy = 0; gy < 5; gy++) for (let gx = 0; gx < g[gy].length; gx++) if (g[gy][gx] === '1') ctx.fillRect(cx + gx, y + gy, 1, 1)
+    for (let gy = 0; gy < g.length; gy++) for (let gx = 0; gx < g[gy].length; gx++) if (g[gy][gx] === '1') ctx.fillRect(cx + gx, y + gy, 1, 1)
     cx += g[0].length + 1
   }
 }

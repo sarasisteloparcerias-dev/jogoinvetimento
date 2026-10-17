@@ -828,6 +828,11 @@ const SIMBOLOS: Record<string, string[]> = {
   mao_firme: ['....X....', '...X.X...', '....X....', '..XXXXX..', '....X....', 'X...X...X', 'XX..X..XX', '.XX.X.XX.', '..XXXXX..'],
   anti_burla: ['..XXXXX..', '.X.....X.', '.X.....X.', 'XXXXXXXXX', 'XXXX.XXXX', 'XXX...XXX', 'XXXX.XXXX', 'XXXX.XXXX', 'XXXXXXXXX'],
   emergencia: ['....X....', '..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', 'X.X.X.X.X', '....X....', '....X....', '..X.X....', '...X.....'],
+  zero_juros: ['XX.....X.', 'XX....X..', '.....X...', '....X....', '...X.....', '..X......', '.X....XX.', 'X.....XX.', '.........'],
+  regular: ['.X.....X.', 'XXXXXXXXX', 'X.......X', 'X.X.X.X.X', 'X.......X', 'X.X.X.X.X', 'X.......X', 'XXXXXXXXX', '.........'],
+  irs: ['XXXXXX...', 'X....XX..', 'X.XX.XXX.', 'X......X.', 'X.XXXX.X.', 'X......X.', 'X.XXXX.X.', 'X......X.', 'XXXXXXXX.'],
+  aumento: ['.....XXXX', '.......XX', '......X.X', '.....X...', 'X...X....', 'XX.X.....', 'X.X......', 'X........', 'XXXXXXXXX'],
+  casa: ['....X....', '...XXX...', '..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', '.X.....X.', '.X.XX..X.', '.X.XX..X.', '.XXXXXXX.'],
   viagem: ['....X....', '....X....', '...XXX...', '.XXXXXXX.', 'XXXXXXXXX', '....X....', '....X....', '...XXX...', '..XX.XX..'],
 }
 
@@ -845,6 +850,11 @@ export const COR_CRACHA: Record<string, string> = {
   anti_burla: '#e05050',
   emergencia: '#f09a30',
   viagem: '#30a8c8',
+  zero_juros: '#d05080',
+  regular: '#3aa0a0',
+  irs: '#7a8496',
+  aumento: '#2a9a5a',
+  casa: '#e8743a',
 }
 
 const cacheCracha = new Map<string, HTMLCanvasElement>()

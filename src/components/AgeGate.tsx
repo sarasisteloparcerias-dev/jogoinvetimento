@@ -10,7 +10,7 @@ interface AgeGateProps {
   onEscolherModo: (modo: Modo) => void
 }
 
-/** 8-11: Vila Moeda · 12-14: escolhem · 15-17: A Cidade · 18+: O Mercado (por construir). */
+/** 8-11: Vila Moeda · 12-14: escolhem · 15-17: A Cidade · 18+: O Mercado. */
 function modoParaIdade(idade: number): Modo | 'escolher' {
   if (idade <= 11) return 'reino'
   if (idade <= 14) return 'escolher'
