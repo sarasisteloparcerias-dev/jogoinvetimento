@@ -1,5 +1,6 @@
 import { r } from '../pixel/draw'
 import { H, textoContorno, W, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const DURACAO = 35
 const K = '#283040'
@@ -49,6 +50,7 @@ export class Emails implements MiniJogo {
       const certo = (dir === 'lixo') === primeiro.spam
       if (certo) this.certos++
       else this.erros++
+      sfx(certo ? 'apanhar' : 'erro')
       this.anim = { x: dir === 'lixo' ? -1 : 1, y: primeiro.y, t: 0.4, certo }
       this.fila.shift()
     }

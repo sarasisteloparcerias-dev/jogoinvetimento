@@ -311,6 +311,7 @@ export async function executarInteracao(i: Interacao, ctx: Ctx) {
 /** Dormir: passa uma semana e acorda-se no quarto, ao lado da cama. */
 async function dormir(ctx: Ctx) {
   await ctx.fade(1, 500)
+  ctx.jingle('dormir')
   await ctx.say('Zzz... Zzz... Zzz...')
   const antes = ctx.estado()
   const { estado: depois, evento } = avancarSemana(antes)

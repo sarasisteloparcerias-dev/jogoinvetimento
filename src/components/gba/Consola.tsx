@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
+import { alternarSom, somLigado, subscreverSom } from '../../game/som'
 import type { Tecla } from './dialogo'
 
 const MAPA_TECLAS: Record<string, Tecla> = {
@@ -37,6 +38,7 @@ interface ConsolaProps {
 
 export function Consola({ children, onPremir, onSoltar }: ConsolaProps) {
   const [s, setS] = useState(calcularEscala)
+  const som = useSyncExternalStore(subscreverSom, somLigado)
   const premir = useRef(onPremir)
   const soltar = useRef(onSoltar)
   useLayoutEffect(() => {
@@ -48,6 +50,7 @@ export function Consola({ children, onPremir, onSoltar }: ConsolaProps) {
     const redimensionar = () => setS(calcularEscala())
     const baixo = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === 'INPUT') return
+      if ((e.key === 'n' || e.key === 'N') && !e.repeat) return alternarSom()
       const t = MAPA_TECLAS[e.key]
       if (!t) return
       e.preventDefault()
@@ -106,13 +109,24 @@ export function Consola({ children, onPremir, onSoltar }: ConsolaProps) {
         </div>
         <div className="botoes-meio">
           {botao('START', 'botao-start', 'START', 'Start')}
+          <button
+            className={`botao-som${som ? '' : ' desligado'}`}
+            aria-label={som ? 'Desligar o som' : 'Ligar o som'}
+            aria-pressed={som}
+            onClick={(e) => {
+              alternarSom()
+              e.currentTarget.blur()
+            }}
+          >
+            {som ? 'SOM ON' : 'SOM OFF'}
+          </button>
         </div>
         <div className="botoes-ab">
           {botao('B', 'botao-redondo botao-b', 'B', 'Botão B')}
           {botao('A', 'botao-redondo botao-a', 'A', 'Botão A')}
         </div>
       </div>
-      <p className="ajuda">Setas: andar · Z / Espaço / Enter: A · X / Esc: B · M: START</p>
+      <p className="ajuda">Setas: andar · Z / Espaço / Enter: A · X / Esc: B · M: START · N: som</p>
     </div>
   )
 }

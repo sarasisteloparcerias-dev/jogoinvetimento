@@ -17,6 +17,7 @@ import { apagarGravacao, gravar, lerGravacao, type Gravacao, type Modo } from '.
 import { novoEstadoCasa, novoEstadoMercado } from './game/mercado/economia'
 import type { EstadoMercado } from './game/mercado/tipos'
 import { NOME_MODO, passarNivel, PROXIMO, repetirNivel, requisitoNivel } from './game/niveis'
+import { musica } from './game/som'
 import type { AvatarConfig, PlayerState } from './game/types'
 
 type Tela = 'idade' | 'intro' | 'jogo' | 'fim'
@@ -36,6 +37,11 @@ export default function App() {
   const [estado, setEstado] = useState<unknown>(null)
   const [continuacao, setContinuacao] = useState<Continuacao | null>(null)
   const [gravacao, setGravacao] = useState<Gravacao | null>(() => lerGravacao())
+
+  // música do título no ecrã da idade e na introdução (o jogo e o fim escolhem a sua)
+  useEffect(() => {
+    if (tela === 'idade' || tela === 'intro') musica('titulo')
+  }, [tela])
 
   useEffect(() => {
     // A caixa de diálogo mede o texto com a fonte pixel, por isso esperamos que ela carregue.

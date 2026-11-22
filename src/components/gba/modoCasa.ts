@@ -10,4 +10,5 @@ export const MODO_CASA: ModoJogo<EstadoMercado> = {
   conquistas: CONQUISTAS_CASA,
   tutorial: tutorialCasa,
   interagir: executarInteracaoCasa,
+  musica: 'casa',
 }

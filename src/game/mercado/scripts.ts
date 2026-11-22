@@ -764,6 +764,7 @@ export async function executarInteracaoMercado(i: Interacao, ctx: Ctx) {
 
 async function dormir(ctx: Ctx, texto = 'Zzz... Passa um mês...') {
   await ctx.fade(1, 500)
+  ctx.jingle('dormir')
   await ctx.say(texto)
   const antes = ctx.estado()
   const { estado: depois, noticia } = avancarMes(antes)
@@ -785,11 +786,13 @@ export const TRANSITO_MERCADO_SCRIPTS = {
   async foraPassadeira(ctx: Ctx) {
     const s = ctx.estado()
     if (!comFlag(ctx, 'aviso_passadeira')) {
+      ctx.som('apito')
       return ctx.say(['Atravessar fora da passadeira é perigoso: os carros só param nas passadeiras.', 'E os peões também podem levar multa! Desta vez é só um aviso.'], AGENTE)
     }
     if (tem(ctx, `multa_peao_${s.mes}`) || Math.random() > 0.35) return
     comFlag(ctx, `multa_peao_${s.mes}`)
     mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - 20) }))
+    ctx.som('apito')
     await ctx.say(['Outra vez fora da passadeira! Multa de 20€.', 'Pagar a tempo evita que fique mais cara. -20€.'], AGENTE)
   },
 

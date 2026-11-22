@@ -1,6 +1,7 @@
 import { circulo } from '../pixel/cenario'
 import { r, tom } from '../pixel/draw'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const DURACAO = 25
 const MAX_BOLAS = 10
@@ -105,12 +106,17 @@ export class Gelado implements MiniJogo {
       if (this.passo >= this.pedido.length) {
         this.pontos += 3
         this.pedidos++
+        sfx('ponto')
         this.pedido = this.novoPedido()
         this.passo = 0
         this.avisos.push({ texto: 'PEDIDO!', x: this.cone, y: y - 12, t: 1 })
-      } else this.avisos.push({ texto: '+2', x: this.cone, y: y - 10, t: 0.7 })
+      } else {
+        sfx('apanhar')
+        this.avisos.push({ texto: '+2', x: this.cone, y: y - 10, t: 0.7 })
+      }
     } else {
       this.pontos += 1
+      sfx('tic')
       this.avisos.push({ texto: '+1', x: this.cone, y: y - 10, t: 0.7 })
     }
   }

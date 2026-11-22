@@ -194,6 +194,27 @@ body {
   background: #454b6e;
 }
 
+.botoes-meio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.botao-som {
+  background: #2a2e44;
+  color: #9aa2c4;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 7px;
+  touch-action: manipulation;
+}
+
+.botao-som.desligado {
+  color: #e07a7a;
+}
+
 .botoes-ab {
   display: flex;
   gap: 14px;

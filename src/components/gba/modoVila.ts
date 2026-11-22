@@ -17,4 +17,6 @@ export const MODO_VILA: ModoJogo<PlayerState> = {
   tutorial,
   interagir: executarInteracao,
   Menu: StartMenu,
+  musica: 'vila',
+  dinheiro: (s) => s.saldo + s.poupanca + s.investimento.amount,
 }

@@ -1,6 +1,7 @@
 import { circulo } from '../pixel/cenario'
 import { r } from '../pixel/draw'
 import { H, textoContorno, W, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const K = '#283040'
 const JOGADAS = 5
@@ -49,6 +50,7 @@ export class Bowling implements MiniJogo {
       }
       this[ref] = v
       if (teclas.premidas.has('A')) {
+        sfx('cursor')
         if (this.fase === 'mira') {
           this.fase = 'forca'
           this.forca = 0
@@ -81,6 +83,7 @@ export class Bowling implements MiniJogo {
         const n = this.derrubados.size
         this.total += n
         if (n === 10) this.strikes++
+        sfx(n === 10 ? 'golo' : n === 0 ? 'erro' : 'pinos')
         this.mensagem = n === 10 ? 'STRIKE!' : n === 0 ? 'NA CALEIRA!' : `${n} PINOS`
         this.fase = 'resultado'
         this.t = 1.2

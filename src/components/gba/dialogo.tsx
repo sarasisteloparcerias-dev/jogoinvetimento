@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { sfx } from '../../game/som'
 import { Cursor, SetaBaixo, u } from './ui'
 
 export type Tecla = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'A' | 'B' | 'START'
@@ -57,7 +58,11 @@ export function useDialogo() {
     if (!d || d.mostrado >= d.paginas[d.pagina].length) return
     const t = setTimeout(() => {
       const cur = ref.current
-      if (cur) atualizar({ ...cur, mostrado: cur.mostrado + 1 })
+      if (!cur) return
+      // um "bip" a cada duas letras, como nas consolas antigas
+      const letra = cur.paginas[cur.pagina][cur.mostrado]
+      if (cur.mostrado % 2 === 0 && letra && letra.trim()) sfx('texto')
+      atualizar({ ...cur, mostrado: cur.mostrado + 1 })
     }, 24)
     return () => clearTimeout(t)
   }, [d, atualizar])
@@ -100,17 +105,26 @@ export function useDialogo() {
       const ultima = cur.pagina === cur.paginas.length - 1
       if (t === 'A' || t === 'B') {
         if (!completo) return atualizar({ ...cur, mostrado: pag.length })
-        if (!ultima) return atualizar({ ...cur, pagina: cur.pagina + 1, mostrado: 0 })
+        if (!ultima) {
+          sfx('cursor')
+          return atualizar({ ...cur, pagina: cur.pagina + 1, mostrado: 0 })
+        }
         if (cur.opcoes) {
           if (t === 'B') {
-            if (cur.cancelar !== undefined) fechar(cur.cancelar)
+            if (cur.cancelar !== undefined) {
+              sfx('cancelar')
+              fechar(cur.cancelar)
+            }
             return
           }
+          sfx('confirmar')
           return fechar(cur.indice)
         }
+        sfx('cursor')
         return fechar(0)
       }
       if ((t === 'UP' || t === 'DOWN') && cur.opcoes && completo && ultima) {
+        sfx('cursor')
         const n = cur.opcoes.length
         atualizar({ ...cur, indice: (cur.indice + (t === 'UP' ? -1 : 1) + n) % n })
       }
@@ -121,7 +135,10 @@ export function useDialogo() {
   const escolher = useCallback(
     (i: number) => {
       const cur = ref.current
-      if (cur?.opcoes && cur.pagina === cur.paginas.length - 1 && cur.mostrado >= cur.paginas[cur.pagina].length) fechar(i)
+      if (cur?.opcoes && cur.pagina === cur.paginas.length - 1 && cur.mostrado >= cur.paginas[cur.pagina].length) {
+        sfx('confirmar')
+        fechar(i)
+      }
     },
     [fechar],
   )

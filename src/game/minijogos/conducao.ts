@@ -1,6 +1,7 @@
 import { circulo, desenharCarroV } from '../pixel/cenario'
 import { r } from '../pixel/draw'
 import { H, textoContorno, W, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const K = '#283040'
 const Y_CARRO = 112
@@ -39,6 +40,7 @@ export class Conducao implements MiniJogo {
 
   private falta(texto: string) {
     this.faltas.push(texto)
+    sfx('buzina')
     this.aviso = { texto: `FALTA: ${texto}`, t: 1.6 }
   }
 

@@ -1,3 +1,6 @@
+import { useEffect } from 'react'
+import { jingle, musica } from '../game/som'
+
 export interface PropsBotoesFim {
   onReiniciar: () => void
   /** Nome da fase seguinte, se houver. */
@@ -13,6 +16,13 @@ export interface PropsBotoesFim {
 
 /** Fim de uma fase: passar à seguinte (se o objetivo foi cumprido), repetir a fase ou começar de novo. */
 export function BotoesFim({ onReiniciar, seguinte, podePassar, regra, situacao, onProximo, onRepetir }: PropsBotoesFim) {
+  const venceu = !seguinte || !!podePassar
+  useEffect(() => {
+    musica(null)
+    const t = setTimeout(() => jingle(venceu ? 'fanfarra' : 'triste'), 250)
+    return () => clearTimeout(t)
+  }, [venceu])
+
   return (
     <>
       {seguinte && (

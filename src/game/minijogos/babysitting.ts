@@ -1,6 +1,7 @@
 import { circulo } from '../pixel/cenario'
 import { r, tom } from '../pixel/draw'
 import { H, W, textoContorno, type MiniJogo, type TeclaJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const K = '#283040'
 const DURACAO = 60
@@ -66,7 +67,9 @@ export class Babysitting implements MiniJogo {
         this.t = 0.2
         if (i === this.sequencia[this.posicao]) {
           this.posicao++
+          sfx('tic')
           if (this.posicao >= this.sequencia.length) {
+            sfx('ponto')
             this.rondas++
             this.sequencia.push(this.aoAcaso())
             this.aviso = { texto: 'O BEBÉ RIU-SE!', cor: '#80f080', t: 1 }
@@ -75,6 +78,7 @@ export class Babysitting implements MiniJogo {
           }
         } else {
           this.erros++
+          sfx('erro')
           this.aviso = { texto: 'BUÁÁÁ!', cor: '#ff8080', t: 1 }
           this.fase = 'pausa'
           this.t = 1.2

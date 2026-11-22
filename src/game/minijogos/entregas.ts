@@ -2,6 +2,7 @@ import { circulo } from '../pixel/cenario'
 import { r, tom } from '../pixel/draw'
 import type { AvatarConfig } from '../types'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const DURACAO = 35
 const FAIXAS = [84, 120, 156]
@@ -64,10 +65,12 @@ export class Entregas implements MiniJogo {
       const perto = Math.abs(FAIXAS[c.faixa] - this.x) < 12
       if (c.tipo === 'caixa' && perto && Math.abs(c.y - Y_BICI) < 12) {
         this.entregas++
+        sfx('apanhar')
         this.avisos.push({ texto: '+1', x: this.x, y: Y_BICI - 20, t: 0.7, cor: '#80f080' })
         c.y = 999
       } else if (c.tipo === 'carro' && perto && c.y + 20 > Y_BICI - 8 && c.y < Y_BICI + 8 && this.invencivel <= 0) {
         this.vidas--
+        sfx('buzina')
         this.invencivel = 1.2
         this.avisos.push({ texto: 'CUIDADO!', x: this.x, y: Y_BICI - 24, t: 0.9, cor: '#ff8080' })
       }

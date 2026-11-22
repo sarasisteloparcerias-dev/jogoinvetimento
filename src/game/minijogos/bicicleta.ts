@@ -3,6 +3,7 @@ import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
 import { AVATARES } from '../world/mapas'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const DURACAO = 30
 const VIDAS = 3
@@ -105,7 +106,10 @@ export class Bicicleta implements MiniJogo {
 
     if (teclas.premidas.has('LEFT')) this.faixa = Math.max(0, this.faixa - 1)
     if (teclas.premidas.has('RIGHT')) this.faixa = Math.min(2, this.faixa + 1)
-    if ((teclas.premidas.has('A') || teclas.premidas.has('UP')) && this.salto < 0) this.salto = 0
+    if ((teclas.premidas.has('A') || teclas.premidas.has('UP')) && this.salto < 0) {
+      this.salto = 0
+      sfx('salto')
+    }
     const alvo = FAIXAS[this.faixa]
     this.x += Math.sign(alvo - this.x) * Math.min(Math.abs(alvo - this.x), 260 * s)
     if (this.salto >= 0) {
@@ -127,10 +131,12 @@ export class Bicicleta implements MiniJogo {
       if (o.tipo === 'estrela') {
         if (this.altura < 14) {
           this.estrelas++
+          sfx('apanhar')
           o.y = 999
         }
       } else if (this.altura < 7 && this.invencivel <= 0) {
         this.vidas--
+        sfx('erro')
         this.invencivel = 1.2
         o.y = 999
       }

@@ -1,6 +1,7 @@
 import { circulo } from '../pixel/cenario'
 import { r } from '../pixel/draw'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const DURACAO = 30
 const VEL_CARRINHO = 150
@@ -190,11 +191,13 @@ export class Supermercado implements MiniJogo {
     const y = Y_CARRINHO - 18
     if (c.lista && this.falta.has(c.p.nome)) {
       this.falta.delete(c.p.nome)
+      sfx('apanhar')
       this.avisos.push({ texto: c.p.nome, x: this.carrinho, y, t: 0.9, cor: '#80f080' })
     } else if (c.lista) {
       this.avisos.push({ texto: 'JÁ TENS', x: this.carrinho, y, t: 0.7, cor: '#ffffff' })
     } else {
       this.impulsos.push(c.p)
+      sfx('gastar')
       this.avisos.push({ texto: `-${c.p.preco.toFixed(2).replace('.', ',')}€`, x: this.carrinho, y, t: 0.9, cor: '#ff8080' })
     }
   }

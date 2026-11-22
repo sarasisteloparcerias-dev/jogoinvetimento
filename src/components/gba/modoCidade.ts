@@ -17,5 +17,8 @@ export const MODO_CIDADE: ModoJogo<EstadoCidade> = {
   tutorial: tutorialCidade,
   interagir: executarInteracaoCidade,
   Menu: Telemovel,
+  musica: 'cidade',
+  // investir não é gastar: conta-se o que se pagou pelos investimentos
+  dinheiro: (s) => s.dinheiro + s.poupanca + Object.values(s.custo).reduce((a, b) => a + b, 0),
   transito: TRANSITO_CIDADE_SCRIPTS,
 }

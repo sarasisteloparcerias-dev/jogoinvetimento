@@ -2,6 +2,7 @@ import { r } from '../pixel/draw'
 import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const DURACAO = 30
 const EXERCICIOS = ['SUPINO', 'AGACHAMENTO', 'PESO MORTO', 'REMO']
@@ -58,9 +59,11 @@ export class Ginasio implements MiniJogo {
         this.melhor = Math.max(this.melhor, this.sequencia)
         this.levantar = 0.45
         const perfeito = Math.abs(this.ponteiro - 0.5) < 0.03
+        sfx(perfeito ? 'ponto' : 'apanhar')
         this.aviso = { texto: perfeito ? 'PERFEITO!' : this.reps % 4 === 0 ? 'EXERCÍCIO NOVO!' : 'BOA!', t: 0.6, cor: perfeito ? '#f8e040' : '#80f080' }
       } else {
         this.falhas++
+        sfx('erro')
         this.sequencia = 0
         this.bloqueio = 0.7
         this.aviso = { texto: 'FALHOU!', t: 0.6, cor: '#ff8080' }

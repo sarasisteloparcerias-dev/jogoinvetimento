@@ -4,6 +4,7 @@ import { r } from '../pixel/draw'
 import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const DURACAO = 40
 const ITENS = ['CAFÉ', 'GALÃO', 'SUMO', 'BOLO'] as const
@@ -99,6 +100,7 @@ export class Cafe implements MiniJogo {
       c.paciencia -= s / c.duracao
       if (c.paciencia <= 0) {
         this.perdidos++
+        sfx('erro')
         c.saida = { texto: 'Demorou muito...', t: 0.9 }
       } else if (teclas.premidas.has('A')) {
         this.servir(c)
@@ -111,14 +113,17 @@ export class Cafe implements MiniJogo {
     const indice = c.pedido.findIndex((p, i) => p === this.cursor && !c.servidos.includes(i))
     if (indice === -1) {
       c.paciencia = Math.max(0.01, c.paciencia - 0.25)
+      sfx('erro')
       this.aviso = { texto: 'Não pedi isso!', t: 0.8 }
       return
     }
     c.servidos.push(indice)
+    sfx('tic')
     if (c.servidos.length === c.pedido.length) {
       const rapido = c.paciencia > 0.5
       this.gorjetas += GORJETA * c.pedido.length + (rapido ? GORJETA_RAPIDA : 0)
       this.atendidos++
+      sfx('moeda')
       c.saida = { texto: rapido ? 'Que rápido! Obrigado!' : 'Obrigado!', t: 0.8 }
     }
   }

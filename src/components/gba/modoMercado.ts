@@ -17,5 +17,8 @@ export const MODO_MERCADO: ModoJogo<EstadoMercado> = {
   tutorial: tutorialMercado,
   interagir: executarInteracaoMercado,
   Menu: Painel,
+  musica: 'mercado',
+  // investir não é gastar: conta-se o que se pagou pelos investimentos
+  dinheiro: (s) => s.conta + s.poupanca + s.ppr - s.divida + Object.values(s.custo).reduce((a, b) => a + b, 0),
   transito: TRANSITO_MERCADO_SCRIPTS,
 }

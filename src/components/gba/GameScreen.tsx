@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ResultadoMiniJogo, TipoMiniJogo } from '../../game/minijogos/tipos'
 import type { Dir } from '../../game/pixel/sprites'
+import { jingle, musica, sfx } from '../../game/som'
 import { ECRA_H, ECRA_W, Motor } from '../../game/world/motor'
 import { Consola } from './Consola'
 import { CaixaDialogo, useDialogo, type Tecla } from './dialogo'
@@ -30,6 +31,8 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
   const [banner, setBanner] = useState<{ nome: string; k: number } | null>(null)
   const [mini, setMini] = useState<{ tipo: TipoMiniJogo; k: number; resolver: (r: ResultadoMiniJogo) => void } | null>(null)
   const miniRef = useRef<ControloMiniJogo | null>(null)
+  const [interior, setInterior] = useState(() => modo.mapas[modo.inicio.mapa]?.tipo === 'interior')
+  const modoRef = useRef(modo)
   const scriptAtivo = useRef(false)
   const iniciado = useRef(false)
   const callbacks = useRef({ onMudar, onFim })
@@ -43,6 +46,13 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
   }, [])
 
   const definir = useCallback((s: S) => {
+    const contar = modoRef.current.dinheiro
+    if (contar) {
+      const antes = contar(estadoRef.current)
+      const depois = contar(s)
+      if (depois > antes + 0.004) sfx('moeda')
+      else if (depois < antes - 0.004) sfx('gastar')
+    }
     estadoRef.current = s
     setEstado(s)
     callbacks.current.onMudar(s)
@@ -61,6 +71,7 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
       if (!c) return
       definir({ ...s, crachas: [...s.crachas, id] })
       setCracha(id)
+      jingle('cracha')
       await dlg.say(`${s.name} ganhou: ${c.nome.toUpperCase()}!`)
       await dlg.say(c.licao, modo.mentor)
       setCracha(null)
@@ -79,6 +90,8 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     terminar() {
       callbacks.current.onFim(estadoRef.current)
     },
+    som: sfx,
+    jingle,
   }))
 
   const correr = useCallback(
@@ -98,11 +111,17 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     const { mapa, x, y, dir } = modo.inicio
     motorRef.current ??= new Motor(modo.mapas, modo.sprites, estadoRef.current.avatar, mapa, x, y, dir)
     const m = motorRef.current
-    m.onEntrarMapa = (def) => setBanner({ nome: def.nome, k: Date.now() })
+    m.onEntrarMapa = (def) => {
+      setBanner({ nome: def.nome, k: Date.now() })
+      setInterior(def.tipo === 'interior')
+      sfx('porta')
+    }
     m.onInteragir = (i) => void correr((c) => modo.interagir(i, c))
     m.onAtropelado = () => {
       const t = modo.transito
-      if (t) void correr((c) => t.atropelado(c))
+      if (!t) return
+      sfx('travagem')
+      void correr((c) => t.atropelado(c))
     }
     m.onForaPassadeira = () => {
       const t = modo.transito
@@ -129,6 +148,12 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     return () => cancelAnimationFrame(raf)
   }, [correr, modo])
 
+  // música: a da fase lá fora, uma mais calma dentro de casa e outra nos mini-jogos
+  const musicaAgora = mini ? 'minijogo' : interior ? 'interior' : modo.musica
+  useEffect(() => {
+    musica(musicaAgora)
+  }, [musicaAgora])
+
   useEffect(() => {
     if (!banner) return
     const t = setTimeout(() => setBanner(null), 1800)
@@ -142,10 +167,14 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     const dir = DIRS[t]
     if (dir) m.premir(dir)
     if (dlg.aberto()) return dlg.tecla(t)
-    if (menuAbertoRef.current) return menuRef.current?.tecla(t)
+    if (menuAbertoRef.current) {
+      sfx(t === 'A' ? 'confirmar' : t === 'B' ? 'cancelar' : 'cursor')
+      return menuRef.current?.tecla(t)
+    }
     if (scriptAtivo.current) return
     if (t === 'A') m.botaoA()
     else if (t === 'START') {
+      sfx('confirmar')
       m.limparTeclas()
       setMenuAberto(true)
     }

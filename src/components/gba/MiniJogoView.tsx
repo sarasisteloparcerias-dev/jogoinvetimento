@@ -1,5 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
 import { criarMiniJogo } from '../../game/minijogos'
+import { jingle, sfx } from '../../game/som'
 import { H, W, type ResultadoMiniJogo, type TeclaJogo, type Teclas, type TipoMiniJogo } from '../../game/minijogos/tipos'
 import type { FramesPersonagem } from '../../game/pixel/sprites'
 import type { AvatarConfig } from '../../game/types'
@@ -47,11 +48,17 @@ export function MiniJogoView({ tipo, avatar, sprites, onFim, ref }: Props) {
       if (t === 'START') return
       const pronto = performance.now() - faseDesde.current > ESPERA_A_MS
       if (faseRef.current === 'titulo') {
-        if (t === 'A' && pronto) setFase('jogo')
+        if (t === 'A' && pronto) {
+          sfx('confirmar')
+          setFase('jogo')
+        }
         return
       }
       if (faseRef.current === 'fim') {
-        if (t === 'A' && pronto) onFim(jogo.resultado())
+        if (t === 'A' && pronto) {
+          sfx('confirmar')
+          onFim(jogo.resultado())
+        }
         return
       }
       teclas.current.seguras.add(t as TeclaJogo)
@@ -74,6 +81,7 @@ export function MiniJogoView({ tipo, avatar, sprites, onFim, ref }: Props) {
         jogo.update(dt, teclas.current)
         teclas.current.premidas.clear()
         if (jogo.terminado) {
+          jingle('vitoria')
           faseRef.current = 'fim'
           faseDesde.current = performance.now()
           setFaseState('fim')

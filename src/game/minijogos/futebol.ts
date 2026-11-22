@@ -4,6 +4,7 @@ import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
 import { AVATARES } from '../world/mapas'
 import { H, W, textoContorno, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const REMATES = 5
 const POSTE_ESQ = 61
@@ -56,6 +57,7 @@ export class Futebol implements MiniJogo {
       if (teclas.premidas.has('A')) this.rematar()
     } else if (this.fase === 'remate' && this.t >= 0.5) {
       this.golos.push(!this.defendeu)
+      sfx(this.defendeu ? 'erro' : 'golo')
       this.fase = 'resultado'
       this.t = 0
     } else if (this.fase === 'resultado' && this.t >= 1.3) {
@@ -75,6 +77,7 @@ export class Futebol implements MiniJogo {
     if (this.defendeu) this.mergulho = this.alvo
     this.fase = 'remate'
     this.t = 0
+    sfx('salto')
   }
 
   render(ctx: CanvasRenderingContext2D) {

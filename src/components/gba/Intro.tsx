@@ -4,6 +4,7 @@ import { MENTOR } from '../../game/mentor'
 import { framesAdolescente, framesPersonagem } from '../../game/pixel/sprites'
 import type { AvatarConfig } from '../../game/types'
 import { Consola } from './Consola'
+import { sfx } from '../../game/som'
 import { CaixaDialogo, useDialogo, type Tecla } from './dialogo'
 import { Cursor, SpriteView, u } from './ui'
 
@@ -132,6 +133,7 @@ export function Intro({ modo = 'reino', existente, onConcluir }: PropsIntro) {
     if (dlg.aberto()) return dlg.tecla(t)
     if (fase !== 'aspeto') return
     const l = linhaRef.current
+    sfx(t === 'A' && l === 4 ? 'confirmar' : 'cursor')
     if (t === 'UP') setLinha((l + LINHAS.length - 1) % LINHAS.length)
     else if (t === 'DOWN') setLinha((l + 1) % LINHAS.length)
     else if (t === 'LEFT') mudar(l, -1)

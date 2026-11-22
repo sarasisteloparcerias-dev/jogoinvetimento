@@ -1,5 +1,6 @@
 import { r } from '../pixel/draw'
 import { H, textoContorno, textoQuebrado, W, type MiniJogo, type Teclas } from './tipos'
+import { sfx } from '../som'
 
 const POR_PERGUNTA = 12
 const N_PERGUNTAS = 6
@@ -118,11 +119,13 @@ export class Explicacoes implements MiniJogo {
       return
     }
     this.t -= s
+    if (teclas.premidas.has('UP') || teclas.premidas.has('DOWN')) sfx('cursor')
     if (teclas.premidas.has('UP')) this.cursor = (this.cursor + 3) % 4
     if (teclas.premidas.has('DOWN')) this.cursor = (this.cursor + 1) % 4
     if (teclas.premidas.has('A') || this.t <= 0) {
       const certo = this.t > 0 && this.cursor === this.perguntas[this.atual].certa
       if (certo) this.certas++
+      sfx(certo ? 'ponto' : 'erro')
       this.feedback = { certo, t: 1.1 }
     }
   }

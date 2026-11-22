@@ -51,6 +51,21 @@ fase**.
 | Z, Espaço ou Enter | A | Falar, ler placas, usar objetos, avançar o texto, confirmar |
 | X ou Esc | B | Cancelar / voltar |
 | M ou Tab | START | Abrir o menu |
+| N | SOM ON / OFF | Ligar ou desligar o som (fica guardado) |
+
+## Som e música
+
+Todo o som é gerado no próprio jogo com WebAudio, como num chip de Game Boy: duas ondas quadradas
+(pulso de 12,5%, 25% e 50%), uma onda triangular para o baixo e ruído para a bateria. Não há
+ficheiros de áudio. O som liga-se no primeiro toque ou tecla (regra dos browsers) e pausa quando
+se muda de separador.
+
+- **Músicas** (originais, em ciclo): título, Vila Moeda, A Cidade, O Mercado, A Casa, interiores
+  (mais calma) e mini-jogos (mais rápida).
+- **Melodias curtas**: conquista, dormir, fim de mini-jogo, fase passada e fase por passar.
+- **Efeitos**: texto letra a letra, cursor, confirmar e cancelar, moedas a entrar e a sair
+  (investir não conta como gastar), portas, travagem e choque no atropelamento, apito do agente
+  fora da passadeira e sons próprios em cada mini-jogo (golo, pinos, apanhar, erro...).
 
 ## O que está implementado
 
@@ -293,6 +308,10 @@ src/
       profissoes.ts - as 3 profissões (salário, gorjetas, mini-jogo, efeitos)
       habitacao.ts  - casas à venda, crédito à habitação, Euribor, IMI (nível A Casa)
     gravar.ts, niveis.ts - jogo guardado no browser e passagem de um nível para o seguinte
+    som/
+      audio.ts    - sintetizador ao estilo Game Boy (ondas de pulso, triangular, ruído) e sequenciador
+      musicas.ts  - as músicas e melodias, numa notação curta ("C5:4" = semínima)
+      index.ts    - efeitos sonoros e o que o resto do jogo usa (musica, jingle, sfx)
   components/
     gba/
       Consola.tsx    - ecrã ampliado, teclado e botões tácteis
@@ -311,7 +330,6 @@ src/
 
 ## Próximos passos (não implementados neste protótipo)
 
-- Som e música.
 - Mais zonas para explorar fora da vila e mais personagens com histórias.
 
 ## Perguntas em aberto (da especificação original)

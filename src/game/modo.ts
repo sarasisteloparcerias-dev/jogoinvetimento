@@ -1,5 +1,6 @@
 import type { ResultadoMiniJogo, TipoMiniJogo } from './minijogos/tipos'
 import type { Dir } from './pixel/sprites'
+import type { Efeito, NomeJingle } from './som'
 import type { AvatarConfig } from './types'
 
 /** O que todos os modos guardam, seja qual for a idade. */
@@ -23,6 +24,10 @@ export interface CtxJogo<S extends EstadoBase> {
   levar(mapa: string, x: number, y: number, dir: Dir): void
   /** Acaba a aventura e passa ao ecrã final. */
   terminar(): void
+  /** Efeito sonoro curto. */
+  som(nome: Efeito): void
+  /** Pequena melodia (dormir, conquista...). */
+  jingle(nome: NomeJingle): void
 }
 
 export interface Conquista {

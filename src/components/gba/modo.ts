@@ -1,5 +1,6 @@
 import type { ComponentType, Ref } from 'react'
 import type { Conquista, CtxJogo, EstadoBase } from '../../game/modo'
+import type { NomeMusica } from '../../game/som'
 import type { Dir, FramesPersonagem } from '../../game/pixel/sprites'
 import type { AvatarConfig } from '../../game/types'
 import type { Interacao } from '../../game/world/motor'
@@ -30,6 +31,10 @@ export interface ModoJogo<S extends EstadoBase> {
   tutorial(ctx: CtxJogo<S>): Promise<void>
   interagir(i: Interacao, ctx: CtxJogo<S>): Promise<void>
   Menu: ComponentType<PropsMenu<S>>
+  /** Música de fundo nos mapas exteriores (os interiores têm uma música própria). */
+  musica: NomeMusica
+  /** Dinheiro total (para o som das moedas quando sobe ou desce). */
+  dinheiro?(s: S): number
   /** O que acontece no trânsito (só nos modos com estradas). */
   transito?: {
     atropelado(ctx: CtxJogo<S>): Promise<void>
