@@ -5,16 +5,14 @@ import type { EstadoMercado } from '../game/mercado/tipos'
 import { iconeCracha } from '../game/pixel/cenario'
 import { framesAdolescente } from '../game/pixel/sprites'
 import { PixelImg, SpriteView } from './gba/ui'
+import { BotoesFim, type PropsBotoesFim } from './BotoesFim'
 import { GrowthChart } from './GrowthChart'
 
-interface FimCasaProps {
+interface FimCasaProps extends PropsBotoesFim {
   state: EstadoMercado
-  onReiniciar: () => void
-  proximo?: string
-  onProximo?: () => void
 }
 
-export function FimCasa({ state: s, onReiniciar }: FimCasaProps) {
+export function FimCasa({ state: s, ...botoes }: FimCasaProps) {
   const total = patrimonioM(s)
   const h = s.hipoteca
   let mensagem = 'Mais dois anos de escolhas importantes.'
@@ -66,9 +64,7 @@ export function FimCasa({ state: s, onReiniciar }: FimCasaProps) {
           Simulação educativa: valores simplificados e entidades fictícias. Na vida real, compara propostas de vários bancos e pede sempre a ficha de informação normalizada (FINE).
         </p>
 
-        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: 18, padding: 10 }}>
-          Jogar outra vez
-        </button>
+        <BotoesFim {...botoes} />
       </div>
     </div>
   )

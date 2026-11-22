@@ -115,6 +115,7 @@ function construirMapa(def: MapaDef, mapas: Record<string, MapaDef>): MapaVivo {
     }
   }
   for (const p of def.props ?? []) {
+    if (p.passavel) continue
     for (let y = p.y; y < p.y + (p.h ?? 1); y++)
       for (let x = p.x; x < p.x + (p.w ?? 1); x++) {
         if (p.tipo === 'tapete') continue

@@ -41,6 +41,8 @@ export interface PropDef {
   script?: string
   /** Cor (ex. de um carro). */
   cor?: string
+  /** Decoração por onde se pode passar (ex. o poste fino de um semáforo no passeio). */
+  passavel?: boolean
 }
 
 export type CorEdificio = 'laranja' | 'vermelho' | 'azul' | 'verde' | 'lilas' | 'castanho' | 'rosa' | 'cinza' | 'amarelo'

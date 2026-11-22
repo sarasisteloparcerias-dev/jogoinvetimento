@@ -32,9 +32,16 @@ npm run preview
 ## Progresso e níveis
 
 O jogo fica guardado no próprio browser: ao voltar, o ecrã inicial mostra
-**CONTINUAR**. No fim de cada nível há o botão **Continuar para...**, que leva a mesma
-personagem ao nível seguinte (Vila Moeda → A Cidade → O Mercado → A Casa), com parte do
-dinheiro que juntou.
+**CONTINUAR**. A idade escolhe a fase onde se começa, mas o jogo é aberto da Vila Moeda
+até A Casa: no fim de cada fase, **quem cumpriu o objetivo passa para a seguinte** com a
+mesma personagem e parte do dinheiro que juntou; quem não cumpriu pode **repetir a
+fase**.
+
+| Fase | Para passar à seguinte |
+|---|---|
+| Vila Moeda → A Cidade | crachá Objetivo (60 moedas no mealheiro) e pelo menos 4 dos 6 crachás |
+| A Cidade → O Mercado | juntar os 400€ da Viagem de Finalistas |
+| O Mercado → A Casa | chegar a 8.000€ de património líquido |
 
 ## Como se joga
 
@@ -125,7 +132,8 @@ financeiro.
 - **Cidade** de 36×30 tiles com estradas, passadeiras, passeios, semáforos, uma praça
   em calçada portuguesa com fonte, parque com lago e campo de jogos.
 - **Trânsito**: os carros circulam pela direita e **só param nas passadeiras** quando
-  há alguém nelas (e nos cruzamentos, uns pelos outros). Atravessar fora da passadeira
+  há alguém nelas (e nos cruzamentos, uns pelos outros). Há passadeiras nos cantos de
+  todos os cruzamentos, por isso dá para percorrer os passeios sem atravessar fora delas. Atravessar fora da passadeira
   dá um aviso do Agente Pereira e depois multa (10€ n'A Cidade, 20€ n'O Mercado). Quem
   fica na estrada pode ser atropelado: vai para o hospital, perde Saúde e a semana (ou,
   n'O Mercado, um mês de baixa médica a 70% do salário, mais custos se não tiver seguro

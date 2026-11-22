@@ -16,7 +16,7 @@ import { novoJogador } from './game/data'
 import { apagarGravacao, gravar, lerGravacao, type Gravacao, type Modo } from './game/gravar'
 import { novoEstadoCasa, novoEstadoMercado } from './game/mercado/economia'
 import type { EstadoMercado } from './game/mercado/tipos'
-import { NOME_MODO, passarNivel, PROXIMO } from './game/niveis'
+import { NOME_MODO, passarNivel, PROXIMO, repetirNivel, requisitoNivel } from './game/niveis'
 import type { AvatarConfig, PlayerState } from './game/types'
 
 type Tela = 'idade' | 'intro' | 'jogo' | 'fim'
@@ -80,12 +80,21 @@ export default function App() {
     setTela('intro')
   }
 
+  function repetir(m: Modo, s: unknown) {
+    setModo(m)
+    setContinuacao(null)
+    setEstado(repetirNivel(m, s))
+    setTela('jogo')
+  }
+
   function handleContinuar() {
     if (!gravacao) return
     setModo(gravacao.modo)
     setEstado(gravacao.estado)
-    if (gravacao.fim) proximoNivel(gravacao.modo, gravacao.estado)
-    else setTela('jogo')
+    if (!gravacao.fim) return setTela('jogo')
+    // fase acabada: passa à seguinte se cumpriu o objetivo; senão repete-a
+    if (requisitoNivel(gravacao.modo, gravacao.estado)?.ok) proximoNivel(gravacao.modo, gravacao.estado)
+    else repetir(gravacao.modo, gravacao.estado)
   }
 
   function handleApagar() {
@@ -104,10 +113,15 @@ export default function App() {
   if (!pronto) return null
 
   const proximo = PROXIMO[modo]
+  const requisito = tela === 'fim' ? requisitoNivel(modo, estado) : null
   const fimProps = {
     onReiniciar: handleReiniciar,
-    proximo: proximo ? NOME_MODO[proximo] : undefined,
+    seguinte: proximo ? NOME_MODO[proximo] : undefined,
+    podePassar: !!requisito?.ok,
+    regra: requisito?.regra,
+    situacao: requisito?.situacao,
     onProximo: () => proximoNivel(modo, estado),
+    onRepetir: () => repetir(modo, estado),
   }
 
   return (

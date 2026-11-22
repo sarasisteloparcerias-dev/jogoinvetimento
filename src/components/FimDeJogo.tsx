@@ -3,17 +3,14 @@ import { iconeCracha } from '../game/pixel/cenario'
 import type { PlayerState } from '../game/types'
 import { fmt } from '../game/world/scripts'
 import { PixelImg, SpriteView } from './gba/ui'
+import { BotoesFim, type PropsBotoesFim } from './BotoesFim'
 import { GrowthChart } from './GrowthChart'
 
-interface FimDeJogoProps {
+interface FimDeJogoProps extends PropsBotoesFim {
   state: PlayerState
-  onReiniciar: () => void
-  /** Nome do nível seguinte, se houver. */
-  proximo?: string
-  onProximo?: () => void
 }
 
-export function FimDeJogo({ state, onReiniciar, proximo, onProximo }: FimDeJogoProps) {
+export function FimDeJogo({ state, ...botoes }: FimDeJogoProps) {
   const patrimonio = state.saldo + state.poupanca + state.investimento.amount
   const mediaStats = (state.stats.relacoes + state.stats.saude + state.stats.educacao) / 3
 
@@ -61,14 +58,7 @@ export function FimDeJogo({ state, onReiniciar, proximo, onProximo }: FimDeJogoP
           <GrowthChart history={state.history} />
         </div>
 
-        {proximo && onProximo && (
-          <button onClick={onProximo} className="botao-pixel" style={{ width: '100%', fontSize: 16, padding: 10, marginBottom: 10, background: '#2a9a5a' }}>
-            Continuar para {proximo}
-          </button>
-        )}
-        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: proximo ? 14 : 18, padding: proximo ? 8 : 10, background: proximo ? '#8890a8' : undefined }}>
-          {proximo ? 'Começar de novo' : 'Jogar outra vez'}
-        </button>
+        <BotoesFim {...botoes} />
       </div>
     </div>
   )

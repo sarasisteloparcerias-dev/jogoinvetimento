@@ -231,7 +231,7 @@ export function Telemovel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoCid
           <div style={{ height: u(6), background: '#e4e9f2', border: `${u(1)} solid #3a4262`, margin: `${u(2)} 0` }}>
             <div style={{ height: '100%', width: `${Math.min(100, (junto / META_VIAGEM) * 100)}%`, background: '#30a8c8' }} />
           </div>
-          <div style={{ fontSize: u(5.5), color: '#7a8298', marginBottom: u(4) }}>Conta a poupança + os investimentos.</div>
+          <div style={{ fontSize: u(5.5), color: '#7a8298', marginBottom: u(4) }}>Conta a poupança + os investimentos. Com 400€ no fim, passas para O Mercado.</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: u(3) }}>
             {CONQUISTAS_CIDADE.map((c) => (
               <PixelImg key={c.id} src={iconeCracha(c.id, s.crachas.includes(c.id))} escala={u(1.5)} style={{ opacity: s.crachas.includes(c.id) ? 1 : 0.5 }} />

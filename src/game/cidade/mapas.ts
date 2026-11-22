@@ -68,6 +68,12 @@ export function grelhaCidade(): string[] {
   for (const x of [5, 26]) ret(g, x, 10, x, 11, 'Z')
   for (const x of [8, 26]) ret(g, x, 20, x, 21, 'Z')
   for (const y of [5, 15, 25]) ret(g, 17, y, 18, y, 'Z')
+  // passadeiras nos cantos dos cruzamentos, onde os passeios atravessam as estradas
+  for (const y of [9, 12, 19, 22]) ret(g, 17, y, 18, y, 'Z')
+  for (const x of [16, 19]) {
+    ret(g, x, 10, x, 11, 'Z')
+    ret(g, x, 20, x, 21, 'Z')
+  }
   // praça em calçada, parque com lago e campo de jogos
   ret(g, 9, 13, 15, 18, 'q')
   ret(g, 2, 24, 6, 27, 'w')
@@ -100,8 +106,8 @@ export const CIDADE: MapaDef = {
     { tipo: 'candeeiro', x: 1, y: 18 },
     { tipo: 'candeeiro', x: 20, y: 18 },
     { tipo: 'candeeiro', x: 34, y: 18 },
-    { tipo: 'semaforo', x: 16, y: 9 },
-    { tipo: 'semaforo', x: 19, y: 22 },
+    { tipo: 'semaforo', x: 16, y: 9, passavel: true },
+    { tipo: 'semaforo', x: 19, y: 22, passavel: true },
     { tipo: 'caixa_multibanco', x: 8, y: 18, script: 'multibanco' },
     { tipo: 'fonte', x: 11, y: 15, w: 2, h: 2 },
     { tipo: 'banco_jardim', x: 13, y: 13, w: 2 },
@@ -121,11 +127,11 @@ export const CIDADE: MapaDef = {
     { id: 'rui', nome: 'Rui', avatar: AVATARES_CIDADE.rui, x: 8, y: 26, dir: 'right', script: 'amigos' },
     { id: 'ines', nome: 'Inês', avatar: AVATARES_CIDADE.ines, x: 10, y: 26, dir: 'left', script: 'amigos' },
     { id: 'duarte', nome: 'Duarte', avatar: AVATARES_CIDADE.duarte, x: 23, y: 24, dir: 'right', script: 'duarte' },
-    { id: 'marco', nome: 'Marco', avatar: AVATARES_CIDADE.marco, x: 19, y: 14, dir: 'left', script: 'marco' },
+    { id: 'marco', nome: 'Marco', avatar: AVATARES_CIDADE.marco, x: 20, y: 14, dir: 'left', script: 'marco' },
     { id: 'helena', nome: 'Sra. Helena', avatar: AVATARES_CIDADE.helena, x: 14, y: 24, dir: 'left', script: 'helena' },
-    { id: 'kiko', nome: 'Kiko', avatar: AVATARES_CIDADE.kiko, x: 29, y: 19, dir: 'down', script: 'influencer' },
+    { id: 'kiko', nome: 'Kiko', avatar: AVATARES_CIDADE.kiko, x: 32, y: 17, dir: 'down', script: 'influencer' },
     { id: 'amelia', nome: 'D. Amélia', avatar: AVATARES_CIDADE.amelia, x: 13, y: 17, dir: 'down', script: 'amelia', vaguear: { x0: 9, y0: 17, x1: 15, y1: 18 } },
-    { id: 'beatriz', nome: 'Beatriz', avatar: AVATARES_CIDADE.beatriz, x: 29, y: 9, dir: 'down', script: 'beatriz', vaguear: { x0: 27, y0: 9, x1: 33, y1: 9 } },
+    { id: 'beatriz', nome: 'Beatriz', avatar: AVATARES_CIDADE.beatriz, x: 31, y: 8, dir: 'down', script: 'beatriz' },
   ],
 }
 

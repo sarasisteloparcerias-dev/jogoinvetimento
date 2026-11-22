@@ -22,7 +22,7 @@ const TEXTOS = {
     ],
     fim: (n: string) => [
       `${n}! Que nome fantástico!`,
-      'A tua aventura dura 20 semanas. Ganha os 6 crachás do dinheiro e aprende tudo sobre poupar e investir.',
+      'A tua aventura dura 20 semanas. Ganha os crachás do dinheiro: com o crachá Objetivo e pelo menos 4 crachás, no fim passas para A Cidade!',
       'Lembra-te: carrega em A para falar com as pessoas, e em START para abrir o menu. Até já!',
     ],
   },
@@ -38,7 +38,7 @@ const TEXTOS = {
     ],
     fim: (n: string) => [
       `${n}, muito prazer!`,
-      'O ano letivo dura 24 semanas. O objetivo: juntar 400€ para a Viagem de Finalistas, sem esquecer a escola, a saúde e os amigos.',
+      'O ano letivo dura 24 semanas. O objetivo: juntar 400€ para a Viagem de Finalistas, sem esquecer a escola, a saúde e os amigos. Se conseguires, passas para O Mercado!',
       'Carrega em A para falar com as pessoas. Em START abres o teu telemóvel: banco, investimentos, notícias e objetivo. Boa sorte!',
     ],
   },
@@ -54,7 +54,7 @@ const TEXTOS = {
     ],
     fim: (n: string) => [
       `${n}, vamos a isso!`,
-      'O jogo dura 24 meses. O objetivo: juntar 8.000€ de património líquido para a entrada de uma casa, sem descuidar a saúde, as relações e a carreira.',
+      'O jogo dura 24 meses. O objetivo: juntar 8.000€ de património líquido para a entrada de uma casa, sem descuidar a saúde, as relações e a carreira. Se conseguires, passas para A Casa!',
       'Cada noite na cama passa um mês. Em START abres o painel: banco, corretora, orçamento do mês, jornal e metas. Boa sorte!',
     ],
   },

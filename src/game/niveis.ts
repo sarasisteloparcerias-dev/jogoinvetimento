@@ -1,13 +1,67 @@
-import { euros, novoEstadoCidade, patrimonio } from './cidade/economia'
+import { euros, META_VIAGEM, novoEstadoCidade, patrimonio, poupadoViagem } from './cidade/economia'
+import { META_OBJETIVO } from './crachas'
+import { novoJogador } from './data'
 import type { EstadoCidade } from './cidade/tipos'
 import type { Modo } from './gravar'
-import { novoEstadoMercado, patrimonioM } from './mercado/economia'
+import { META_CASA, novoEstadoCasa, novoEstadoMercado, patrimonioM } from './mercado/economia'
 import type { EstadoMercado } from './mercado/tipos'
 import type { PlayerState } from './types'
 
 export const NOME_MODO: Record<Modo, string> = { reino: 'Vila Moeda', cidade: 'A Cidade', mercado: 'O Mercado', casa: 'A Casa' }
 
 export const PROXIMO: Partial<Record<Modo, Modo>> = { reino: 'cidade', cidade: 'mercado', mercado: 'casa' }
+
+export interface Requisito {
+  ok: boolean
+  /** O que é preciso para passar à fase seguinte. */
+  regra: string
+  /** Como ficou (só quando falhou). */
+  situacao?: string
+}
+
+/** O que é preciso para passar da fase atual para a seguinte (null na última fase). */
+export function requisitoNivel(modo: Modo, estado: unknown): Requisito | null {
+  if (modo === 'reino') {
+    const s = estado as PlayerState
+    const objetivo = s.crachas.includes('objetivo')
+    const ok = objetivo && s.crachas.length >= 4
+    return {
+      ok,
+      regra: `ganhar o crachá Objetivo (${META_OBJETIVO} moedas no mealheiro) e pelo menos 4 dos 6 crachás`,
+      situacao: ok ? undefined : `Ganhaste ${s.crachas.length} crachás${objetivo ? '' : ' e falta o crachá Objetivo'}.`,
+    }
+  }
+  if (modo === 'cidade') {
+    const s = estado as EstadoCidade
+    const junto = poupadoViagem(s)
+    const ok = s.crachas.includes('viagem') || junto >= META_VIAGEM
+    return {
+      ok,
+      regra: `juntar os ${META_VIAGEM}€ da Viagem de Finalistas (poupança + investimentos)`,
+      situacao: ok ? undefined : `Juntaste ${euros(junto)}.`,
+    }
+  }
+  if (modo === 'mercado') {
+    const s = estado as EstadoMercado
+    const total = patrimonioM(s)
+    const ok = s.crachas.includes('casa') || total >= META_CASA
+    return {
+      ok,
+      regra: `chegar a ${euros(META_CASA)} de património líquido (a entrada da casa)`,
+      situacao: ok ? undefined : `Chegaste a ${euros(total)}.`,
+    }
+  }
+  return null
+}
+
+/** Volta a jogar a mesma fase com a mesma personagem, do início. */
+export function repetirNivel(modo: Modo, estado: unknown): unknown {
+  const { name, avatar } = estado as PlayerState
+  if (modo === 'reino') return novoJogador(name, avatar)
+  if (modo === 'cidade') return novoEstadoCidade(name, avatar)
+  if (modo === 'mercado') return novoEstadoMercado(name, avatar)
+  return novoEstadoCasa(name, avatar)
+}
 
 /** Passa a mesma personagem para o nível seguinte, levando parte do que juntou. Devolve o novo estado e o que o Mestre Moedas explica. */
 export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: unknown; linhas: string[] } | null {

@@ -4,17 +4,14 @@ import type { EstadoMercado } from '../game/mercado/tipos'
 import { iconeCracha } from '../game/pixel/cenario'
 import { framesAdolescente } from '../game/pixel/sprites'
 import { PixelImg, SpriteView } from './gba/ui'
+import { BotoesFim, type PropsBotoesFim } from './BotoesFim'
 import { GrowthChart } from './GrowthChart'
 
-interface FimMercadoProps {
+interface FimMercadoProps extends PropsBotoesFim {
   state: EstadoMercado
-  onReiniciar: () => void
-  /** Nome do nível seguinte, se houver. */
-  proximo?: string
-  onProximo?: () => void
 }
 
-export function FimMercado({ state: s, onReiniciar, proximo, onProximo }: FimMercadoProps) {
+export function FimMercado({ state: s, ...botoes }: FimMercadoProps) {
   const total = patrimonioM(s)
   const casa = total >= META_CASA
   const media = (s.stats.relacoes + s.stats.saude + s.stats.carreira) / 3
@@ -69,14 +66,7 @@ export function FimMercado({ state: s, onReiniciar, proximo, onProximo }: FimMer
           Simulação educativa: ativos fictícios e valores simplificados (impostos, juros, salários). Nada neste jogo é aconselhamento financeiro.
         </p>
 
-        {proximo && onProximo && (
-          <button onClick={onProximo} className="botao-pixel" style={{ width: '100%', fontSize: 16, padding: 10, marginBottom: 10, background: '#2a9a5a' }}>
-            Continuar para {proximo}
-          </button>
-        )}
-        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: proximo ? 14 : 18, padding: proximo ? 8 : 10, background: proximo ? '#8890a8' : undefined }}>
-          {proximo ? 'Começar de novo' : 'Jogar outra vez'}
-        </button>
+        <BotoesFim {...botoes} />
       </div>
     </div>
   )

@@ -139,7 +139,7 @@ function Conteudo({ aba, estado: s }: { aba: Aba; estado: PlayerState }) {
       )
     case 'OBJETIVO': {
       const obj = objetivoAtual(s)
-      if (!obj) return <p>Ganhaste todos os crachás! És um verdadeiro mestre das moedas.</p>
+      if (!obj) return <p>Ganhaste todos os crachás! No fim das 20 semanas, passas para A Cidade.</p>
       return (
         <div style={{ display: 'flex', gap: u(8), alignItems: 'flex-start' }}>
           <PixelImg src={iconeCracha(obj.id, true)} escala={u(3)} />
@@ -148,6 +148,9 @@ function Conteudo({ aba, estado: s }: { aba: Aba; estado: PlayerState }) {
             <p style={{ margin: `${u(3)} 0` }}>{obj.objetivo}</p>
             <p style={{ fontSize: u(7.5), lineHeight: u(9), color: '#7a8298', margin: 0 }}>
               Crachás ganhos: {s.crachas.length} de {CRACHAS.length}
+            </p>
+            <p style={{ fontSize: u(7), lineHeight: u(9), color: '#2a8a5a', margin: `${u(3)} 0 0` }}>
+              Para passar para A Cidade: crachá Objetivo e pelo menos 4 crachás.
             </p>
           </div>
         </div>

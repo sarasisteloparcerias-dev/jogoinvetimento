@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { AVATAR_PADRAO } from '../game/data'
 import { MENTOR } from '../game/mentor'
 import type { Gravacao, Modo } from '../game/gravar'
-import { resumoGravacao } from '../game/niveis'
+import { resumoGravacao, requisitoNivel } from '../game/niveis'
 import { framesAdolescente, framesPersonagem } from '../game/pixel/sprites'
 import type { AvatarConfig } from '../game/types'
 import { SpriteView } from './gba/ui'
@@ -108,10 +108,12 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
               <SpriteView
                 avatar={(gravacao.estado as { avatar: AvatarConfig }).avatar}
                 escala="2px"
-                sprites={gravacao.modo === 'reino' && !gravacao.fim ? framesPersonagem : framesAdolescente}
+                sprites={gravacao.modo === 'reino' && !(gravacao.fim && requisitoNivel('reino', gravacao.estado)?.ok) ? framesPersonagem : framesAdolescente}
               />
               <span style={{ flex: 1 }}>
-                <strong style={{ display: 'block', marginBottom: 4 }}>{gravacao.fim ? 'PASSAR AO NÍVEL SEGUINTE' : 'CONTINUAR'}</strong>
+                <strong style={{ display: 'block', marginBottom: 4 }}>
+                  {!gravacao.fim ? 'CONTINUAR' : requisitoNivel(gravacao.modo, gravacao.estado)?.ok ? 'PASSAR AO NÍVEL SEGUINTE' : 'REPETIR A FASE'}
+                </strong>
                 {resumoGravacao(gravacao.modo, gravacao.estado, gravacao.fim)}
               </span>
             </button>

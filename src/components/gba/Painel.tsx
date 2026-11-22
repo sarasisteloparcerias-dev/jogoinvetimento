@@ -304,7 +304,9 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
           <div style={{ height: u(6), background: '#e4e9f2', border: `${u(1)} solid #3a4262`, margin: `${u(2)} 0` }}>
             <div style={{ height: '100%', width: `${Math.max(0, Math.min(100, (liq / meta) * 100))}%`, background: '#e8743a' }} />
           </div>
-          <div style={{ fontSize: u(5.5), color: '#7a8298', marginBottom: u(4) }}>Património líquido: tudo o que tens menos o que deves.</div>
+          <div style={{ fontSize: u(5.5), color: '#7a8298', marginBottom: u(4) }}>
+            Património líquido: o que tens menos o que deves.{casa ? '' : ' Com 8.000€ no fim, passas para A Casa.'}
+          </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: u(3) }}>
             {lista.map((c) => (
               <PixelImg key={c.id} src={iconeCracha(c.id, s.crachas.includes(c.id))} escala={u(1.3)} style={{ opacity: s.crachas.includes(c.id) ? 1 : 0.5 }} />

@@ -4,17 +4,14 @@ import type { EstadoCidade } from '../game/cidade/tipos'
 import { iconeCracha } from '../game/pixel/cenario'
 import { framesAdolescente } from '../game/pixel/sprites'
 import { PixelImg, SpriteView } from './gba/ui'
+import { BotoesFim, type PropsBotoesFim } from './BotoesFim'
 import { GrowthChart } from './GrowthChart'
 
-interface FimCidadeProps {
+interface FimCidadeProps extends PropsBotoesFim {
   state: EstadoCidade
-  onReiniciar: () => void
-  /** Nome do nível seguinte, se houver. */
-  proximo?: string
-  onProximo?: () => void
 }
 
-export function FimCidade({ state: s, onReiniciar, proximo, onProximo }: FimCidadeProps) {
+export function FimCidade({ state: s, ...botoes }: FimCidadeProps) {
   const total = patrimonio(s)
   const viagem = poupadoViagem(s) >= META_VIAGEM || s.crachas.includes('viagem')
   const media = (s.stats.relacoes + s.stats.saude + s.stats.educacao) / 3
@@ -66,14 +63,7 @@ export function FimCidade({ state: s, onReiniciar, proximo, onProximo }: FimCida
           Simulação educativa: o dinheiro e as empresas são fictícios. Nada neste jogo é aconselhamento financeiro.
         </p>
 
-        {proximo && onProximo && (
-          <button onClick={onProximo} className="botao-pixel" style={{ width: '100%', fontSize: 16, padding: 10, marginBottom: 10, background: '#2a9a5a' }}>
-            Continuar para {proximo}
-          </button>
-        )}
-        <button onClick={onReiniciar} className="botao-pixel" style={{ width: '100%', fontSize: proximo ? 14 : 18, padding: proximo ? 8 : 10, background: proximo ? '#8890a8' : undefined }}>
-          {proximo ? 'Começar de novo' : 'Jogar outra vez'}
-        </button>
+        <BotoesFim {...botoes} />
       </div>
     </div>
   )
