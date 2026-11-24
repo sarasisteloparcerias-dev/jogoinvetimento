@@ -5,21 +5,24 @@ import { FimDeJogo } from './components/FimDeJogo'
 import { FimCasa } from './components/FimCasa'
 import { FimMercado } from './components/FimMercado'
 import { FimNegocio } from './components/FimNegocio'
+import { FimReforma } from './components/FimReforma'
 import { GameScreen } from './components/gba/GameScreen'
 import { Intro } from './components/gba/Intro'
 import { MODO_CASA } from './components/gba/modoCasa'
 import { MODO_CIDADE } from './components/gba/modoCidade'
 import { MODO_MERCADO } from './components/gba/modoMercado'
 import { MODO_NEGOCIO } from './components/gba/modoNegocio'
+import { MODO_REFORMA } from './components/gba/modoReforma'
 import { MODO_VILA } from './components/gba/modoVila'
 import { novoEstadoCidade } from './game/cidade/economia'
 import type { EstadoCidade } from './game/cidade/tipos'
 import { novoJogador } from './game/data'
-import { apagarGravacao, desbloquearNegocio, gravar, lerGravacao, limparPercurso, registarPercurso, type Gravacao, type Modo } from './game/gravar'
+import { apagarGravacao, desbloquearFase, gravar, lerGravacao, limparPercurso, registarPercurso, type Gravacao, type Modo } from './game/gravar'
 import { novoEstadoCasa, novoEstadoMercado } from './game/mercado/economia'
 import type { EstadoMercado } from './game/mercado/tipos'
 import { NOME_MODO, passarNivel, PROXIMO, repetirNivel, requisitoNivel, resumoPercurso } from './game/niveis'
 import { novoEstadoNegocio } from './game/negocio/economia'
+import { novoEstadoReforma, type EstadoReforma } from './game/reforma/economia'
 import { musica } from './game/som'
 import type { AvatarConfig, PlayerState } from './game/types'
 
@@ -74,6 +77,7 @@ export default function App() {
     else if (modo === 'mercado') setEstado(novoEstadoMercado(name, avatar))
     else if (modo === 'casa') setEstado(novoEstadoCasa(name, avatar))
     else if (modo === 'negocio') setEstado(novoEstadoNegocio(name, avatar))
+    else if (modo === 'reforma') setEstado(novoEstadoReforma(name, avatar))
     else setEstado(novoJogador(name, avatar))
     setTela('jogo')
   }
@@ -89,7 +93,7 @@ export default function App() {
     const n = passarNivel(de, s)
     if (!n) return
     const base = s as { name: string; avatar: AvatarConfig }
-    if (n.modo === 'negocio') desbloquearNegocio()
+    desbloquearFase(n.modo)
     setModo(n.modo)
     setContinuacao({ nome: base.name, avatar: base.avatar, linhas: n.linhas, estado: n.estado })
     setTela('intro')
@@ -150,11 +154,13 @@ export default function App() {
       {tela === 'jogo' && modo === 'mercado' && <GameScreen modo={MODO_MERCADO} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'jogo' && modo === 'casa' && <GameScreen modo={MODO_CASA} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'jogo' && modo === 'negocio' && <GameScreen modo={MODO_NEGOCIO} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
+      {tela === 'jogo' && modo === 'reforma' && <GameScreen modo={MODO_REFORMA} estadoInicial={estado as EstadoReforma} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'fim' && modo === 'reino' && <FimDeJogo state={estado as PlayerState} {...fimProps} />}
       {tela === 'fim' && modo === 'cidade' && <FimCidade state={estado as EstadoCidade} {...fimProps} />}
       {tela === 'fim' && modo === 'mercado' && <FimMercado state={estado as EstadoMercado} {...fimProps} />}
       {tela === 'fim' && modo === 'casa' && <FimCasa state={estado as EstadoMercado} {...fimProps} />}
       {tela === 'fim' && modo === 'negocio' && <FimNegocio state={estado as EstadoMercado} {...fimProps} />}
+      {tela === 'fim' && modo === 'reforma' && <FimReforma state={estado as EstadoReforma} {...fimProps} />}
     </>
   )
 }

@@ -1,6 +1,6 @@
 /** Guarda o jogo no próprio browser, para continuar noutro dia. */
 
-export type Modo = 'reino' | 'cidade' | 'mercado' | 'casa' | 'negocio'
+export type Modo = 'reino' | 'cidade' | 'mercado' | 'casa' | 'negocio' | 'reforma'
 
 export interface Gravacao {
   v: 1
@@ -42,19 +42,19 @@ export function apagarGravacao() {
 // ---------------------------------------------------------------------------
 // O Negócio só abre a quem passou todas as fases (fica guardado mesmo que se apague o jogo).
 
-const CHAVE_NEGOCIO = 'vila-moeda:negocio'
-
-export function negocioDesbloqueado() {
+/** As fases que só abrem a quem passou as anteriores (O Negócio e A Reforma). */
+export function faseDesbloqueada(modo: 'negocio' | 'reforma') {
   try {
-    return localStorage.getItem(CHAVE_NEGOCIO) === '1'
+    return localStorage.getItem(`vila-moeda:${modo}`) === '1'
   } catch {
     return false
   }
 }
 
-export function desbloquearNegocio() {
+export function desbloquearFase(modo: Modo) {
+  if (modo !== 'negocio' && modo !== 'reforma') return
   try {
-    localStorage.setItem(CHAVE_NEGOCIO, '1')
+    localStorage.setItem(`vila-moeda:${modo}`, '1')
   } catch {
     // nada a fazer
   }

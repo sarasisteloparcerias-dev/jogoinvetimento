@@ -9,7 +9,7 @@ da Vila Moeda até à fase final, O Negócio:
 | 8-11 | **Vila Moeda** (título de trabalho original: "O Reino") |
 | 12-14 | escolhem entre os dois no ecrã inicial |
 | 15-17 | **A Cidade** |
-| 18+ | escolhem qualquer fase, da **Vila Moeda** até **A Casa**; **O Negócio** só abre a quem passou as outras |
+| 18+ | escolhem qualquer fase, da **Vila Moeda** até **A Casa**; **O Negócio** e **A Reforma** só abrem a quem passou as anteriores |
 
 Jogar online: https://sarasisteloparcerias-dev.github.io/jogoinvetimento/
 
@@ -43,6 +43,7 @@ fase**.
 | A Cidade → O Mercado | juntar os 400€ da Viagem de Finalistas |
 | O Mercado → A Casa | chegar a 8.000€ de património líquido |
 | A Casa → O Negócio | chegar a 30.000€ de património líquido, ou comprar casa e ter o fundo de emergência |
+| O Negócio → A Reforma | chegar ao fim do ano com a empresa aberta |
 
 **O Negócio** é a fase final: só se chega lá passando A Casa (a partir daí fica
 desbloqueada no ecrã inicial para maiores de 18). No fim, o ecrã mostra **o percurso
@@ -97,7 +98,7 @@ Todo o som é gerado no próprio jogo com WebAudio, como num chip de Game Boy: d
 ficheiros de áudio. O som liga-se no primeiro toque ou tecla (regra dos browsers) e pausa quando
 se muda de separador.
 
-- **Músicas** (originais, em ciclo): título, Vila Moeda, A Cidade, O Mercado, A Casa, O Negócio, interiores
+- **Músicas** (originais, em ciclo): título, Vila Moeda, A Cidade, O Mercado, A Casa, O Negócio, A Reforma (uma valsa), interiores
   (mais calma) e mini-jogos (mais rápida).
 - **Melodias curtas**: conquista, dormir, fim de mini-jogo, fase passada e fase por passar.
 - **Efeitos**: texto letra a letra, cursor, confirmar e cancelar, moedas a entrar e a sair
@@ -343,6 +344,33 @@ Doze meses à frente de uma pequena empresa, no mesmo mundo: o prédio onde se t
   14 Salários, Fundo de Maneio, Fatura Falsa e Ano Positivo. No painel, a app
   **EMPRESA** mostra caixa, lucro do ano, empréstimo e equipa.
 
+## A Reforma (fase final)
+
+Uma viagem no tempo: passam **35 anos** e a personagem, com 65 anos, volta a viver na
+**Vila Moeda**, onde tudo começou. Cada noite passa **um ano**, até aos 85.
+
+- **A projeção**: o Mestre Moedas (já com 100 anos) mostra o que o tempo fez ao dinheiro
+  com que se acabou O Negócio: depósito, investimentos (com o plano mensal e a venda da
+  empresa), PPR. Compara com ter deixado tudo no depósito e com começar a investir aos 20
+  em vez de aos 30 (juro composto).
+- **A reforma**: pensão da Segurança Social (14 vezes por ano, menor do que o último
+  salário), estilo de vida (simples, confortável, com viagens), renda se não houver casa
+  própria, inflação (6% no 2.º ano, com a pensão a subir menos), a bolsa a cair 28% no 3.º
+  ano e custos maiores com a idade. O que a pensão não cobre sai do depósito, depois do PPR
+  e só no fim dos investimentos. Na **Gestora Sofia** decide-se quanto fica seguro e quanto
+  fica investido, e muda-se o estilo de vida; o menu mostra a **taxa de levantamento**
+  (regra dos 4%).
+- **A vila, 55 anos depois**: a neta Leonor (jogo da memória, o mealheiro dela), a
+  Marta e o Tiago já com 65 anos (quem poupou e quem não poupou), a D. Graça e a burla do
+  "mudei de número", o Sr. Doce Júnior (troco e preços com inflação), ginástica sénior,
+  bowling com o Leo e a Bia, voluntariado na escola e **pesca no lago** (mini-jogo novo).
+- **Acontecimentos**: burla por SMS, queda da bolsa (vender ou aguentar), universidade da
+  neta, cruzeiro, dentista, investimento "garantido" (burla), mudar para uma casa mais
+  pequena, obras no telhado, apoio domiciliário e herança (doar ou testamento).
+- **9 conquistas**: Juro Composto, Ensinar a Neta, Almofada Segura, Voluntariado, Saúde
+  Sénior, Mão Firme, Anti-Burla, Regra dos 4% e Reforma Tranquila. O ecrã final mostra
+  **a vida inteira** da personagem, fase a fase.
+
 ## Estrutura do código
 
 ```
@@ -359,7 +387,7 @@ src/
       futebol.ts, bicicleta.ts, gelado.ts, cafe.ts, supermercado.ts, ginasio.ts,
       entregas.ts, babysitting.ts, explicacoes.ts (e exame de código), emails.ts,
       bowling.ts, conducao.ts, troco.ts, comparar.ts, memoria.ts, arrumar.ts,
-      decidir.ts (publicidade e contrato), canos.ts - os mini-jogos
+      decidir.ts (publicidade e contrato), canos.ts, pesca.ts - os mini-jogos
       tipos.ts, index.ts                  - interface comum e criação por tipo
     modo.ts       - o que todos os modos partilham (estado base e ações dos guiões)
     world/
@@ -377,6 +405,9 @@ src/
       eventos.ts, conquistas.ts, mapas.ts, scripts.ts - eventos, conquistas, mundo e conversas d'O Mercado
       profissoes.ts - as 3 profissões (salário, gorjetas, mini-jogo, efeitos)
       habitacao.ts  - casas à venda, crédito à habitação, Euribor, IMI (nível A Casa)
+    reforma/
+      economia.ts   - pensão, despesas, levantamentos, inflação, bolsa e a projeção de 35 anos
+      conquistas.ts, mapas.ts, scripts.ts - conquistas, a Vila 55 anos depois e as conversas
     negocio/
       economia.ts   - tipos de negócio, procura, capacidade, salários, TSU, IVA, IRC e o mês da empresa
       eventos.ts, conquistas.ts, mapas.ts, scripts.ts - acontecimentos, conquistas, a loja e as conversas

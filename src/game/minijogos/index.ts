@@ -6,6 +6,7 @@ import { Canos } from './canos'
 import { Comparar } from './comparar'
 import { CONFIG_ANUNCIOS, CONFIG_CONTRATO, Decidir } from './decidir'
 import { Memoria } from './memoria'
+import { Pesca } from './pesca'
 import { Troco } from './troco'
 import { Bicicleta } from './bicicleta'
 import { Bowling } from './bowling'
@@ -66,5 +67,7 @@ export function criarMiniJogo(tipo: TipoMiniJogo, avatar: AvatarConfig, sprites:
       return new Decidir(CONFIG_CONTRATO)
     case 'canos':
       return new Canos()
+    case 'pesca':
+      return new Pesca()
   }
 }

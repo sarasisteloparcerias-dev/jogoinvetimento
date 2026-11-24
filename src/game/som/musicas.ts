@@ -298,6 +298,32 @@ const negocio = faixa(
   0.42,
 )
 
+/** A Reforma: uma valsa calma e nostálgica, em sol maior (compassos de 3 tempos). */
+const REF_AC = acordes('G:12 Em:12 C:12 D:12 G:12 Em:12 Am:6 D:6 G:12')
+const reforma = faixa(
+  92,
+  [
+    voz(
+      'pulso50',
+      0.36,
+      melodia(`
+        D5:4 G5:4 B5:4
+        A5:6 G5:2 E5:4
+        C5:4 E5:4 G5:4
+        F#5:8 r:4
+        D5:4 G5:4 B5:4
+        D6:6 B5:2 G5:4
+        E5:4 G5:2 F#5:4 A5:2
+        G5:8 r:4`),
+      { vibrato: true },
+    ),
+    voz('pulso12', 0.15, arpejo(REF_AC, 4, [0, 1, 2, 1, 2, 1], 2), { staccato: true }),
+    voz('tri', 0.6, baixo(REF_AC, 'quintas')),
+  ],
+  'k...h...h...',
+  0.28,
+)
+
 // ---------------------------------------------------------------------------
 // Melodias curtas (tocam uma vez)
 
@@ -343,7 +369,7 @@ const vitoria = faixa(
   0.45,
 )
 
-registarFaixas({ vila, interior, cidade, mercado, casa, negocio, minijogo, titulo, cracha, dormir, fanfarra, triste, vitoria })
+registarFaixas({ vila, interior, cidade, mercado, casa, negocio, reforma, minijogo, titulo, cracha, dormir, fanfarra, triste, vitoria })
 
-export type NomeMusica = 'vila' | 'interior' | 'cidade' | 'mercado' | 'casa' | 'negocio' | 'minijogo' | 'titulo'
+export type NomeMusica = 'vila' | 'interior' | 'cidade' | 'mercado' | 'casa' | 'negocio' | 'reforma' | 'minijogo' | 'titulo'
 export type NomeJingle = 'cracha' | 'dormir' | 'fanfarra' | 'triste' | 'vitoria'

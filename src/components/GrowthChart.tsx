@@ -3,6 +3,15 @@ import type { HistoryPoint } from '../game/types'
 
 interface GrowthChartProps {
   history: HistoryPoint[]
+  /** O que é cada ponto do eixo horizontal (semana, mês, idade...). */
+  unidade?: string
+}
+
+/** Valores grandes encurtados para caberem no eixo: 12500 → 12,5k. */
+function curto(v: number) {
+  if (Math.abs(v) >= 10000) return `${Math.round(v / 1000).toLocaleString('pt-PT')}k`
+  if (Math.abs(v) >= 1000) return `${(Math.round(v / 100) / 10).toLocaleString('pt-PT')}k`
+  return `${Math.round(v)}`
 }
 
 const WIDTH = 520
@@ -18,12 +27,12 @@ const SERIES = [
   { key: 'investimento' as const, label: 'Investimento', color: 'var(--series-investimento)' },
 ]
 
-export function GrowthChart({ history }: GrowthChartProps) {
+export function GrowthChart({ history, unidade = 'Semana' }: GrowthChartProps) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
   if (history.length < 2) {
-    return <p className="text-sm text-slate-500">O gráfico aparece assim que avançares algumas semanas.</p>
+    return <p className="text-sm text-slate-500">O gráfico aparece assim que o tempo começar a passar.</p>
   }
 
   const maxValue = Math.max(
@@ -85,7 +94,7 @@ export function GrowthChart({ history }: GrowthChartProps) {
               strokeWidth={1}
             />
             <text x={PAD_LEFT - 8} y={yFor(t) + 4} textAnchor="end" fontSize={11} fill="var(--chart-text-secondary)">
-              {Math.round(t)}
+              {curto(t)}
             </text>
           </g>
         ))}
@@ -162,7 +171,7 @@ export function GrowthChart({ history }: GrowthChartProps) {
             transform: 'translateX(-50%)',
           }}
         >
-          <p className="font-bold text-slate-700 mb-1">Semana {hovered.week}</p>
+          <p className="font-bold text-slate-700 mb-1">{unidade} {hovered.week}</p>
           {SERIES.map((s) => (
             <p key={s.key} className="flex items-center gap-1.5 text-slate-600">
               <span className="inline-block w-3 h-0.5 rounded" style={{ background: s.color }} />

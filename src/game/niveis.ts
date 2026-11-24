@@ -6,12 +6,13 @@ import type { Modo } from './gravar'
 import { META_CASA, novoEstadoCasa, novoEstadoMercado, patrimonioM } from './mercado/economia'
 import { META_PATRIMONIO_CASA } from './mercado/habitacao'
 import { MESES_NEGOCIO, NEGOCIOS, novoEstadoNegocio } from './negocio/economia'
+import { ANOS_REFORMA, daVidaAtivaParaReforma, idadeDe, novoEstadoReforma, patrimonioR, poupancas, type EstadoReforma } from './reforma/economia'
 import type { EstadoMercado } from './mercado/tipos'
 import type { PlayerState } from './types'
 
-export const NOME_MODO: Record<Modo, string> = { reino: 'Vila Moeda', cidade: 'A Cidade', mercado: 'O Mercado', casa: 'A Casa', negocio: 'O Negócio' }
+export const NOME_MODO: Record<Modo, string> = { reino: 'Vila Moeda', cidade: 'A Cidade', mercado: 'O Mercado', casa: 'A Casa', negocio: 'O Negócio', reforma: 'A Reforma' }
 
-export const PROXIMO: Partial<Record<Modo, Modo>> = { reino: 'cidade', cidade: 'mercado', mercado: 'casa', casa: 'negocio' }
+export const PROXIMO: Partial<Record<Modo, Modo>> = { reino: 'cidade', cidade: 'mercado', mercado: 'casa', casa: 'negocio', negocio: 'reforma' }
 
 export interface Requisito {
   ok: boolean
@@ -63,6 +64,11 @@ export function requisitoNivel(modo: Modo, estado: unknown): Requisito | null {
       situacao: ok ? undefined : `Chegaste a ${euros(total)}${s.hipoteca ? ' e compraste casa, mas falta o fundo de emergência' : ''}.`,
     }
   }
+  if (modo === 'negocio') {
+    const s = estado as EstadoMercado
+    const ok = !!s.negocio?.aberto
+    return { ok, regra: 'chegar ao fim do ano com a empresa aberta', situacao: ok ? undefined : 'A empresa fechou por falta de caixa.' }
+  }
   return null
 }
 
@@ -73,6 +79,7 @@ export function repetirNivel(modo: Modo, estado: unknown): unknown {
   if (modo === 'cidade') return novoEstadoCidade(name, avatar)
   if (modo === 'mercado') return novoEstadoMercado(name, avatar)
   if (modo === 'negocio') return novoEstadoNegocio(name, avatar)
+  if (modo === 'reforma') return novoEstadoReforma(name, avatar)
   return novoEstadoCasa(name, avatar)
 }
 
@@ -154,6 +161,14 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
       ],
     }
   }
+  if (modo === 'negocio') {
+    const s = estado as EstadoMercado
+    return {
+      modo: 'reforma',
+      estado: daVidaAtivaParaReforma(s),
+      linhas: [`${s.name}, a tua empresa aguentou o primeiro ano!`, 'Agora, uma viagem no tempo: passam 35 anos de trabalho, poupança e investimento...'],
+    }
+  }
   return null
 }
 
@@ -166,6 +181,10 @@ export function resumoGravacao(modo: Modo, estado: unknown, fim: boolean): strin
   if (modo === 'cidade') {
     const s = estado as EstadoCidade
     return fim ? `${s.name} acabou A Cidade` : `${s.name} · A Cidade · semana ${Math.min(s.semana, 24)}/24`
+  }
+  if (modo === 'reforma') {
+    const r = estado as EstadoReforma
+    return fim ? `${r.name} acabou A Reforma (${euros(poupancas(r))} de poupanças)` : `${r.name} · A Reforma · ${idadeDe(r)} anos (ano ${Math.min(r.ano, ANOS_REFORMA)}/${ANOS_REFORMA})`
   }
   const s = estado as EstadoMercado
   if (modo === 'negocio') {
@@ -186,6 +205,10 @@ export function resumoPercurso(modo: Modo, estado: unknown): string {
   if (modo === 'cidade') {
     const s = estado as EstadoCidade
     return `${euros(poupadoViagem(s))} juntos para a viagem e ${s.crachas.length} conquistas`
+  }
+  if (modo === 'reforma') {
+    const r = estado as EstadoReforma
+    return `${r.semDinheiro ? 'as poupanças acabaram antes dos 85' : `chegou aos 85 com ${euros(poupancas(r))} de poupanças`}, património de ${euros(patrimonioR(r))}`
   }
   const s = estado as EstadoMercado
   if (modo === 'mercado') return `${euros(patrimonioM(s))} de património e ${s.crachas.length} conquistas`

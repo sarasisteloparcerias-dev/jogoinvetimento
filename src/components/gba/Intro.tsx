@@ -90,6 +90,21 @@ const TEXTOS = {
       'Cada noite na cama passa um mês e a contabilista mostra-te as contas. Em START abres o painel. Boa sorte!',
     ],
   },
+  reforma: {
+    sprites: framesAdolescente,
+    boasVindas: [
+      'Olá! Boas-vindas à última fase: A Reforma!',
+      'Sou o Mestre Moedas, já com uns 100 anos. Passaram 35 anos de trabalho e agora tens 65.',
+      'Voltas à Vila Moeda, onde tudo começou. Vais viver da pensão e das poupanças até aos 85 anos, com a inflação, os imprevistos e uma queda da bolsa pelo caminho.',
+      'Como sempre: simulação educativa, com valores simplificados.',
+      'Como te chamas?',
+    ],
+    fim: (n: string) => [
+      `${n}, vamos ver o que o tempo fez ao teu dinheiro!`,
+      'Cada noite na cama passa um ANO. Objetivo: chegar aos 85 sem ficar sem dinheiro, com saúde e amigos.',
+      'Em START vês as contas, as conquistas e o mapa. Boa reforma!',
+    ],
+  },
 }
 
 interface PropsIntro {

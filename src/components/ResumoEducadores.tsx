@@ -4,6 +4,7 @@ import type { Modo } from '../game/gravar'
 import { CONQUISTAS_CASA, CONQUISTAS_MERCADO } from '../game/mercado/conquistas'
 import { CONQUISTAS_NEGOCIO } from '../game/negocio/conquistas'
 import { NOME_MODO, resumoPercurso } from '../game/niveis'
+import { CONQUISTAS_REFORMA } from '../game/reforma/conquistas'
 
 const TEMAS: Record<Modo, { idade: string; temas: string[]; conversa: string[] }> = {
   reino: {
@@ -31,9 +32,14 @@ const TEMAS: Record<Modo, { idade: string; temas: string[]; conversa: string[] }
     temas: ['Investimento inicial e empréstimo', 'Preço, procura e capacidade', 'Salários, TSU e subsídios', 'IVA e IRC', 'Lucro contra caixa', 'Fundo de maneio', 'Burlas com faturas falsas'],
     conversa: ['Porque é que o dono é o último a receber?', 'Qual é a diferença entre lucro e dinheiro na caixa?', 'Porque é que o IVA cobrado não é da empresa?'],
   },
+  reforma: {
+    idade: 'todas as idades',
+    temas: ['Juro composto ao longo de décadas', 'Começar cedo', 'Pensão e taxa de substituição', 'Regra dos 4%', 'Inflação e poder de compra', 'Risco de sequência (quedas no início da reforma)', 'Burlas a seniores', 'Herança e testamento'],
+    conversa: ['Quanto faria 100€ por mês investidos desde os 20 anos?', 'Porque é que a pensão é menor do que o salário?', 'Porque é bom ter dinheiro seguro quando a bolsa cai?'],
+  },
 }
 
-const LISTAS = { reino: CRACHAS, cidade: CONQUISTAS_CIDADE, mercado: CONQUISTAS_MERCADO, casa: CONQUISTAS_CASA, negocio: CONQUISTAS_NEGOCIO }
+const LISTAS = { reino: CRACHAS, cidade: CONQUISTAS_CIDADE, mercado: CONQUISTAS_MERCADO, casa: CONQUISTAS_CASA, negocio: CONQUISTAS_NEGOCIO, reforma: CONQUISTAS_REFORMA }
 
 /** No fim de cada fase: o que se aprendeu, o que ficou por fazer e perguntas para conversar em casa ou na aula. */
 export function ResumoEducadores({ modo, estado }: { modo: Modo; estado: unknown }) {

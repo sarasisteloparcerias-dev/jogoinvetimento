@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AVATAR_PADRAO } from '../game/data'
 import { MENTOR } from '../game/mentor'
-import { negocioDesbloqueado, type Gravacao, type Modo } from '../game/gravar'
+import { faseDesbloqueada, type Gravacao, type Modo } from '../game/gravar'
 import { resumoGravacao, requisitoNivel } from '../game/niveis'
 import { framesAdolescente, framesPersonagem } from '../game/pixel/sprites'
 import type { AvatarConfig } from '../game/types'
@@ -29,7 +29,8 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
   const [escolher, setEscolher] = useState<false | 'jovem' | 'adulto'>(false)
 
   if (escolher === 'adulto') {
-    const negocio = negocioDesbloqueado()
+    const negocio = faseDesbloqueada('negocio')
+    const reforma = faseDesbloqueada('reforma')
     return (
       <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
         <div className="janela" style={{ maxWidth: 640, width: '100%', padding: 24, textAlign: 'center' }}>
@@ -69,6 +70,16 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
                   ? 'A fase final: a tua empresa, com salários, TSU, IVA e IRC.'
                   : 'A fase final abre quando passares todas as outras com a mesma personagem.'}
               </span>
+            </button>
+            <button
+              className="cartao-modo"
+              disabled={!reforma}
+              onClick={() => reforma && onEscolherModo('reforma')}
+              style={reforma ? undefined : { opacity: 0.55, cursor: 'not-allowed' }}
+            >
+              <SpriteView avatar={{ ...AVATAR_PADRAO, cabelo: '#d8d8d8', roupa: '#8a6ad0' }} escala="3px" sprites={framesAdolescente} />
+              <strong>{reforma ? 'A REFORMA' : 'A REFORMA (FECHADA)'}</strong>
+              <span>{reforma ? 'Aos 65, de volta à Vila Moeda: pensão, poupanças e 20 anos de reforma.' : 'Abre quando passares O Negócio com a mesma personagem.'}</span>
             </button>
           </div>
           <button onClick={() => setEscolher(false)} style={{ marginTop: 16, color: '#8890a8', fontSize: 12 }}>
