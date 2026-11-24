@@ -4,12 +4,14 @@ import { novoJogador } from './data'
 import type { EstadoCidade } from './cidade/tipos'
 import type { Modo } from './gravar'
 import { META_CASA, novoEstadoCasa, novoEstadoMercado, patrimonioM } from './mercado/economia'
+import { META_PATRIMONIO_CASA } from './mercado/habitacao'
+import { MESES_NEGOCIO, NEGOCIOS, novoEstadoNegocio } from './negocio/economia'
 import type { EstadoMercado } from './mercado/tipos'
 import type { PlayerState } from './types'
 
-export const NOME_MODO: Record<Modo, string> = { reino: 'Vila Moeda', cidade: 'A Cidade', mercado: 'O Mercado', casa: 'A Casa' }
+export const NOME_MODO: Record<Modo, string> = { reino: 'Vila Moeda', cidade: 'A Cidade', mercado: 'O Mercado', casa: 'A Casa', negocio: 'O Negócio' }
 
-export const PROXIMO: Partial<Record<Modo, Modo>> = { reino: 'cidade', cidade: 'mercado', mercado: 'casa' }
+export const PROXIMO: Partial<Record<Modo, Modo>> = { reino: 'cidade', cidade: 'mercado', mercado: 'casa', casa: 'negocio' }
 
 export interface Requisito {
   ok: boolean
@@ -51,6 +53,16 @@ export function requisitoNivel(modo: Modo, estado: unknown): Requisito | null {
       situacao: ok ? undefined : `Chegaste a ${euros(total)}.`,
     }
   }
+  if (modo === 'casa') {
+    const s = estado as EstadoMercado
+    const total = patrimonioM(s)
+    const ok = s.crachas.includes('patrimonio') || total >= META_PATRIMONIO_CASA || (!!s.hipoteca && s.crachas.includes('emergencia'))
+    return {
+      ok,
+      regra: `chegar a ${euros(META_PATRIMONIO_CASA)} de património líquido, ou comprar casa e ter o fundo de emergência`,
+      situacao: ok ? undefined : `Chegaste a ${euros(total)}${s.hipoteca ? ' e compraste casa, mas falta o fundo de emergência' : ''}.`,
+    }
+  }
   return null
 }
 
@@ -60,6 +72,7 @@ export function repetirNivel(modo: Modo, estado: unknown): unknown {
   if (modo === 'reino') return novoJogador(name, avatar)
   if (modo === 'cidade') return novoEstadoCidade(name, avatar)
   if (modo === 'mercado') return novoEstadoMercado(name, avatar)
+  if (modo === 'negocio') return novoEstadoNegocio(name, avatar)
   return novoEstadoCasa(name, avatar)
 }
 
@@ -118,6 +131,29 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
       ],
     }
   }
+  if (modo === 'casa') {
+    const s = estado as EstadoMercado
+    const n: EstadoMercado = {
+      ...s,
+      nivel: 'negocio',
+      mes: 1,
+      gameOver: false,
+      crachas: [],
+      turnos: 0,
+      movimentos: [],
+      flags: [...s.flags.filter((f) => f === 'investir'), 'veio_da_casa'],
+      noticias: [{ semana: 1, titulo: 'Começa um novo ano', texto: 'Abrem muitas empresas novas na cidade.' }],
+      history: [{ week: 0, saldo: s.conta, poupanca: s.poupanca + s.ppr, investimento: 0 }],
+    }
+    return {
+      modo: 'negocio',
+      estado: n,
+      linhas: [
+        `${s.name}, passaste todas as fases! Tens ${euros(patrimonioM(s))} de património.`,
+        'Desbloqueaste a fase final: O NEGÓCIO. Vais criar a tua própria empresa e ser tu a pagar os ordenados!',
+      ],
+    }
+  }
   return null
 }
 
@@ -132,6 +168,28 @@ export function resumoGravacao(modo: Modo, estado: unknown, fim: boolean): strin
     return fim ? `${s.name} acabou A Cidade` : `${s.name} · A Cidade · semana ${Math.min(s.semana, 24)}/24`
   }
   const s = estado as EstadoMercado
+  if (modo === 'negocio') {
+    const n = s.negocio
+    if (fim) return `${s.name} acabou O Negócio${n ? ` (${n.lucroAno >= 0 ? 'lucro' : 'prejuízo'} de ${euros(Math.abs(n.lucroAno))})` : ''}`
+    return `${s.name} · O Negócio${n ? ` · ${NEGOCIOS[n.tipo].nome}` : ''} · mês ${Math.min(s.mes, MESES_NEGOCIO)}/${MESES_NEGOCIO}`
+  }
   const nome = modo === 'casa' ? 'A Casa' : 'O Mercado'
   return fim ? `${s.name} acabou ${nome} (${euros(patrimonioM(s))})` : `${s.name} · ${nome} · mês ${Math.min(s.mes, 24)}/24`
+}
+
+/** Uma linha para o percurso (o resumo de todas as fases, no fim do jogo). */
+export function resumoPercurso(modo: Modo, estado: unknown): string {
+  if (modo === 'reino') {
+    const s = estado as PlayerState
+    return `${s.crachas.length} crachás e ${Math.round(s.saldo + s.poupanca + s.investimento.amount)} moedas`
+  }
+  if (modo === 'cidade') {
+    const s = estado as EstadoCidade
+    return `${euros(poupadoViagem(s))} juntos para a viagem e ${s.crachas.length} conquistas`
+  }
+  const s = estado as EstadoMercado
+  if (modo === 'mercado') return `${euros(patrimonioM(s))} de património e ${s.crachas.length} conquistas`
+  if (modo === 'casa') return `${s.hipoteca ? 'casa comprada, ' : 'sem casa própria, '}${euros(patrimonioM(s))} de património`
+  const n = s.negocio
+  return n ? `${NEGOCIOS[n.tipo].nome}: ${n.lucroAno >= 0 ? 'lucro' : 'prejuízo'} de ${euros(Math.abs(n.lucroAno))} no ano, ${n.funcionarios.length} empregos criados` : 'empresa por abrir'
 }

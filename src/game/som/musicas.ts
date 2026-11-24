@@ -272,6 +272,32 @@ const titulo = faixa(
   0.45,
 )
 
+/** O Negócio: mi bemol maior, confiante e com ritmo de quem vai trabalhar. */
+const NEG_AC = acordes('Eb Cm Ab Bb Eb Cm Ab:8 Bb:8 Eb')
+const negocio = faixa(
+  116,
+  [
+    voz(
+      'pulso25',
+      0.44,
+      melodia(`
+        G5 Bb5 Eb6:4 D6 Bb5 G5:4
+        C6:4 Bb5 G5 Eb5:6 r:2
+        Ab5 C6 Eb6:4 C6 Ab5 C6 Eb6
+        D6:4 C6 Bb5 F5:8
+        G5 Bb5 Eb6:4 F6 Eb6 D6 Bb5
+        C6 Eb6 G6:4 F6 Eb6 C6:4
+        Ab5 C6 Eb6 C6 Bb5 D6 F6 D6
+        Eb6:12 r:4`),
+      { vibrato: true },
+    ),
+    voz('pulso12', 0.17, arpejo(NEG_AC, 4, [0, 1, 2, 3, 2, 1], 2), { staccato: true }),
+    voz('tri', 0.75, baixo(NEG_AC, 'andante')),
+  ],
+  'k.h.s.h.k.hks.h.',
+  0.42,
+)
+
 // ---------------------------------------------------------------------------
 // Melodias curtas (tocam uma vez)
 
@@ -317,7 +343,7 @@ const vitoria = faixa(
   0.45,
 )
 
-registarFaixas({ vila, interior, cidade, mercado, casa, minijogo, titulo, cracha, dormir, fanfarra, triste, vitoria })
+registarFaixas({ vila, interior, cidade, mercado, casa, negocio, minijogo, titulo, cracha, dormir, fanfarra, triste, vitoria })
 
-export type NomeMusica = 'vila' | 'interior' | 'cidade' | 'mercado' | 'casa' | 'minijogo' | 'titulo'
+export type NomeMusica = 'vila' | 'interior' | 'cidade' | 'mercado' | 'casa' | 'negocio' | 'minijogo' | 'titulo'
 export type NomeJingle = 'cracha' | 'dormir' | 'fanfarra' | 'triste' | 'vitoria'

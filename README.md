@@ -1,15 +1,15 @@
 # Vila Moeda — jogo de literacia financeira ao estilo Game Boy Advance (protótipo)
 
 Protótipo jogável de um simulador de vida focado em literacia financeira, seguindo a
-[especificação](#especificação) de um jogo com 3 modos por faixa etária. Os três
-modos estão feitos:
+[especificação](#especificação) de um jogo com modos por faixa etária. Há cinco fases,
+da Vila Moeda até à fase final, O Negócio:
 
 | Idade | Modo |
 |---|---|
 | 8-11 | **Vila Moeda** (título de trabalho original: "O Reino") |
 | 12-14 | escolhem entre os dois no ecrã inicial |
 | 15-17 | **A Cidade** |
-| 18+ | escolhem entre **O Mercado** (vida adulta) e **A Casa** (comprar casa) |
+| 18+ | escolhem qualquer fase, da **Vila Moeda** até **A Casa**; **O Negócio** só abre a quem passou as outras |
 
 Jogar online: https://sarasisteloparcerias-dev.github.io/jogoinvetimento/
 
@@ -33,7 +33,7 @@ npm run preview
 
 O jogo fica guardado no próprio browser: ao voltar, o ecrã inicial mostra
 **CONTINUAR**. A idade escolhe a fase onde se começa, mas o jogo é aberto da Vila Moeda
-até A Casa: no fim de cada fase, **quem cumpriu o objetivo passa para a seguinte** com a
+até O Negócio: no fim de cada fase, **quem cumpriu o objetivo passa para a seguinte** com a
 mesma personagem e parte do dinheiro que juntou; quem não cumpriu pode **repetir a
 fase**.
 
@@ -42,6 +42,11 @@ fase**.
 | Vila Moeda → A Cidade | crachá Objetivo (60 moedas no mealheiro) e pelo menos 4 dos 6 crachás |
 | A Cidade → O Mercado | juntar os 400€ da Viagem de Finalistas |
 | O Mercado → A Casa | chegar a 8.000€ de património líquido |
+| A Casa → O Negócio | chegar a 30.000€ de património líquido, ou comprar casa e ter o fundo de emergência |
+
+**O Negócio** é a fase final: só se chega lá passando A Casa (a partir daí fica
+desbloqueada no ecrã inicial para maiores de 18). No fim, o ecrã mostra **o percurso
+todo** da mesma personagem, fase a fase.
 
 ## Como se joga
 
@@ -60,7 +65,7 @@ Todo o som é gerado no próprio jogo com WebAudio, como num chip de Game Boy: d
 ficheiros de áudio. O som liga-se no primeiro toque ou tecla (regra dos browsers) e pausa quando
 se muda de separador.
 
-- **Músicas** (originais, em ciclo): título, Vila Moeda, A Cidade, O Mercado, A Casa, interiores
+- **Músicas** (originais, em ciclo): título, Vila Moeda, A Cidade, O Mercado, A Casa, O Negócio, interiores
   (mais calma) e mini-jogos (mais rápida).
 - **Melodias curtas**: conquista, dormir, fim de mini-jogo, fase passada e fase por passar.
 - **Efeitos**: texto letra a letra, cursor, confirmar e cancelar, moedas a entrar e a sair
@@ -274,6 +279,38 @@ simplificados e entidades inventadas.
 - **7 conquistas**: Chave na Mão, Fundo de Emergência, IMI em Dia, Amortização,
   Anti-Burla, Aumento e Património de 30 Mil.
 
+## O Negócio (fase final)
+
+Doze meses à frente de uma pequena empresa, no mesmo mundo: o prédio onde se trabalhava
+(Nexo) passa a ser **a tua empresa**. Valores simplificados e entidades inventadas.
+
+- **Abrir a empresa**: escolher entre **Café** (procura estável), **Gelataria** (muito
+  sazonal: filas no verão, quase ninguém no inverno) e **Estafetas** (serviços, IVA a
+  23%). Paga-se o investimento e um fundo de maneio com dinheiro próprio e/ou um
+  **empréstimo bancário** (6,5%, 5 anos).
+- **Computador de gestão** (na loja): resumo com **previsão de procura e capacidade**,
+  **contratar** (3 candidatos por mês, do salário mínimo de 920€ a alguém muito
+  experiente; contrato **sem termo** ou **a termo de 3 meses**), **despedir** (com
+  compensação), **preços** (baixo, médio, alto), **publicidade**, o **teu ordenado** de
+  gerente e **pôr dinheiro teu** na empresa (suprimentos).
+- **Cada mês**: clientes = mínimo entre a procura (estação, preço, reputação,
+  publicidade, acontecimentos) e o que a equipa consegue servir. Custos: produtos,
+  salários + **TSU de 23,75%**, o teu ordenado (o dono recebe **por último**, se a caixa
+  chegar), renda, luz/água/seguros, **contabilista**, publicidade e juros. **Subsídios de
+  férias e de Natal** em junho e novembro (salários a dobrar), **IVA** entregue de 3 em 3
+  meses e **IRC** em dezembro. A conta da empresa pode ficar a descoberto até 5.000€; daí
+  para baixo há **salários em atraso** e, muito abaixo, a empresa fecha.
+- **Balcão**: turnos extra do dono com o mini-jogo do negócio (café, gelados ou
+  entregas): mais clientes servidos e mais reputação, mas cansa.
+- **Dra. Joana, a contabilista**: explica IVA, TSU, subsídios, IRC, lucro vs. caixa e
+  analisa como vai a empresa.
+- **Acontecimentos**: avarias, pedidos de aumento, festa da cidade, concorrente novo,
+  publicidade do Kiko, fornecedor mais caro, formação obrigatória e inspeção, grande
+  encomenda (com mini-jogo), baixa médica e a burla da fatura com IBAN falso.
+- **8 conquistas**: Empresa Criada, Criar Emprego, Primeiro Lucro, IVA em Dia,
+  14 Salários, Fundo de Maneio, Fatura Falsa e Ano Positivo. No painel, a app
+  **EMPRESA** mostra caixa, lucro do ano, empréstimo e equipa.
+
 ## Estrutura do código
 
 ```
@@ -307,7 +344,10 @@ src/
       eventos.ts, conquistas.ts, mapas.ts, scripts.ts - eventos, conquistas, mundo e conversas d'O Mercado
       profissoes.ts - as 3 profissões (salário, gorjetas, mini-jogo, efeitos)
       habitacao.ts  - casas à venda, crédito à habitação, Euribor, IMI (nível A Casa)
-    gravar.ts, niveis.ts - jogo guardado no browser e passagem de um nível para o seguinte
+    negocio/
+      economia.ts   - tipos de negócio, procura, capacidade, salários, TSU, IVA, IRC e o mês da empresa
+      eventos.ts, conquistas.ts, mapas.ts, scripts.ts - acontecimentos, conquistas, a loja e as conversas
+    gravar.ts, niveis.ts - jogo guardado no browser, percurso, passagem de um nível para o seguinte
     som/
       audio.ts    - sintetizador ao estilo Game Boy (ondas de pulso, triangular, ruído) e sequenciador
       musicas.ts  - as músicas e melodias, numa notação curta ("C5:4" = semínima)
@@ -316,7 +356,7 @@ src/
     gba/
       Consola.tsx    - ecrã ampliado, teclado e botões tácteis
       GameScreen.tsx - liga o motor, os diálogos, o menu e as conquistas de qualquer modo
-      modo.ts, modoVila.ts, modoCidade.ts, modoMercado.ts, modoCasa.ts - o que define cada modo (mapas, sprites, guiões, menu)
+      modo.ts, modoVila.ts, modoCidade.ts, modoMercado.ts, modoCasa.ts, modoNegocio.ts - o que define cada modo (mapas, sprites, guiões, menu)
       telefone.tsx   - moldura e peças comuns do telemóvel e do painel
       Telemovel.tsx  - o telemóvel d'A Cidade
       Painel.tsx     - o painel d'O Mercado
@@ -325,7 +365,7 @@ src/
       StartMenu.tsx  - menu START
       MiniJogoView.tsx - mostra um mini-jogo na consola (título, jogo, resultado)
       ui.tsx         - escala, sprites em HTML, cursores
-    AgeGate.tsx, FimDeJogo.tsx, FimCidade.tsx, FimMercado.tsx, FimCasa.tsx, GrowthChart.tsx
+    AgeGate.tsx, BotoesFim.tsx, FimDeJogo.tsx, FimCidade.tsx, FimMercado.tsx, FimCasa.tsx, FimNegocio.tsx, GrowthChart.tsx
 ```
 
 ## Próximos passos (não implementados neste protótipo)

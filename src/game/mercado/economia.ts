@@ -161,7 +161,7 @@ export function totalFixas(s: EstadoMercado) {
 }
 
 export function taxaDeposito(s: EstadoMercado) {
-  if (s.nivel === 'casa') return 0.02
+  if (s.nivel) return 0.02
   return s.mes >= 9 ? 0.015 : 0.025
 }
 
@@ -185,7 +185,10 @@ export function dividaPrestacoes(s: EstadoMercado) {
 /** Património líquido: tudo o que tens menos o que deves (cartão e prestações). */
 export function patrimonioM(s: EstadoMercado) {
   const casa = s.hipoteca ? s.hipoteca.valorCasa - s.hipoteca.divida : 0
-  return s.conta + s.poupanca + s.ppr + carteiraM(s) - s.divida - dividaPrestacoes(s) + casa
+  // n'O Negócio, a empresa também conta: caixa e equipamento, menos o que deve ao banco e ao Estado
+  const n = s.negocio
+  const empresa = n ? n.caixa + n.equipamento - (n.emprestimo?.divida ?? 0) - Math.max(0, n.ivaPorEntregar) : 0
+  return s.conta + s.poupanca + s.ppr + carteiraM(s) - s.divida - dividaPrestacoes(s) + casa + empresa
 }
 
 export function novoEstadoMercado(name: string, avatar: AvatarConfig): EstadoMercado {

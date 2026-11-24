@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AVATAR_PADRAO } from '../game/data'
 import { MENTOR } from '../game/mentor'
-import type { Gravacao, Modo } from '../game/gravar'
+import { negocioDesbloqueado, type Gravacao, type Modo } from '../game/gravar'
 import { resumoGravacao, requisitoNivel } from '../game/niveis'
 import { framesAdolescente, framesPersonagem } from '../game/pixel/sprites'
 import type { AvatarConfig } from '../game/types'
@@ -16,7 +16,7 @@ interface AgeGateProps {
   onApagar: () => void
 }
 
-/** 8-11: Vila Moeda · 12-14: escolhem (Vila ou Cidade) · 15-17: A Cidade · 18+: escolhem (Mercado ou Casa). */
+/** 8-11: Vila Moeda · 12-14: escolhem (Vila ou Cidade) · 15-17: A Cidade · 18+: escolhem qualquer fase (O Negócio só depois de passar as outras). */
 function modoParaIdade(idade: number): Modo | 'escolher' | 'escolher18' {
   if (idade <= 11) return 'reino'
   if (idade <= 14) return 'escolher'
@@ -29,12 +29,23 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
   const [escolher, setEscolher] = useState<false | 'jovem' | 'adulto'>(false)
 
   if (escolher === 'adulto') {
+    const negocio = negocioDesbloqueado()
     return (
       <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
-        <div className="janela" style={{ maxWidth: 520, width: '100%', padding: 24, textAlign: 'center' }}>
-          <h1 className="titulo-jogo" style={{ fontSize: 18 }}>ESCOLHE O NÍVEL</h1>
-          <p style={{ color: '#5a6280', marginBottom: 16 }}>A Casa é a continuação d'O Mercado, mas também se pode começar por lá.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+        <div className="janela" style={{ maxWidth: 640, width: '100%', padding: 24, textAlign: 'center' }}>
+          <h1 className="titulo-jogo" style={{ fontSize: 18 }}>ESCOLHE A FASE</h1>
+          <p style={{ color: '#5a6280', marginBottom: 16 }}>Com {idade} anos podes começar em qualquer fase, da Vila Moeda até A Casa.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            <button className="cartao-modo" onClick={() => onEscolherModo('reino')}>
+              <SpriteView avatar={AVATAR_PADRAO} escala="3px" />
+              <strong>VILA MOEDA</strong>
+              <span>Moedas, mealheiro e crachás. A mais simples (8-11 anos).</span>
+            </button>
+            <button className="cartao-modo" onClick={() => onEscolherModo('cidade')}>
+              <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#e8743a' }} escala="3px" sprites={framesAdolescente} />
+              <strong>A CIDADE</strong>
+              <span>Primeiro trabalho, conta no banco, ações, ETFs e cripto (12-17).</span>
+            </button>
             <button className="cartao-modo" onClick={() => onEscolherModo('mercado')}>
               <SpriteView avatar={AVATAR_PADRAO} escala="3px" sprites={framesAdolescente} />
               <strong>O MERCADO</strong>
@@ -44,6 +55,20 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
               <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#0ea5e9' }} escala="3px" sprites={framesAdolescente} />
               <strong>A CASA</strong>
               <span>Comprar casa: crédito à habitação, taxa fixa ou variável, IMI, condomínio e obras.</span>
+            </button>
+            <button
+              className="cartao-modo"
+              disabled={!negocio}
+              onClick={() => negocio && onEscolherModo('negocio')}
+              style={negocio ? undefined : { opacity: 0.55, cursor: 'not-allowed' }}
+            >
+              <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#283040' }} escala="3px" sprites={framesAdolescente} />
+              <strong>{negocio ? 'O NEGÓCIO' : 'O NEGÓCIO (FECHADO)'}</strong>
+              <span>
+                {negocio
+                  ? 'A fase final: a tua empresa, com salários, TSU, IVA e IRC.'
+                  : 'A fase final abre quando passares todas as outras com a mesma personagem.'}
+              </span>
             </button>
           </div>
           <button onClick={() => setEscolher(false)} style={{ marginTop: 16, color: '#8890a8', fontSize: 12 }}>

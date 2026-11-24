@@ -4,19 +4,22 @@ import { FimCidade } from './components/FimCidade'
 import { FimDeJogo } from './components/FimDeJogo'
 import { FimCasa } from './components/FimCasa'
 import { FimMercado } from './components/FimMercado'
+import { FimNegocio } from './components/FimNegocio'
 import { GameScreen } from './components/gba/GameScreen'
 import { Intro } from './components/gba/Intro'
 import { MODO_CASA } from './components/gba/modoCasa'
 import { MODO_CIDADE } from './components/gba/modoCidade'
 import { MODO_MERCADO } from './components/gba/modoMercado'
+import { MODO_NEGOCIO } from './components/gba/modoNegocio'
 import { MODO_VILA } from './components/gba/modoVila'
 import { novoEstadoCidade } from './game/cidade/economia'
 import type { EstadoCidade } from './game/cidade/tipos'
 import { novoJogador } from './game/data'
-import { apagarGravacao, gravar, lerGravacao, type Gravacao, type Modo } from './game/gravar'
+import { apagarGravacao, desbloquearNegocio, gravar, lerGravacao, limparPercurso, registarPercurso, type Gravacao, type Modo } from './game/gravar'
 import { novoEstadoCasa, novoEstadoMercado } from './game/mercado/economia'
 import type { EstadoMercado } from './game/mercado/tipos'
-import { NOME_MODO, passarNivel, PROXIMO, repetirNivel, requisitoNivel } from './game/niveis'
+import { NOME_MODO, passarNivel, PROXIMO, repetirNivel, requisitoNivel, resumoPercurso } from './game/niveis'
+import { novoEstadoNegocio } from './game/negocio/economia'
 import { musica } from './game/som'
 import type { AvatarConfig, PlayerState } from './game/types'
 
@@ -58,6 +61,8 @@ export default function App() {
   }, [estado, modo, tela])
 
   function handleEscolherModo(m: Modo) {
+    // personagem nova: começa um percurso novo
+    limparPercurso()
     setModo(m)
     setContinuacao(null)
     setTela('intro')
@@ -68,11 +73,14 @@ export default function App() {
     else if (modo === 'cidade') setEstado(novoEstadoCidade(name, avatar))
     else if (modo === 'mercado') setEstado(novoEstadoMercado(name, avatar))
     else if (modo === 'casa') setEstado(novoEstadoCasa(name, avatar))
+    else if (modo === 'negocio') setEstado(novoEstadoNegocio(name, avatar))
     else setEstado(novoJogador(name, avatar))
     setTela('jogo')
   }
 
   function handleFim(s: unknown) {
+    const req = requisitoNivel(modo, s)
+    registarPercurso({ modo, nome: (s as { name: string }).name, resumo: resumoPercurso(modo, s), passou: req ? req.ok : true })
     setEstado(s)
     setTela('fim')
   }
@@ -81,6 +89,7 @@ export default function App() {
     const n = passarNivel(de, s)
     if (!n) return
     const base = s as { name: string; avatar: AvatarConfig }
+    if (n.modo === 'negocio') desbloquearNegocio()
     setModo(n.modo)
     setContinuacao({ nome: base.name, avatar: base.avatar, linhas: n.linhas, estado: n.estado })
     setTela('intro')
@@ -138,10 +147,12 @@ export default function App() {
       {tela === 'jogo' && modo === 'cidade' && <GameScreen modo={MODO_CIDADE} estadoInicial={estado as EstadoCidade} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'jogo' && modo === 'mercado' && <GameScreen modo={MODO_MERCADO} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'jogo' && modo === 'casa' && <GameScreen modo={MODO_CASA} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
+      {tela === 'jogo' && modo === 'negocio' && <GameScreen modo={MODO_NEGOCIO} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
       {tela === 'fim' && modo === 'reino' && <FimDeJogo state={estado as PlayerState} {...fimProps} />}
       {tela === 'fim' && modo === 'cidade' && <FimCidade state={estado as EstadoCidade} {...fimProps} />}
       {tela === 'fim' && modo === 'mercado' && <FimMercado state={estado as EstadoMercado} {...fimProps} />}
       {tela === 'fim' && modo === 'casa' && <FimCasa state={estado as EstadoMercado} {...fimProps} />}
+      {tela === 'fim' && modo === 'negocio' && <FimNegocio state={estado as EstadoMercado} {...fimProps} />}
     </>
   )
 }

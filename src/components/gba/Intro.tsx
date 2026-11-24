@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AVATAR_PADRAO, CORES_CABELO, CORES_PELE, CORES_ROUPA } from '../../game/data'
 import { MENTOR } from '../../game/mentor'
 import { framesAdolescente, framesPersonagem } from '../../game/pixel/sprites'
+import type { Modo } from '../../game/gravar'
 import type { AvatarConfig } from '../../game/types'
 import { Consola } from './Consola'
 import { sfx } from '../../game/som'
@@ -70,14 +71,29 @@ const TEXTOS = {
     ],
     fim: (n: string) => [
       `${n}, vamos a isso!`,
-      'O nível dura 24 meses. Objetivo: comprar casa sem apertar demasiado o orçamento e chegar a 30.000€ de património líquido.',
+      'O nível dura 24 meses. Objetivo: chegar a 30.000€ de património líquido, ou comprar casa e ter o fundo de emergência. Assim desbloqueias a fase final, O Negócio!',
       'Cada noite na cama passa um mês. Em START abres o painel. Boa sorte!',
+    ],
+  },
+  negocio: {
+    sprites: framesAdolescente,
+    boasVindas: [
+      'Olá! Boas-vindas à fase final: O Negócio!',
+      'Sou o Mestre Moedas. Desta vez não vais trabalhar para ninguém: vais criar a tua própria empresa.',
+      'Vais escolher o negócio, pedir um empréstimo, contratar uma equipa e pagar salários, TSU, subsídios, IVA e IRC. E tu só recebes no fim, se sobrar.',
+      'Como sempre: simulação educativa, com valores simplificados e empresas inventadas.',
+      'Como te chamas?',
+    ],
+    fim: (n: string) => [
+      `${n}, vamos abrir a empresa!`,
+      'A fase dura 12 meses. Objetivo: fechar o ano com lucro e sem salários em atraso.',
+      'Cada noite na cama passa um mês e a contabilista mostra-te as contas. Em START abres o painel. Boa sorte!',
     ],
   },
 }
 
 interface PropsIntro {
-  modo?: 'reino' | 'cidade' | 'mercado' | 'casa'
+  modo?: Modo
   /** Personagem que vem do nível anterior: não se volta a pedir nome nem aspeto. */
   existente?: { nome: string; avatar: AvatarConfig; linhas: string[] }
   onConcluir: (nome: string, avatar: AvatarConfig) => void

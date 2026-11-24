@@ -873,6 +873,14 @@ const SIMBOLOS: Record<string, string[]> = {
   imi: ['....X....', '...XXX...', '..XXXXX..', '.XXXXXXX.', '..X...X..', '..X.X.X..', '..X.X.X..', '..X...X..', '..XXXXX..'],
   patrimonio: ['..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..'],
   viagem: ['....X....', '....X....', '...XXX...', '.XXXXXXX.', 'XXXXXXXXX', '....X....', '....X....', '...XXX...', '..XX.XX..'],
+  empresa: ['XXXXXXXXX', 'X.X.X.X.X', 'XXXXXXXXX', '.X.....X.', '.X.XXX.X.', '.X.X.X.X.', '.X.X.X.X.', '.X.X.X.X.', 'XXXXXXXXX'],
+  emprego: ['.XX...XX.', 'X..X.X..X', '.XX...XX.', '.........', 'XXXX.XXXX', 'XXXX.XXXX', 'XXXX.XXXX', '.XX...XX.', '.XX...XX.'],
+  lucro: ['....X....', '....X....', '..XXXXX..', '....X....', '....X....', '.........', 'XXXXXXXXX', '.XXXXXXX.', 'XXXXXXXXX'],
+  iva: ['XXXXXXXXX', 'X.......X', 'X.X.X.X.X', 'X.......X', 'X.XXXXX.X', 'X.......X', 'X.XXX.X.X', 'X.......X', 'XXXXXXXXX'],
+  subsidios: ['.XXX.XXX.', 'X...X...X', 'X...X...X', 'X...X...X', '.XXX.XXX.', '.........', 'XXXXXXXXX', 'X.X.X.X.X', 'XXXXXXXXX'],
+  maneio: ['..XXXXX..', '.X.....X.', 'X..X.X..X', 'X...X...X', 'X..XXX..X', 'X...X...X', 'X..X.X..X', '.X.....X.', '..XXXXX..'],
+  fatura: ['XXXXXX...', 'X....XX..', 'X.XX.XXX.', 'X......X.', 'X.X..X.X.', 'X..XX..X.', 'X..XX..X.', 'X.X..X.X.', 'XXXXXXXX.'],
+  ano: ['X.X.X.X.X', 'XXXXXXXXX', 'X.......X', 'X.XX..X.X', 'X..X.XX.X', 'X..X..X.X', 'X.XXX.X.X', 'X.......X', 'XXXXXXXXX'],
 }
 
 export const COR_CRACHA: Record<string, string> = {
@@ -899,6 +907,14 @@ export const COR_CRACHA: Record<string, string> = {
   amortizar: '#2a9a5a',
   imi: '#7a8496',
   patrimonio: '#c08a10',
+  empresa: '#6a7486',
+  emprego: '#4a7ad0',
+  lucro: '#2a9a5a',
+  iva: '#7a8496',
+  subsidios: '#e0709a',
+  maneio: '#f09a30',
+  fatura: '#e05050',
+  ano: '#c08a10',
 }
 
 const cacheCracha = new Map<string, HTMLCanvasElement>()

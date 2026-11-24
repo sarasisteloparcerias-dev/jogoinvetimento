@@ -1,5 +1,7 @@
 import { useImperativeHandle, useState, type ReactNode } from 'react'
 import { CONQUISTAS_CASA, CONQUISTAS_MERCADO, objetivoCasa, objetivoMercado } from '../../game/mercado/conquistas'
+import { CONQUISTAS_NEGOCIO, objetivoNegocio } from '../../game/negocio/conquistas'
+import { MESES_NEGOCIO, NEGOCIOS, NOMES_PRECO } from '../../game/negocio/economia'
 import { META_PATRIMONIO_CASA, taxaAnual } from '../../game/mercado/habitacao'
 import {
   ACOES_M,
@@ -32,7 +34,7 @@ import type { PropsMenu } from './modo'
 import { Barra, CabecalhoAtivos, corVariacao, Grafico, Linha, LinhaAtivo, pct, Risco, teclaTelefone, Telefone, useTelefone, type AppTelefone, type Opcao } from './telefone'
 import { PixelImg, u } from './ui'
 
-type Ecra = 'inicio' | 'banco' | 'debitos' | 'investir' | 'ativo' | 'mes' | 'jornal' | 'metas' | 'perfil' | 'grafico'
+type Ecra = 'inicio' | 'banco' | 'debitos' | 'investir' | 'ativo' | 'mes' | 'jornal' | 'metas' | 'perfil' | 'grafico' | 'empresa'
 
 const APPS: AppTelefone<Ecra>[] = [
   { ecra: 'banco', nome: 'BANCO', cor: '#4a7ad0', simbolo: '€' },
@@ -42,6 +44,12 @@ const APPS: AppTelefone<Ecra>[] = [
   { ecra: 'metas', nome: 'METAS', cor: '#e0a020', simbolo: '★' },
   { ecra: 'perfil', nome: 'PERFIL', cor: '#8a6ad0', simbolo: '☺' },
 ]
+
+/** N'O Negócio, a app da empresa substitui o jornal (as notícias da empresa chegam todas as manhãs). */
+const APPS_NEGOCIO: AppTelefone<Ecra>[] = APPS.map((a) => (a.ecra === 'jornal' ? { ecra: 'empresa', nome: 'EMPRESA', cor: '#283040', simbolo: '▤' } : a))
+
+/** Euros sem cêntimos, para caber no ecrã. */
+const curto = (v: number) => `${Math.round(v).toLocaleString('pt-PT')}€`
 
 const PAI: Partial<Record<Ecra, Ecra>> = { debitos: 'banco', ativo: 'investir', grafico: 'perfil' }
 const PLANOS = [0, 50, 100, 200, 400]
@@ -56,6 +64,8 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
   const tel = useTelefone<Ecra>('inicio', PAI)
   const { ecra, ir, indice, setIndice, avisar, voltar } = tel
   const [ativo, setAtivo] = useState<AtivoM>('etf')
+  const apps = s.negocio ? APPS_NEGOCIO : APPS
+  const totalMeses = s.nivel === 'negocio' ? MESES_NEGOCIO : MESES
 
   const definir = (n: EstadoMercado, texto: string) => {
     ctx.definir(n)
@@ -77,7 +87,7 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
 
   switch (ecra) {
     case 'inicio':
-      opcoes = [...APPS.map((a) => ({ r: a.nome, f: () => ir(a.ecra) })), { r: 'FECHAR', f: onFechar }]
+      opcoes = [...apps.map((a) => ({ r: a.nome, f: () => ir(a.ecra) })), { r: 'FECHAR', f: onFechar }]
       break
 
     case 'banco':
@@ -286,8 +296,59 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
       opcoes = [voltar]
       break
 
+    case 'empresa': {
+      const n = s.negocio!
+      const def = NEGOCIOS[n.tipo]
+      const ult = n.historico[n.historico.length - 1]
+      titulo = def.nome.toUpperCase()
+      conteudo = (
+        <>
+          <Linha nome="CAIXA" valor={curto(n.caixa)} nota={`IVA do Estado: ${curto(Math.max(0, n.ivaPorEntregar))}.`} cor={n.caixa < 0 ? '#d03a3a' : '#1f9a50'} />
+          <Linha nome="LUCRO DO ANO" valor={curto(n.lucroAno)} nota={ult ? `Último mês: ${curto(ult.lucro)}.` : 'Nenhum mês fechado.'} cor={n.lucroAno < 0 ? '#d03a3a' : undefined} />
+          {n.emprestimo && <Linha nome="EMPRÉSTIMO" valor={curto(n.emprestimo.divida)} nota={`${curto(n.emprestimo.prestacao)}/mês.`} cor="#d03a3a" />}
+          <div style={{ fontSize: u(5.5), lineHeight: u(7.5) }}>
+            Equipa: {n.funcionarios.length} · Preços {NOMES_PRECO[n.preco]} · Reputação {n.reputacao}
+          </div>
+        </>
+      )
+      opcoes = [voltar]
+      lado = true
+      break
+    }
+
     case 'metas': {
       titulo = 'METAS'
+      if (s.negocio) {
+        const n = s.negocio
+        const obj = objetivoNegocio(s.crachas)
+        conteudo = (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>LUCRO DO ANO</span>
+              <span style={{ color: n.lucroAno >= 0 ? '#1f9a50' : '#d03a3a' }}>{euros(n.lucroAno)}</span>
+            </div>
+            <div style={{ fontSize: u(5.5), color: '#7a8298', margin: `${u(2)} 0 ${u(4)}` }}>
+              Objetivo: fechar os 12 meses com lucro e sem salários em atraso{n.mesesEmAtraso ? ` (já houve ${n.mesesEmAtraso})` : ''}.
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: u(3) }}>
+              {CONQUISTAS_NEGOCIO.map((c) => (
+                <PixelImg key={c.id} src={iconeCracha(c.id, s.crachas.includes(c.id))} escala={u(1.3)} style={{ opacity: s.crachas.includes(c.id) ? 1 : 0.5 }} />
+              ))}
+            </div>
+            <div style={{ fontSize: u(6), lineHeight: u(8.5) }}>
+              {obj ? (
+                <>
+                  <b>Próxima: {obj.nome}.</b> {obj.objetivo}
+                </>
+              ) : (
+                'Ganhaste todas as conquistas!'
+              )}
+            </div>
+          </>
+        )
+        opcoes = [voltar]
+        break
+      }
       const liq = patrimonioM(s)
       const casa = s.nivel === 'casa'
       const meta = casa ? META_PATRIMONIO_CASA : META_CASA
@@ -305,7 +366,7 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
             <div style={{ height: '100%', width: `${Math.max(0, Math.min(100, (liq / meta) * 100))}%`, background: '#e8743a' }} />
           </div>
           <div style={{ fontSize: u(5.5), color: '#7a8298', marginBottom: u(4) }}>
-            Património líquido: o que tens menos o que deves.{casa ? '' : ' Com 8.000€ no fim, passas para A Casa.'}
+            Património líquido: o que tens menos o que deves.{casa ? ' Com 30.000€ (ou casa comprada e fundo de emergência), passas para O Negócio.' : ' Com 8.000€ no fim, passas para A Casa.'}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: u(3) }}>
             {lista.map((c) => (
@@ -332,7 +393,8 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
       conteudo = (
         <>
           <div style={{ fontSize: u(5.5), marginBottom: u(3) }}>
-            {PROFISSOES[s.profissao].nome} ({PROFISSOES[s.profissao].empresa}) · {euros(s.salarioBruto)} brutos · {CASAS[s.casa].nome}
+            {s.negocio ? `Gerente: ${NEGOCIOS[s.negocio.tipo].nome}` : `${PROFISSOES[s.profissao].nome} (${PROFISSOES[s.profissao].empresa})`} · {euros(s.salarioBruto)} brutos ·{' '}
+            {s.hipoteca ? 'Casa própria' : CASAS[s.casa].nome}
           </div>
           <Barra nome="Relações" valor={s.stats.relacoes} cor="#f06090" />
           <Barra nome="Saúde" valor={s.stats.saude} cor="#48b870" />
@@ -358,9 +420,9 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
   return (
     <Telefone
       testid="painel"
-      topo={[`${nomeMes(s.mes).toUpperCase()} (${Math.min(s.mes, MESES)}/${MESES})`, euros(s.conta)]}
+      topo={[`${nomeMes(s.mes).toUpperCase()} (${Math.min(s.mes, totalMeses)}/${totalMeses})`, euros(s.conta)]}
       noInicio={tel.noInicio}
-      apps={APPS}
+      apps={apps}
       saudacao={`Olá, ${s.name}!`}
       resumo={`Conta ${euros(s.conta)} · Património ${euros(patrimonioM(s))}`}
       titulo={titulo}

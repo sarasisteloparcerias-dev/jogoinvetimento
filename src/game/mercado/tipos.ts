@@ -1,6 +1,7 @@
 import type { Movimento, Noticia, Pagamento } from '../cidade/tipos'
 import type { EstadoBase } from '../modo'
 import type { HistoryPoint } from '../types'
+import type { EstadoNegocio } from '../negocio/economia'
 import type { Hipoteca } from './habitacao'
 import type { Profissao } from './profissoes'
 
@@ -33,8 +34,10 @@ export interface EstadoMercado extends EstadoBase {
   /** Carta de condução: inscrição, código feito, carta tirada. (Opcional: jogos guardados antes desta versão não têm.) */
   carta?: 'inscrito' | 'codigo' | 'carta'
   carro?: boolean
-  /** Nível "A Casa" (continuação d'O Mercado). */
-  nivel?: 'casa'
+  /** Nível "A Casa" (continuação d'O Mercado) ou "O Negócio" (a última fase). */
+  nivel?: 'casa' | 'negocio'
+  /** A empresa (só n'O Negócio). */
+  negocio?: EstadoNegocio
   casaEscolhida?: string
   hipoteca?: Hipoteca
   casa: Casa
