@@ -12,6 +12,15 @@ export type TipoMiniJogo =
   | 'bowling'
   | 'codigo'
   | 'conducao'
+  | 'troco'
+  | 'troco_euros'
+  | 'comparar'
+  | 'comparar_adulto'
+  | 'memoria'
+  | 'arrumar'
+  | 'anuncios'
+  | 'contrato'
+  | 'canos'
 
 export type TeclaJogo = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'A' | 'B'
 

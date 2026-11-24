@@ -1,6 +1,12 @@
 import type { FramesPersonagem } from '../pixel/sprites'
 import type { AvatarConfig } from '../types'
+import { Arrumar } from './arrumar'
 import { Babysitting } from './babysitting'
+import { Canos } from './canos'
+import { Comparar } from './comparar'
+import { CONFIG_ANUNCIOS, CONFIG_CONTRATO, Decidir } from './decidir'
+import { Memoria } from './memoria'
+import { Troco } from './troco'
 import { Bicicleta } from './bicicleta'
 import { Bowling } from './bowling'
 import { Cafe } from './cafe'
@@ -42,5 +48,23 @@ export function criarMiniJogo(tipo: TipoMiniJogo, avatar: AvatarConfig, sprites:
       return new Conducao()
     case 'gelado':
       return new Gelado()
+    case 'troco':
+      return new Troco()
+    case 'troco_euros':
+      return new Troco(true)
+    case 'comparar':
+      return new Comparar()
+    case 'comparar_adulto':
+      return new Comparar(true)
+    case 'memoria':
+      return new Memoria()
+    case 'arrumar':
+      return new Arrumar()
+    case 'anuncios':
+      return new Decidir(CONFIG_ANUNCIOS)
+    case 'contrato':
+      return new Decidir(CONFIG_CONTRATO)
+    case 'canos':
+      return new Canos()
   }
 }

@@ -260,7 +260,7 @@ function parede(ctx: CanvasRenderingContext2D, px: number, py: number, gy: numbe
 
 // ---------- edifícios ----------
 
-const CORES_EDIFICIO: Record<CorEdificio, { telhado: string; parede: string }> = {
+export const CORES_EDIFICIO: Record<CorEdificio, { telhado: string; parede: string }> = {
   laranja: { telhado: '#e8743a', parede: '#fbf1dc' },
   vermelho: { telhado: '#dc4646', parede: '#fff3de' },
   azul: { telhado: '#4a7ad0', parede: '#e6edf7' },
@@ -873,6 +873,10 @@ const SIMBOLOS: Record<string, string[]> = {
   imi: ['....X....', '...XXX...', '..XXXXX..', '.XXXXXXX.', '..X...X..', '..X.X.X..', '..X.X.X..', '..X...X..', '..XXXXX..'],
   patrimonio: ['..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..', '.X.....X.', '..XXXXX..'],
   viagem: ['....X....', '....X....', '...XXX...', '.XXXXXXX.', 'XXXXXXXXX', '....X....', '....X....', '...XXX...', '..XX.XX..'],
+  comparar: ['....X....', 'XXXXXXXXX', '.X..X..X.', 'X.X.X.X.X', 'XXX.X.XXX', '....X....', '....X....', '...XXX...', '..XXXXX..'],
+  ajudar: ['.XX...XX.', 'XXXX.XXXX', 'XXXXXXXXX', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '...XXX...', '....X....', '.........'],
+  publicidade: ['......XX.', '....XXXX.', 'XXXXXXXX.', 'XXXXXXXX.', 'XXXXXXXX.', '....XXXX.', '.X....XX.', '.X.......', '.XX......'],
+  contrato: ['XXXXXX...', 'X....XX..', 'X.XXX.XX.', 'X......X.', 'X.XXXX.X.', 'X......X.', 'X...XXXX.', 'X..X..XX.', 'XXXXXXXX.'],
   empresa: ['XXXXXXXXX', 'X.X.X.X.X', 'XXXXXXXXX', '.X.....X.', '.X.XXX.X.', '.X.X.X.X.', '.X.X.X.X.', '.X.X.X.X.', 'XXXXXXXXX'],
   emprego: ['.XX...XX.', 'X..X.X..X', '.XX...XX.', '.........', 'XXXX.XXXX', 'XXXX.XXXX', 'XXXX.XXXX', '.XX...XX.', '.XX...XX.'],
   lucro: ['....X....', '....X....', '..XXXXX..', '....X....', '....X....', '.........', 'XXXXXXXXX', '.XXXXXXX.', 'XXXXXXXXX'],
@@ -907,6 +911,10 @@ export const COR_CRACHA: Record<string, string> = {
   amortizar: '#2a9a5a',
   imi: '#7a8496',
   patrimonio: '#c08a10',
+  comparar: '#3aa0a0',
+  ajudar: '#e05080',
+  publicidade: '#d04880',
+  contrato: '#7a8496',
   empresa: '#6a7486',
   emprego: '#4a7ad0',
   lucro: '#2a9a5a',

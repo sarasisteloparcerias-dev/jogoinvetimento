@@ -1,5 +1,5 @@
 import { euros, META_VIAGEM, novoEstadoCidade, patrimonio, poupadoViagem } from './cidade/economia'
-import { META_OBJETIVO } from './crachas'
+import { CRACHAS, CRACHAS_PARA_PASSAR, META_OBJETIVO } from './crachas'
 import { novoJogador } from './data'
 import type { EstadoCidade } from './cidade/tipos'
 import type { Modo } from './gravar'
@@ -26,10 +26,10 @@ export function requisitoNivel(modo: Modo, estado: unknown): Requisito | null {
   if (modo === 'reino') {
     const s = estado as PlayerState
     const objetivo = s.crachas.includes('objetivo')
-    const ok = objetivo && s.crachas.length >= 4
+    const ok = objetivo && s.crachas.length >= CRACHAS_PARA_PASSAR
     return {
       ok,
-      regra: `ganhar o crachá Objetivo (${META_OBJETIVO} moedas no mealheiro) e pelo menos 4 dos 6 crachás`,
+      regra: `ganhar o crachá Objetivo (${META_OBJETIVO} moedas no mealheiro) e pelo menos ${CRACHAS_PARA_PASSAR} dos ${CRACHAS.length} crachás`,
       situacao: ok ? undefined : `Ganhaste ${s.crachas.length} crachás${objetivo ? '' : ' e falta o crachá Objetivo'}.`,
     }
   }

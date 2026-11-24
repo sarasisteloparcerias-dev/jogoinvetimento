@@ -8,9 +8,10 @@ import { iconeCracha } from '../../game/pixel/cenario'
 import { GrowthChart } from '../GrowthChart'
 import type { PropsMenu } from './modo'
 import { Barra, CabecalhoAtivos, corVariacao, Grafico, Linha, LinhaAtivo, pct, Risco, teclaTelefone, Telefone, useTelefone, type AppTelefone, type Opcao } from './telefone'
+import { MapaMini } from './MapaMini'
 import { PixelImg, u } from './ui'
 
-type Ecra = 'inicio' | 'banco' | 'pagamentos' | 'investir' | 'ativo' | 'noticias' | 'objetivo' | 'perfil' | 'grafico'
+type Ecra = 'mapa' | 'inicio' | 'banco' | 'pagamentos' | 'investir' | 'ativo' | 'noticias' | 'objetivo' | 'perfil' | 'grafico'
 
 const APPS: AppTelefone<Ecra>[] = [
   { ecra: 'banco', nome: 'BANCO', cor: '#4a7ad0', simbolo: '€' },
@@ -18,6 +19,7 @@ const APPS: AppTelefone<Ecra>[] = [
   { ecra: 'noticias', nome: 'JORNAL', cor: '#e05050', simbolo: 'N' },
   { ecra: 'objetivo', nome: 'OBJETIVO', cor: '#e0a020', simbolo: '★' },
   { ecra: 'perfil', nome: 'PERFIL', cor: '#8a6ad0', simbolo: '☺' },
+  { ecra: 'mapa', nome: 'MAPA', cor: '#3aa0a0', simbolo: '⌂' },
 ]
 
 const PAI: Partial<Record<Ecra, Ecra>> = { pagamentos: 'banco', ativo: 'investir', grafico: 'perfil' }
@@ -251,6 +253,13 @@ export function Telemovel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoCid
       opcoes = [voltar]
       break
     }
+
+    case 'mapa':
+      titulo = 'MAPA'
+      conteudo = <MapaMini info={ctx.mapa()} altura={92} />
+      opcoes = [voltar]
+      lado = true
+      break
 
     case 'perfil':
       titulo = s.name.toUpperCase()

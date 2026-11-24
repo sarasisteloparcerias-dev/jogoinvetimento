@@ -33,6 +33,8 @@ export interface ModoJogo<S extends EstadoBase> {
   Menu: ComponentType<PropsMenu<S>>
   /** Música de fundo nos mapas exteriores (os interiores têm uma música própria). */
   musica: NomeMusica
+  /** Para onde aponta a seta de destino (id de um interior). Sem isto, usa-se o sítio da próxima conquista. */
+  destino?(s: S): string | null
   /** Dinheiro total (para o som das moedas quando sobe ou desce). */
   dinheiro?(s: S): number
   /** O que acontece no trânsito (só nos modos com estradas). */

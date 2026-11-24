@@ -324,6 +324,7 @@ export function avancarMes(antes: EstadoMercado): { estado: EstadoMercado; notic
 
   const sal = salarioLiquido(s)
   s = mov({ ...s, conta: round2(s.conta + sal.liquido) }, emBaixa(s) ? 'Baixa médica (70%)' : emLayoff(s) ? 'Salário (lay-off, 2/3)' : 'Salário líquido', sal.liquido)
+  if (s.flags.includes('bebe')) s = mov({ ...s, conta: round2(s.conta + 50) }, 'Abono de família', 50)
   if (s.flags.includes('inquilino')) s = mov({ ...s, conta: round2(s.conta + 225) }, 'Renda do quarto (já sem 25% de imposto)', 225)
   const prof = PROFISSOES[s.profissao]
   if (prof.gorjetas > 0) {

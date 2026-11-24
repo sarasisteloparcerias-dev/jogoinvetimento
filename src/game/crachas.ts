@@ -2,6 +2,8 @@ import type { PlayerState } from './types'
 
 export interface Cracha {
   id: string
+  /** Edifício (id do interior) onde se ganha. */
+  onde?: string
   nome: string
   /** O que a criança tem de fazer para o ganhar (aparece no menu OBJETIVO). */
   objetivo: string
@@ -12,6 +14,7 @@ export interface Cracha {
 export const CRACHAS: Cracha[] = [
   {
     id: 'poupanca',
+    onde: 'casa',
     nome: 'Crachá Poupança',
     objetivo: 'Guarda 10 moedas no mealheiro do teu quarto.',
     licao: [
@@ -21,6 +24,7 @@ export const CRACHAS: Cracha[] = [
   },
   {
     id: 'juro',
+    onde: 'casa',
     nome: 'Crachá Juro',
     objetivo: 'Deixa moedas no mealheiro e vai dormir. Vê o que acontece de manhã!',
     licao: [
@@ -30,6 +34,7 @@ export const CRACHAS: Cracha[] = [
   },
   {
     id: 'investidor',
+    onde: 'banco',
     nome: 'Crachá Investidor',
     objetivo: 'Vai ao Banco e fala com a Sofia para investires 10 moedas.',
     licao: [
@@ -49,6 +54,7 @@ export const CRACHAS: Cracha[] = [
   },
   {
     id: 'reserva',
+    onde: 'casa',
     nome: 'Crachá Reserva',
     objetivo: 'Tem moedas no mealheiro para quando acontecer um imprevisto.',
     licao: [
@@ -58,6 +64,7 @@ export const CRACHAS: Cracha[] = [
   },
   {
     id: 'objetivo',
+    onde: 'casa',
     nome: 'Crachá Objetivo',
     objetivo: 'Junta 60 moedas no mealheiro, como a Marta fez para a bicicleta.',
     licao: [
@@ -65,7 +72,30 @@ export const CRACHAS: Cracha[] = [
       'Poupar para um sonho é a melhor maneira de o tornar real.',
     ],
   },
+  {
+    id: 'comparar',
+    onde: 'loja',
+    nome: 'Crachá Comparar',
+    objetivo: 'Na Loja do Sr. Doce, joga a comparar preços e acerta em pelo menos 6.',
+    licao: [
+      'O pacote maior nem sempre é o mais barato! Divide o preço pelo número de coisas.',
+      'Comparar antes de comprar é a forma mais fácil de poupar.',
+    ],
+  },
+  {
+    id: 'ajudar',
+    onde: 'escola',
+    nome: 'Crachá Ajudar',
+    objetivo: 'Na Escola, dá 5 moedas à campanha solidária da Prof. Luz.',
+    licao: [
+      'O dinheiro também serve para ajudar os outros. Chama-se SOLIDARIEDADE.',
+      'Dar um bocadinho do que temos faz bem a quem recebe... e a quem dá!',
+    ],
+  },
 ]
+
+/** Crachás precisos (além do Objetivo) para passar para A Cidade. */
+export const CRACHAS_PARA_PASSAR = 5
 
 export const META_OBJETIVO = 60
 

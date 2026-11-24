@@ -3,6 +3,7 @@ import type { ConquistaCidade } from '../cidade/conquistas'
 export const CONQUISTAS_NEGOCIO: ConquistaCidade[] = [
   {
     id: 'empresa',
+    onde: 'empresa',
     nome: 'Empresa Criada',
     objetivo: 'Abre a tua empresa: escolhe o negócio e como o vais pagar.',
     licao: [
@@ -12,6 +13,7 @@ export const CONQUISTAS_NEGOCIO: ConquistaCidade[] = [
   },
   {
     id: 'emprego',
+    onde: 'empresa',
     nome: 'Criar Emprego',
     objetivo: 'Tem pelo menos 2 pessoas contratadas ao mesmo tempo.',
     licao: [
@@ -39,6 +41,7 @@ export const CONQUISTAS_NEGOCIO: ConquistaCidade[] = [
   },
   {
     id: 'maneio',
+    onde: 'empresa',
     nome: 'Fundo de Maneio',
     objetivo: 'Tem na caixa da empresa o suficiente para 2 meses de custos fixos.',
     licao: ['O fundo de maneio é o fundo de emergência da empresa.', 'Com ele, um mês mau, uma avaria ou um cliente que paga tarde não te obrigam a pedir crédito caro.'],

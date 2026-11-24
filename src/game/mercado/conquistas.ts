@@ -3,6 +3,7 @@ import type { ConquistaCidade } from '../cidade/conquistas'
 export const CONQUISTAS_MERCADO: ConquistaCidade[] = [
   {
     id: 'emergencia',
+    onde: 'banco',
     nome: 'Fundo de Emergência',
     objetivo: 'Junta no depósito o equivalente a 3 meses de despesas fixas.',
     licao: [
@@ -12,6 +13,7 @@ export const CONQUISTAS_MERCADO: ConquistaCidade[] = [
   },
   {
     id: 'irs',
+    onde: 'financas',
     nome: 'IRS Entregue',
     objetivo: 'Entrega o IRS nas Finanças entre abril e junho.',
     licao: [
@@ -51,6 +53,7 @@ export const CONQUISTAS_MERCADO: ConquistaCidade[] = [
   },
   {
     id: 'aumento',
+    onde: 'escritorio',
     nome: 'Aumento',
     objetivo: 'Consegue um aumento de salário (a Carreira conta).',
     licao: ['Investir em ti (formação, empenho) é dos investimentos que mais rende ao longo da vida.', 'Um aumento de 10% hoje soma-se a todos os salários seguintes.'],
@@ -63,12 +66,26 @@ export const CONQUISTAS_MERCADO: ConquistaCidade[] = [
   },
   {
     id: 'carta',
+    onde: 'escola_conducao',
     nome: 'Carta de Condução',
     objetivo: 'Tira a carta na escola de condução (código e exame prático).',
     licao: [
       'Tens carta! Agora a grande pergunta: compensa ter carro?',
       'Um carro custa muito mais do que o preço de compra: seguro, combustível, imposto, manutenção e estacionamento, todos os meses.',
     ],
+  },
+  {
+    id: 'comparar',
+    onde: 'banco',
+    nome: 'Comparador',
+    objetivo: 'No Banco Ponte, pede à Rita para comparar ofertas e acerta em pelo menos 6.',
+    licao: ['Comparar a TAEG e o custo total pode poupar centenas de euros num só crédito.', 'Prestação mais baixa nem sempre quer dizer mais barato: vê sempre o total.'],
+  },
+  {
+    id: 'contrato',
+    nome: 'Letras Pequenas',
+    objetivo: 'Quando mudares de casa, encontra as cláusulas abusivas do contrato.',
+    licao: ['Leste o contrato antes de assinar e não caíste nas cláusulas abusivas!', 'Na dúvida, pede tempo para ler e tira dúvidas antes de assinar. Assinar com pressa é o que o outro lado quer.'],
   },
   {
     id: 'casa',
@@ -86,6 +103,7 @@ export function objetivoMercado(crachas: string[]) {
 export const CONQUISTAS_CASA: ConquistaCidade[] = [
   {
     id: 'chave',
+    onde: 'imobiliaria',
     nome: 'Chave na Mão',
     objetivo: 'Compra a tua casa: escolhe-a na Imobiliária e pede o crédito no Banco Ponte.',
     licao: [
@@ -95,6 +113,7 @@ export const CONQUISTAS_CASA: ConquistaCidade[] = [
   },
   {
     id: 'emergencia',
+    onde: 'banco',
     nome: 'Fundo de Emergência',
     objetivo: 'Tem no depósito 3 meses de despesas fixas.',
     licao: ['Com casa própria, os imprevistos são maiores: obras, eletrodomésticos, condomínio.', 'O fundo de emergência evita que tenhas de pedir crédito caro quando algo avaria.'],
@@ -107,6 +126,7 @@ export const CONQUISTAS_CASA: ConquistaCidade[] = [
   },
   {
     id: 'amortizar',
+    onde: 'banco',
     nome: 'Amortização',
     objetivo: 'Amortiza parte do crédito antes do tempo, no Banco Ponte.',
     licao: ['Amortizar é pagar parte da dívida antes do tempo: pagas menos juros no total.', 'Mas só faz sentido com o fundo de emergência em dia. Dinheiro posto na casa não se tira facilmente.'],
@@ -119,6 +139,7 @@ export const CONQUISTAS_CASA: ConquistaCidade[] = [
   },
   {
     id: 'aumento',
+    onde: 'escritorio',
     nome: 'Aumento',
     objetivo: 'Consegue um aumento de salário (a Carreira conta).',
     licao: ['Com um crédito de 30 anos, cada aumento de salário dá mais folga ao orçamento.', 'Investir em ti continua a ser dos melhores investimentos.'],

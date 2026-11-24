@@ -137,6 +137,8 @@ export default function App() {
     situacao: requisito?.situacao,
     onProximo: () => proximoNivel(modo, estado),
     onRepetir: () => repetir(modo, estado),
+    modo,
+    estado,
   }
 
   return (

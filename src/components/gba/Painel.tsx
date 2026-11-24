@@ -32,9 +32,10 @@ import { iconeCracha } from '../../game/pixel/cenario'
 import { GrowthChart } from '../GrowthChart'
 import type { PropsMenu } from './modo'
 import { Barra, CabecalhoAtivos, corVariacao, Grafico, Linha, LinhaAtivo, pct, Risco, teclaTelefone, Telefone, useTelefone, type AppTelefone, type Opcao } from './telefone'
+import { MapaMini } from './MapaMini'
 import { PixelImg, u } from './ui'
 
-type Ecra = 'inicio' | 'banco' | 'debitos' | 'investir' | 'ativo' | 'mes' | 'jornal' | 'metas' | 'perfil' | 'grafico' | 'empresa'
+type Ecra = 'mapa' | 'inicio' | 'banco' | 'debitos' | 'investir' | 'ativo' | 'mes' | 'jornal' | 'metas' | 'perfil' | 'grafico' | 'empresa'
 
 const APPS: AppTelefone<Ecra>[] = [
   { ecra: 'banco', nome: 'BANCO', cor: '#4a7ad0', simbolo: '€' },
@@ -43,6 +44,7 @@ const APPS: AppTelefone<Ecra>[] = [
   { ecra: 'jornal', nome: 'JORNAL', cor: '#e05050', simbolo: 'N' },
   { ecra: 'metas', nome: 'METAS', cor: '#e0a020', simbolo: '★' },
   { ecra: 'perfil', nome: 'PERFIL', cor: '#8a6ad0', simbolo: '☺' },
+  { ecra: 'mapa', nome: 'MAPA', cor: '#3aa0a0', simbolo: '⌂' },
 ]
 
 /** N'O Negócio, a app da empresa substitui o jornal (as notícias da empresa chegam todas as manhãs). */
@@ -387,6 +389,13 @@ export function Painel({ estado: s, ctx, onFechar, ref }: PropsMenu<EstadoMercad
       opcoes = [voltar]
       break
     }
+
+    case 'mapa':
+      titulo = 'MAPA'
+      conteudo = <MapaMini info={ctx.mapa()} altura={92} />
+      opcoes = [voltar]
+      lado = true
+      break
 
     case 'perfil':
       titulo = s.name.toUpperCase()

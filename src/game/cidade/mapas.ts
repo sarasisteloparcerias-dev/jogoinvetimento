@@ -124,6 +124,7 @@ export const CIDADE: MapaDef = {
     { x: 20, y: 23, texto: 'CAMPO DE JOGOS. Aberto a todos, gratuito.' },
   ],
   npcs: [
+    { id: 'agente', nome: 'Agente Pereira', avatar: { pele: '#c68642', cabelo: '#2d1b0e', roupa: '#1e3a8a' }, x: 20, y: 8, dir: 'down', script: 'agente' },
     { id: 'rui', nome: 'Rui', avatar: AVATARES_CIDADE.rui, x: 8, y: 26, dir: 'right', script: 'amigos' },
     { id: 'ines', nome: 'Inês', avatar: AVATARES_CIDADE.ines, x: 10, y: 26, dir: 'left', script: 'amigos' },
     { id: 'duarte', nome: 'Duarte', avatar: AVATARES_CIDADE.duarte, x: 23, y: 24, dir: 'right', script: 'duarte' },

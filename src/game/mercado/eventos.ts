@@ -335,7 +335,33 @@ export const EVENTOS_CASA: EventoMercado[] = [
           return { estado: r.estado, texto: `Arranjado. Quem compra casa tem de contar com obras.${r.nota}` }
         },
       },
+      {
+        label: 'TENTAR SOZINHO',
+        aplicar: (s) => ({ estado: flag(s, `canos_diy_${s.mes}`), texto: 'Arregaças as mangas e vais tu tapar as fugas. Se correr bem, só pagas o material!' }),
+      },
       { label: 'ADIAR', aplicar: (s) => ({ estado: stats(s, { saude: -6 }), texto: 'Adiar obras costuma sair mais caro. Saúde -6.' }) },
+    ],
+  },
+  {
+    id: 'bebe',
+    condicao: (s) => s.mes >= 6,
+    titulo: 'Vem aí um bebé na família!',
+    texto: () => 'Grande notícia: vais ter um bebé! Um filho muda tudo, também o orçamento. Quem cuida do bebé quando voltares ao trabalho?',
+    opcoes: [
+      {
+        label: 'CRECHE (280€/MÊS)',
+        aplicar: (s) => ({
+          estado: stats({ ...s, flags: [...s.flags, 'bebe'], pagamentos: [...s.pagamentos, { id: 'creche', nome: 'Creche', valor: 280, restam: null, cancelavel: true }] }, { relacoes: 8, saude: -3 }),
+          texto: 'Creche escolhida. Recebes também o abono de família (50€/mês) e, no IRS, cada filho dá direito a uma dedução. Mas fraldas, roupa e creche pesam no orçamento!',
+        }),
+      },
+      {
+        label: 'OS AVÓS AJUDAM',
+        aplicar: (s) => ({
+          estado: stats({ ...s, flags: [...s.flags, 'bebe'], pagamentos: [...s.pagamentos, { id: 'bebe', nome: 'Despesas do bebé', valor: 120, restam: null, cancelavel: false }] }, { relacoes: 10, saude: -3 }),
+          texto: 'Os avós ficam com o bebé: poupas na creche, mas fraldas, leite e roupa custam uns 120€ por mês. Recebes o abono de família (50€/mês).',
+        }),
+      },
     ],
   },
   {

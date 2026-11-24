@@ -336,9 +336,14 @@ async function turno(ctx: Ctx) {
   const n = neg(ctx)
   const def = NEGOCIOS[n.tipo]
   if (n.turnos >= MAX_TURNOS_DONO) return ctx.say(`Já fizeste ${MAX_TURNOS_DONO} turnos extra este mês. Também precisas de descansar (e de gerir)!`)
-  const r = await ctx.ask(`Fazer um turno extra ao balcão? Serves mais uns ${BONUS_TURNO} ${def.cliente} este mês. (${n.turnos}/${MAX_TURNOS_DONO})`, ['SIM', 'NÃO'], undefined, 1)
-  if (r !== 0) return
-  const jogo = await ctx.jogar(def.minijogo)
+  const r = await ctx.ask(
+    `Fazer um turno extra? Serves mais uns ${BONUS_TURNO} ${def.cliente} este mês. (${n.turnos}/${MAX_TURNOS_DONO})`,
+    [n.tipo === 'entregas' ? 'FAZER ENTREGAS' : 'SERVIR AO BALCÃO', 'FICAR NA CAIXA (TROCOS)', 'AGORA NÃO'],
+    undefined,
+    2,
+  )
+  if (r === 2) return
+  const jogo = await ctx.jogar(r === 0 ? def.minijogo : 'troco_euros')
   mudarN(ctx, (x) => ({ ...x, turnos: x.turnos + 1 }))
   stats(ctx, { saude: -2, relacoes: -1 })
   await ctx.say([`${jogo.texto}.`, 'Turno feito! A equipa e os clientes gostam de ver o dono ao balcão (a reputação sobe no fim do mês). Mas cansa: Saúde -2.'])

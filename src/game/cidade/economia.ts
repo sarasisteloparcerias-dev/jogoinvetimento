@@ -156,8 +156,18 @@ export function ativosNaCarteira(s: EstadoCidade) {
   return IDS.filter((id) => valorAtivo(s, id) >= 1)
 }
 
+/** Com a bicicleta usada já não se paga o passe (só uma pequena manutenção). */
+export const POUPANCA_BICICLETA = 2.5
+export const PRECO_BICICLETA = 45
+export const MESADA_EXTRA = 3
+
 export function custoDespesas(s: EstadoCidade) {
-  return round2(DESPESAS_BASE * s.indicePrecos)
+  return round2((DESPESAS_BASE - (s.flags.includes('bicicleta') ? POUPANCA_BICICLETA : 0)) * s.indicePrecos)
+}
+
+/** A mesada, mais o extra combinado com os pais (arrumar o quarto). */
+export function mesada(s: EstadoCidade) {
+  return MESADA + (s.flags.includes('mesada_extra') ? MESADA_EXTRA : 0)
 }
 
 export function novoEstadoCidade(name: string, avatar: AvatarConfig): EstadoCidade {
@@ -246,10 +256,10 @@ function escolherNoticia(s: EstadoCidade): NoticiaDef {
 
 /** Uma noite: mesada, despesas, comissões, prestações, juro, inflação e o mercado da semana. */
 export function avancarSemanaCidade(antes: EstadoCidade): { estado: EstadoCidade; noticia: Noticia } {
-  let s: EstadoCidade = { ...antes, semana: antes.semana + 1, turnos: 0, movimentos: [{ texto: 'Mesada', valor: MESADA }] }
-  s.dinheiro = round2(s.dinheiro + MESADA)
+  let s: EstadoCidade = { ...antes, semana: antes.semana + 1, turnos: 0, movimentos: [{ texto: 'Mesada', valor: mesada(antes) }] }
+  s.dinheiro = round2(s.dinheiro + mesada(antes))
 
-  const despesas = cobrar(s, custoDespesas(s), 'Lanche e passe')
+  const despesas = cobrar(s, custoDespesas(s), s.flags.includes('bicicleta') ? 'Lanche e bicicleta' : 'Lanche e passe')
   s = despesas.s
   if (despesas.falta > 0) s = { ...s, stats: { ...s.stats, saude: clamp(s.stats.saude - 4) }, flags: [...s.flags, `sem_lanche_${s.semana}`] }
 

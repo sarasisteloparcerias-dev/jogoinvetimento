@@ -93,7 +93,7 @@ export function Telefone<E extends string>(p: PropsTelefone<E>) {
   const sel = Math.min(p.indice, p.opcoes.length - 1)
   const moldura = p.moldura ?? '#1c1f2b'
   const n = p.apps.length
-  const larguraApp = n > 5 ? 32 : 38
+  const larguraApp = n > 6 ? 28 : n > 5 ? 32 : 38
   return (
     <div data-testid={p.testid} style={{ position: 'absolute', inset: u(3), background: moldura, borderRadius: u(10), padding: `${u(5)} ${u(12)}`, boxShadow: `0 0 0 ${u(1)} #000` }}>
       <span style={{ position: 'absolute', left: u(4), top: '50%', width: u(3), height: u(3), borderRadius: '50%', background: '#3a4058', transform: 'translateY(-50%)' }} />
@@ -132,7 +132,7 @@ export function Telefone<E extends string>(p: PropsTelefone<E>) {
                   >
                     {a.simbolo}
                   </div>
-                  <div style={{ fontSize: u(4.5), marginTop: u(3), color: i === sel ? '#e04848' : '#3a4262' }}>{a.nome}</div>
+                  <div style={{ fontSize: u(n > 6 ? 3.8 : 4.5), marginTop: u(3), color: i === sel ? '#e04848' : '#3a4262' }}>{a.nome}</div>
                 </div>
               ))}
             </div>

@@ -253,6 +253,30 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     )
   },
 
+  async agente(ctx) {
+    const quem = 'Agente Pereira'
+    const r = await ctx.ask('Bom dia! Sou o Agente Pereira e ando a vigiar as passadeiras. Alguma dúvida?', ['COMO ATRAVESSAR?', 'E AS MULTAS?', 'ADEUS'], quem, 2)
+    if (r === 0) {
+      return ctx.say(
+        [
+          'Atravessa SEMPRE nas passadeiras (as riscas brancas). Aqui, os carros só param lá.',
+          'Antes de atravessar: pára, olha para os dois lados e só depois avança. E nada de telemóvel na mão!',
+        ],
+        quem,
+      )
+    }
+    if (r === 1) {
+      return ctx.say(
+        [
+          'Os peões também podem levar multa se atravessarem fora da passadeira. Da primeira vez, só aviso.',
+          'Uma multa é dinheiro que se perde sem ganhar nada em troca. A forma mais barata de a evitar é cumprir as regras!',
+        ],
+        quem,
+      )
+    }
+    await ctx.say('Boa viagem, e cuidado na estrada!', quem)
+  },
+
   async chefe(ctx) {
     if (ctx.estado().profissao === 'escritorio') return diaDeTrabalho(ctx)
     await ctx.say('Não trabalhas cá, mas se um dia quiseres mudar, temos vagas. Procura no computador do teu quarto.', 'Eng.ª Sofia')
@@ -290,8 +314,19 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
       return ctx.cracha('irs')
     }
     if (tem(ctx, `irs_${ano}`)) return ctx.say('O seu IRS deste ano já está entregue. Até para o ano!', quem)
-    const r = await ctx.ask('O IRS entrega-se entre abril e junho. Quer saber como funciona?', ['SIM', 'NÃO'], quem, 1)
+    const r = await ctx.ask('Em que posso ajudar?', ['COMO FUNCIONA O IRS?', 'RECIBOS VERDES?', 'NADA'], quem, 2)
     if (r === 0) await explicarIrs(ctx, quem)
+    if (r === 1) {
+      await ctx.say(
+        [
+          'Quem trabalha por conta própria (freelancer) abre atividade nas Finanças e passa um RECIBO VERDE por cada trabalho.',
+          'Muitas vezes o cliente retém logo uma parte para o IRS (cerca de 25%). E não há subsídios de férias nem de Natal.',
+          'Também se desconta para a Segurança Social, de 3 em 3 meses, sobre o que se ganhou. No primeiro ano de atividade há isenção.',
+          'Conselho: põe de lado uma parte de cada pagamento para impostos e Segurança Social. Assim não há sustos!',
+        ],
+        quem,
+      )
+    }
   },
 
   async carla(ctx) {
@@ -312,6 +347,15 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
       const ok = await ctx.ask(`Para arrendar pede-se uma caução de 2 rendas: ${euros(caucao)} (devolvida no fim, se tudo estiver bem). Avançar?`, ['SIM', 'NÃO'], quem, 1)
       if (ok !== 0) return ctx.say('Pensa com calma. Mudar de casa é uma decisão grande.', quem)
       if (ctx.estado().conta < caucao) return ctx.say(`Precisas de ${euros(caucao)} na conta para a caução. Junta primeiro!`, quem)
+      await ctx.say('Antes de assinar, lê o contrato com atenção. Há senhorios que metem cláusulas abusivas nas letras pequenas!', quem)
+      const jogo = await ctx.jogar('contrato')
+      if (jogo.pontos >= 6) {
+        await ctx.say([`${jogo.texto}.`, 'Riscaste as cláusulas abusivas antes de assinar. O senhorio teve de as tirar!'], quem)
+        await ctx.cracha('contrato')
+      } else {
+        mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - 200) }))
+        await ctx.say([`${jogo.texto}.`, 'Assinaste sem reparar numa "taxa de reserva" de 200€ que não é devolvida. Lê sempre tudo antes de assinar!'], quem)
+      }
     }
     mudar(ctx, (x) => ({ ...x, casa: nova, conta: round2(x.conta - caucao), flags: [...x.flags, `caucao_${nova}`] }))
     if (nova === 't1') stats(ctx, { saude: 3, relacoes: 2 })
@@ -465,8 +509,16 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async rita(ctx) {
     const quem = 'Rita'
     const s = ctx.estado()
-    const opcoes = [s.cartaoCredito ? 'CANCELAR CARTÃO DE CRÉDITO' : 'PEDIR CARTÃO DE CRÉDITO', 'CRÉDITO PESSOAL?', 'DEPÓSITO A PRAZO?', 'ADEUS']
-    const r = await ctx.ask(`Olá, ${s.name}! Em que posso ajudar?`, opcoes, quem, 3)
+    const opcoes = [s.cartaoCredito ? 'CANCELAR CARTÃO DE CRÉDITO' : 'PEDIR CARTÃO DE CRÉDITO', 'CRÉDITO PESSOAL?', 'DEPÓSITO A PRAZO?', 'COMPARAR OFERTAS', 'ADEUS']
+    const r = await ctx.ask(`Olá, ${s.name}! Em que posso ajudar?`, opcoes, quem, 4)
+    if (r === 3) {
+      await ctx.say('Os bancos fazem propostas diferentes para a mesma coisa. Vamos ver se sabes escolher a mais barata?', quem)
+      const jogo = await ctx.jogar('comparar_adulto')
+      stats(ctx, { carreira: jogo.pontos >= 6 ? 2 : 0 })
+      await ctx.say([`${jogo.texto}.`, 'Regras de ouro: compara a TAEG, o custo TOTAL e sempre no mesmo período (mês com mês, ano com ano).'], quem)
+      if (jogo.pontos >= 6) await ctx.cracha('comparar')
+      return
+    }
     if (r === 0) {
       if (s.cartaoCredito) {
         if (s.divida > 0) return ctx.say(`Primeiro tens de pagar a dívida do cartão: ${euros(s.divida)}.`, quem)
@@ -877,9 +929,25 @@ export async function manhaMercado(ctx: Ctx, antes: EstadoMercado, depois: Estad
     ctx.definir({ ...estado, flags: [...estado.flags, `ev_${ev.id}`] })
     await ctx.say(texto)
     if (op.conquista) await ctx.cracha(op.conquista)
+    if (ev.id === 'canos' && tem(ctx, `canos_diy_${ctx.estado().mes}`)) await canosSozinho(ctx)
     if (ev.id === 'avaliacao' && ctx.estado().flags.includes('aumento')) await ctx.cracha('aumento')
   }
   await verificarConquistasM(ctx)
+}
+
+/** Obras feitas por nós: se correrem bem, só se paga o material; se correrem mal, chama-se o canalizador na mesma (e a obra fica maior). */
+async function canosSozinho(ctx: Ctx) {
+  const total = ctx.estado().hipoteca?.casa === 't0' ? 3500 : 450
+  const jogo = await ctx.jogar('canos')
+  const bem = jogo.pontos >= 12
+  const custo = round2(bem ? total * 0.2 : total * 1.15)
+  mudar(ctx, (x) => ({ ...x, conta: round2(x.conta - custo) }))
+  stats(ctx, { saude: bem ? 0 : -3 })
+  await ctx.say(
+    bem
+      ? [`${jogo.texto}. Conseguiste!`, `Só pagaste o material: ${euros(custo)}, em vez de ${euros(total)}. Aprender a fazer pequenas reparações poupa muito dinheiro.`]
+      : [`${jogo.texto}.`, `Não chegou: tiveste de chamar o canalizador e a obra ficou maior. Pagaste ${euros(custo)}. Para obras grandes, às vezes compensa chamar logo um profissional.`],
+  )
 }
 
 async function licoes(ctx: Ctx, antes: EstadoMercado, depois: EstadoMercado) {
@@ -984,12 +1052,42 @@ export async function tutorialCasa(ctx: Ctx) {
   comFlag(ctx, 'tutorial')
 }
 
+/** Vender a casa: comissão da imobiliária, pagar o resto do crédito (com comissão) e, se houver ganho, mais-valias. */
+async function venderCasa(ctx: Ctx) {
+  const quem = 'Carla'
+  const s = ctx.estado()
+  const h = s.hipoteca!
+  const comissao = round2(h.valorCasa * 0.05 * 1.23)
+  const amortizacao = round2(h.divida * (h.taxa === 'fixa' ? 0.02 : 0.005))
+  const compra = casaVenda(h.casa)?.preco ?? h.valorCasa
+  const maisValia = Math.max(0, h.valorCasa - compra)
+  const recebes = round2(h.valorCasa - comissao - h.divida - amortizacao)
+  await ctx.say(
+    [
+      `Vender por ${euros(h.valorCasa)}: a imobiliária cobra 5% + IVA (${euros(comissao)}).`,
+      `Com o dinheiro, pagas ao banco o que falta do crédito (${euros(h.divida)}) e a comissão por pagar antes do tempo (${euros(amortizacao)}).`,
+      maisValia > 0
+        ? `Vendes por mais ${euros(maisValia)} do que compraste: é uma MAIS-VALIA. Se não reinvestires noutra casa para viveres, paga IRS sobre metade dela.`
+        : 'Não há mais-valia: vendes por pouco mais do que compraste, por isso não há imposto.',
+      `Ficas com ${euros(recebes)}, mas voltas a precisar de casa: arrendar um quarto. Comprar e vender casas custa muito dinheiro!`,
+    ],
+    quem,
+  )
+  const r = await ctx.ask('Vender mesmo?', ['VENDER', 'AFINAL NÃO'], quem, 1)
+  if (r !== 0) return ctx.say('Boa decisão pensar duas vezes. Mudar de casa tem custos altos.', quem)
+  mudar(ctx, (x) => ({ ...x, conta: round2(x.conta + recebes), hipoteca: undefined, casaEscolhida: undefined, casa: 'quarto', flags: [...x.flags, 'vendeu_casa'] }))
+  await ctx.say(`Casa vendida! ${euros(recebes)} na tua conta. Agora vives num quarto arrendado.`, quem)
+}
+
 async function carlaCasa(ctx: Ctx) {
   const quem = 'Carla'
   const s = ctx.estado()
   if (s.hipoteca) {
     const h = s.hipoteca
-    return ctx.say([`A tua casa já vale uns ${euros(h.valorCasa)}.`, `Ainda deves ao banco ${euros(h.divida)}. O que é teu, de facto, é a diferença: ${euros(h.valorCasa - h.divida)}.`], quem)
+    await ctx.say([`A tua casa já vale uns ${euros(h.valorCasa)}.`, `Ainda deves ao banco ${euros(h.divida)}. O que é teu, de facto, é a diferença: ${euros(h.valorCasa - h.divida)}.`], quem)
+    const r = await ctx.ask('Queres pôr a casa à venda?', ['VENDER A CASA', 'NÃO'], quem, 1)
+    if (r === 0) await venderCasa(ctx)
+    return
   }
   await ctx.say('Tenho três casas que podem interessar-te:', quem)
   for (;;) {

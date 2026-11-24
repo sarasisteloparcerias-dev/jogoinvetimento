@@ -22,6 +22,10 @@ import {
   SEMANAS,
   valorAtivo,
   valorCarteira,
+  mesada,
+  MESADA_EXTRA,
+  POUPANCA_BICICLETA,
+  PRECO_BICICLETA,
 } from './economia'
 import { escolherEventoCidade } from './eventos'
 import type { AtivoId, EstadoCidade, Noticia } from './tipos'
@@ -228,18 +232,47 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async mae(ctx) {
     const s = ctx.estado()
     await ctx.say(`Olá, ${s.name}! ${DICAS_MAE[s.semana % DICAS_MAE.length]}`, MAE)
-    if (!s.conta) return ctx.say('Ainda não abriste conta? O Banco Ponte é o prédio azul, ao lado da praça.', MAE)
-    if (!s.emprego) {
-      return ctx.say(
+    if (!s.conta) await ctx.say('Ainda não abriste conta? O Banco Ponte é o prédio azul, ao lado da praça.', MAE)
+    else if (!s.emprego) {
+      await ctx.say(
         [
           'Há vários part-times para a tua idade. Escolhe o que combina contigo:',
           'o Café Grão Dourado, entregas de bicicleta (o Marco, ao pé do cruzamento), babysitting (a Sra. Helena, no parque) ou explicações (o Prof. Nuno, se tiveres boas notas).',
         ],
         MAE,
       )
+    } else {
+      const obj = objetivoCidade(s.crachas)
+      if (obj) await ctx.say(`Próximo desafio: ${obj.objetivo}`, MAE)
     }
-    const obj = objetivoCidade(s.crachas)
-    if (obj) await ctx.say(`Próximo desafio: ${obj.objetivo}`, MAE)
+    const opcoes = [tem(ctx, 'mesada_extra') ? 'A MESADA' : 'NEGOCIAR A MESADA', tem(ctx, 'bicicleta') ? 'A BICICLETA' : 'BICICLETA OU PASSE?', 'ADEUS']
+    const r = await ctx.ask('Queres falar de alguma coisa?', opcoes, MAE, 2)
+    if (r === 0) return negociarMesada(ctx)
+    if (r === 1) return bicicletaOuPasse(ctx)
+  },
+
+  async agente(ctx) {
+    const quem = 'Agente Pereira'
+    const r = await ctx.ask('Bom dia! Sou o Agente Pereira e ando a vigiar as passadeiras. Alguma dúvida?', ['COMO ATRAVESSAR?', 'E AS MULTAS?', 'ADEUS'], quem, 2)
+    if (r === 0) {
+      return ctx.say(
+        [
+          'Atravessa SEMPRE nas passadeiras (as riscas brancas). Aqui, os carros só param lá.',
+          'Antes de atravessar: pára, olha para os dois lados e só depois avança. E nada de telemóvel na mão!',
+        ],
+        quem,
+      )
+    }
+    if (r === 1) {
+      return ctx.say(
+        [
+          'Os peões também podem levar multa se atravessarem fora da passadeira. Da primeira vez, só aviso.',
+          'Uma multa é dinheiro que se perde sem ganhar nada em troca. A forma mais barata de a evitar é cumprir as regras!',
+        ],
+        quem,
+      )
+    }
+    await ctx.say('Boa viagem, e cuidado na estrada!', quem)
   },
 
   async clara(ctx) {
@@ -420,7 +453,15 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
       ['Olá, malta! Estou a gravar para os meus 200 mil seguidores!', 'Eu fiquei rico com a LuaCoin! Usa o meu código KIKO10 e compra já!'],
       quem,
     )
-    const r = await ctx.ask('O que pensas disto?', ['PAGAM-TE PARA DIZERES?', 'VOU COMPRAR!', 'IGNORAR'], undefined, 2)
+    const r = await ctx.ask('O que pensas disto?', ['PAGAM-TE PARA DIZERES?', 'VOU COMPRAR!', 'MOSTRA O TEU FEED', 'IGNORAR'], undefined, 3)
+    if (r === 2) {
+      await ctx.say('Desafio-te: no meu feed, descobre o que é publicidade e o que não é!', quem)
+      const jogo = await ctx.jogar('anuncios')
+      stats(ctx, { educacao: jogo.pontos >= 8 ? 3 : 1 })
+      await ctx.say(`${jogo.texto}. ${jogo.pontos >= 8 ? 'Uau, não te escapa nada!' : 'Algumas enganaram-te... é esse o objetivo delas!'}`, quem)
+      if (jogo.pontos >= 8) await ctx.cracha('publicidade')
+      return
+    }
     if (r === 0) {
       await ctx.say('Hã... bem... a app paga-me por cada pessoa que use o código. Mas é um ótimo negócio, a sério!', quem)
       stats(ctx, { educacao: 2 })
@@ -456,6 +497,46 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   async cliente_loja(ctx) {
     await ctx.say('Vim só ver... e já levo três sacos. Nem sei bem o que comprei!', 'Cliente')
   },
+}
+
+async function negociarMesada(ctx: Ctx) {
+  const s = ctx.estado()
+  if (tem(ctx, 'mesada_extra')) return ctx.say(`Combinado é combinado: arrumas o quarto e recebes ${euros(mesada(s))} por semana.`, MAE)
+  if (tem(ctx, `mesada_tentou_${s.semana}`)) return ctx.say('Já tentaste esta semana. Para a semana falamos outra vez!', MAE)
+  await ctx.say(
+    [
+      'Queres mais mesada? Em casa, como no trabalho, um aumento negoceia-se: tens de mostrar o que dás em troca.',
+      `Proposta: arrumas o teu quarto todas as semanas e eu dou-te mais ${euros(MESADA_EXTRA)}. Mostra-me como arrumas!`,
+    ],
+    MAE,
+  )
+  comFlag(ctx, `mesada_tentou_${s.semana}`)
+  const jogo = await ctx.jogar('arrumar')
+  if (jogo.pontos >= 12) {
+    comFlag(ctx, 'mesada_extra')
+    stats(ctx, { relacoes: 3 })
+    return ctx.say([`${jogo.texto}. Impecável!`, `Negócio fechado: a tua mesada passa para ${euros(mesada(ctx.estado()))} por semana. Relações +3.`], MAE)
+  }
+  await ctx.say([`${jogo.texto}.`, 'Ainda ficou muita coisa fora do sítio... Tenta outra vez para a semana. Negociar também é saber ouvir um "ainda não".'], MAE)
+}
+
+async function bicicletaOuPasse(ctx: Ctx) {
+  const s = ctx.estado()
+  if (tem(ctx, 'bicicleta')) return ctx.say(`Com a bicicleta poupas uns ${euros(POUPANCA_BICICLETA)} por semana no passe e ainda fazes exercício!`, MAE)
+  const semanas = Math.ceil(PRECO_BICICLETA / POUPANCA_BICICLETA)
+  await ctx.say(
+    [
+      `O teu primo vende a bicicleta dele por ${euros(PRECO_BICICLETA)}. Com ela, deixas de precisar do passe: poupas uns ${euros(POUPANCA_BICICLETA)} por semana.`,
+      `Faz as contas: ao fim de ${semanas} semanas, a bicicleta já se pagou. Daí para a frente é tudo poupança. Mas paga-se tudo agora, de uma vez.`,
+    ],
+    MAE,
+  )
+  const r = await ctx.ask(`Comprar a bicicleta por ${euros(PRECO_BICICLETA)}?`, ['COMPRAR', 'FICO COM O PASSE'], MAE, 1)
+  if (r !== 0) return ctx.say('Também está bem. O passe dá jeito quando chove!', MAE)
+  if (s.dinheiro < PRECO_BICICLETA) return ctx.say(`Precisas de ${euros(PRECO_BICICLETA)} na conta e só tens ${euros(s.dinheiro)}.`, MAE)
+  mudar(ctx, (x) => ({ ...x, dinheiro: round2(x.dinheiro - PRECO_BICICLETA), flags: [...x.flags, 'bicicleta'] }))
+  stats(ctx, { saude: 5 })
+  await ctx.say(['Bicicleta tua! Saúde +5.', 'Gastar agora para poupar todas as semanas chama-se investimento. Mas só compensa se a usares mesmo!'], MAE)
 }
 
 async function loja(ctx: Ctx, id: string) {
@@ -503,9 +584,9 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
     const trabalho = s.emprego ? MAX_TURNOS * (TRABALHOS_CIDADE[s.emprego].base + 2) : 0
     await ctx.say([
       'Abres a folha de cálculo do teu ORÇAMENTO semanal:',
-      `ENTRA: mesada ${euros(MESADA)}${s.emprego ? ` + ${TRABALHOS_CIDADE[s.emprego].curto.toLowerCase()} até ${euros(trabalho)}` : ''}.`,
+      `ENTRA: mesada ${euros(mesada(s))}${s.emprego ? ` + ${TRABALHOS_CIDADE[s.emprego].curto.toLowerCase()} até ${euros(trabalho)}` : ''}.`,
       `SAI (fixo): ${euros(fixos)} (lanche, passe${s.conta === 'standard' ? ', comissão' : ''}${s.pagamentos.length ? ', pagamentos automáticos' : ''}).`,
-      `SOBRA até ${euros(MESADA + trabalho - fixos)} por semana para poupar, investir ou gastar.`,
+      `SOBRA até ${euros(mesada(s) + trabalho - fixos)} por semana para poupar, investir ou gastar.`,
     ])
   },
 

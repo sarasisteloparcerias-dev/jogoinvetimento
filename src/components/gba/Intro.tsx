@@ -24,7 +24,7 @@ const TEXTOS = {
     ],
     fim: (n: string) => [
       `${n}! Que nome fantástico!`,
-      'A tua aventura dura 20 semanas. Ganha os crachás do dinheiro: com o crachá Objetivo e pelo menos 4 crachás, no fim passas para A Cidade!',
+      'A tua aventura dura 20 semanas. Ganha os crachás do dinheiro: com o crachá Objetivo e pelo menos 5 crachás, no fim passas para A Cidade!',
       'Lembra-te: carrega em A para falar com as pessoas, e em START para abrir o menu. Até já!',
     ],
   },

@@ -164,6 +164,8 @@ export class Motor {
   onForaPassadeira: () => void = () => {}
   carros: Carro[] = []
   private atropelado = false
+  /** Para onde aponta a seta de destino (tile no mapa atual), ou nada. */
+  destino: { x: number; y: number; texto: string } | null = null
 
   private defs: Record<string, MapaDef>
   private sprites: FabricaSprites
@@ -497,9 +499,48 @@ export class Motor {
       ctx.drawImage(img, x, y)
     }
 
+    if (this.destino && !this.bloqueado) this.desenharSeta(ctx, this.destino, cx, cy)
+
     if (this.fade > 0) {
       ctx.fillStyle = `rgba(0,0,0,${this.fade})`
       ctx.fillRect(0, 0, ECRA_W, ECRA_H)
     }
+  }
+
+  /** Seta a saltitar por cima do destino, ou na borda do ecrã a apontar para ele. */
+  private desenharSeta(ctx: CanvasRenderingContext2D, d: { x: number; y: number; texto: string }, cx: number, cy: number) {
+    const tx = d.x * TILE + 8 - cx
+    const ty = d.y * TILE - cy
+    const salto = Math.round(Math.sin(this.agora / 160) * 2)
+    const dentro = tx > 8 && tx < ECRA_W - 8 && ty > 14 && ty < ECRA_H - 4
+    ctx.save()
+    if (dentro) {
+      ctx.translate(Math.round(tx), Math.round(ty) - 10 + salto)
+      ctx.rotate(Math.PI / 2)
+    } else {
+      const px = ECRA_W / 2
+      const py = ECRA_H / 2
+      const ang = Math.atan2(ty - py, tx - px)
+      const m = 12
+      const k = Math.min((ECRA_W / 2 - m) / Math.max(0.001, Math.abs(Math.cos(ang))), (ECRA_H / 2 - m) / Math.max(0.001, Math.abs(Math.sin(ang))))
+      ctx.translate(Math.round(px + Math.cos(ang) * (k - Math.abs(salto))), Math.round(py + Math.sin(ang) * (k - Math.abs(salto))))
+      ctx.rotate(ang)
+    }
+    // triângulo com contorno
+    ctx.fillStyle = '#283040'
+    ctx.beginPath()
+    ctx.moveTo(8, 0)
+    ctx.lineTo(-6, -7)
+    ctx.lineTo(-6, 7)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = '#f8e040'
+    ctx.beginPath()
+    ctx.moveTo(5, 0)
+    ctx.lineTo(-4, -4.5)
+    ctx.lineTo(-4, 4.5)
+    ctx.closePath()
+    ctx.fill()
+    ctx.restore()
   }
 }

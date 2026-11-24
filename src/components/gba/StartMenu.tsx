@@ -1,16 +1,18 @@
 import { useImperativeHandle, useState } from 'react'
-import { CRACHAS, objetivoAtual } from '../../game/crachas'
+import { CRACHAS, CRACHAS_PARA_PASSAR, objetivoAtual } from '../../game/crachas'
 import { iconeCracha } from '../../game/pixel/cenario'
 import { fmt } from '../../game/world/scripts'
 import type { PlayerState } from '../../game/types'
+import type { InfoMapa } from '../../game/modo'
 import { GrowthChart } from '../GrowthChart'
+import { MapaMini } from './MapaMini'
 import type { PropsMenu } from './modo'
 import { Cursor, PixelImg, SpriteView, u } from './ui'
 
-export const OPCOES_MENU = ['MOCHILA', 'FICHA', 'CRACHÁS', 'OBJETIVO', 'GRÁFICO', 'FECHAR'] as const
+export const OPCOES_MENU = ['MOCHILA', 'FICHA', 'CRACHÁS', 'OBJETIVO', 'MAPA', 'GRÁFICO', 'FECHAR'] as const
 type Aba = (typeof OPCOES_MENU)[number]
 
-export function StartMenu({ estado, onFechar, ref }: PropsMenu<PlayerState>) {
+export function StartMenu({ estado, ctx, onFechar, ref }: PropsMenu<PlayerState>) {
   const [indice, setIndice] = useState(0)
   const [aba, setAba] = useState<Aba | null>(null)
 
@@ -44,7 +46,7 @@ export function StartMenu({ estado, onFechar, ref }: PropsMenu<PlayerState>) {
           </button>
         </div>
         <div style={{ flex: 1, minHeight: 0, fontSize: u(8), lineHeight: u(11), overflow: 'auto' }}>
-          <Conteudo aba={aba} estado={estado} />
+          <Conteudo aba={aba} estado={estado} info={aba === 'MAPA' ? ctx.mapa() : null} />
         </div>
       </div>
     )
@@ -87,7 +89,7 @@ function Barra({ nome, valor, cor }: { nome: string; valor: number; cor: string 
   )
 }
 
-function Conteudo({ aba, estado: s }: { aba: Aba; estado: PlayerState }) {
+function Conteudo({ aba, estado: s, info }: { aba: Aba; estado: PlayerState; info: InfoMapa | null }) {
   switch (aba) {
     case 'MOCHILA': {
       const risco = s.investimento.risk === 'alto' ? 'alto risco' : 'baixo risco'
@@ -125,7 +127,7 @@ function Conteudo({ aba, estado: s }: { aba: Aba; estado: PlayerState }) {
       )
     case 'CRACHÁS':
       return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: u(4), textAlign: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: u(3), textAlign: 'center' }}>
           {CRACHAS.map((c) => {
             const tem = s.crachas.includes(c.id)
             return (
@@ -150,12 +152,14 @@ function Conteudo({ aba, estado: s }: { aba: Aba; estado: PlayerState }) {
               Crachás ganhos: {s.crachas.length} de {CRACHAS.length}
             </p>
             <p style={{ fontSize: u(7), lineHeight: u(9), color: '#2a8a5a', margin: `${u(3)} 0 0` }}>
-              Para passar para A Cidade: crachá Objetivo e pelo menos 4 crachás.
+              Para passar para A Cidade: crachá Objetivo e pelo menos {CRACHAS_PARA_PASSAR} crachás.
             </p>
           </div>
         </div>
       )
     }
+    case 'MAPA':
+      return info ? <MapaMini info={info} altura={108} /> : null
     case 'GRÁFICO':
       return (
         <div style={{ height: '100%', overflow: 'auto' }}>

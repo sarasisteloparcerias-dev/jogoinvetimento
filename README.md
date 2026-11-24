@@ -39,7 +39,7 @@ fase**.
 
 | Fase | Para passar à seguinte |
 |---|---|
-| Vila Moeda → A Cidade | crachá Objetivo (60 moedas no mealheiro) e pelo menos 4 dos 6 crachás |
+| Vila Moeda → A Cidade | crachá Objetivo (60 moedas no mealheiro) e pelo menos 5 dos 8 crachás |
 | A Cidade → O Mercado | juntar os 400€ da Viagem de Finalistas |
 | O Mercado → A Casa | chegar a 8.000€ de património líquido |
 | A Casa → O Negócio | chegar a 30.000€ de património líquido, ou comprar casa e ter o fundo de emergência |
@@ -57,6 +57,38 @@ todo** da mesma personagem, fase a fase.
 | X ou Esc | B | Cancelar / voltar |
 | M ou Tab | START | Abrir o menu |
 | N | SOM ON / OFF | Ligar ou desligar o som (fica guardado) |
+
+## Em todas as fases
+
+- **Seta de destino**: uma seta amarela aponta para o edifício da próxima conquista (ou
+  para a saída, se estiveres noutro edifício), com o nome do destino no canto do ecrã.
+- **Mapa no menu**: a zona vista de cima, com os edifícios, onde estás e o destino
+  (MAPA no menu da Vila, app MAPA no telemóvel e no painel).
+- **Agente Pereira** na rua (Cidade, Mercado, Casa e Negócio), ao pé da passadeira: explica
+  como atravessar e as multas.
+- **Resumo para pais e professores** no fim de cada fase: temas aprendidos, conquistas
+  ganhas e por ganhar, perguntas para conversar e um botão para imprimir.
+
+### Mini-jogos novos
+
+| Mini-jogo | Onde | O que treina |
+|---|---|---|
+| O troco certo | Vila: Sr. Doce (ajudar na caixa, ganha moedas); Negócio: turno na caixa (euros) | contas de cabeça, moedas e notas |
+| Compara os preços | Vila: Sr. Doce (crachá Comparar) | preço por unidade |
+| Jogo da memória | Vila: Avó Rosa | moedas e notas do euro |
+| Arrumar o quarto | Cidade: negociar a mesada com a Mãe (+3€/semana) | negociar, contrapartidas |
+| É publicidade? | Cidade: o feed do Kiko (conquista Detetive de Anúncios) | publicidade escondida nas redes |
+| As letras pequenas | Mercado: contrato ao mudar de casa (conquista Letras Pequenas) | cláusulas abusivas |
+| Compara as ofertas | Mercado: Rita, no banco (conquista Comparador) | TAEG, custo total, mensal contra anual |
+| Fugas de água | Casa: obras na canalização, "tentar sozinho" | reparar em vez de pagar |
+
+### Outras novidades por fase
+
+- **Vila Moeda**: adotar o gatinho da Avó (2 moedas de ração por semana, Relações +1).
+- **A Cidade**: bicicleta em segunda mão (45€) contra o passe (poupa 2,50€ por semana).
+- **O Mercado**: o Sr. Vasco explica os recibos verdes.
+- **A Casa**: vender a casa (comissão, amortização antecipada e mais-valias) e um bebé na
+  família (creche ou avós, abono de família).
 
 ## Som e música
 
@@ -126,8 +158,8 @@ se muda de separador.
     tem 31,20… isso chama-se JURO"*; *"O teu investimento desceu… calma, há semanas más"*).
   - **Eventos da semana** (20, 5 por área de vida) jogados como diálogo com escolhas, e
     o resultado de cada escolha explicado.
-  - **6 crachás** (como os crachás de ginásio): Poupança, Juro, Investidor, Risco,
-    Reserva e Objetivo. Cada um ensina um conceito, e ao ganhá-lo o Mestre Moedas
+  - **8 crachás** (como os crachás de ginásio): Poupança, Juro, Investidor, Risco,
+    Reserva, Objetivo, Comparar (preço por unidade) e Ajudar (campanha solidária da escola). Cada um ensina um conceito, e ao ganhá-lo o Mestre Moedas
     explica o que aprendeste. O menu **OBJETIVO** diz sempre qual é o próximo desafio.
   - **Personagens que ensinam por histórias** (ao estilo dos vídeos da Tuttle Twins):
     Mestre Moedas (6 temas: poupar, investir, risco, juros, reserva de emergência,
@@ -318,7 +350,7 @@ src/
   game/
     types.ts, data.ts, engine.ts, events.ts  - lógica financeira pura (sem React)
     mentor.ts, npcs.ts                        - falas do Mestre Moedas, Marta e Tiago
-    crachas.ts                                - os 6 crachás, objetivos e lições
+    crachas.ts                                - os 8 crachás, objetivos e lições
     pixel/
       draw.ts     - utilitários de pixel art (grelhas de caracteres → imagem, cores)
       sprites.ts  - personagens 16×24 (crianças) e 16×32 (adolescentes), 4 direções × 3 frames
@@ -326,7 +358,8 @@ src/
     minijogos/
       futebol.ts, bicicleta.ts, gelado.ts, cafe.ts, supermercado.ts, ginasio.ts,
       entregas.ts, babysitting.ts, explicacoes.ts (e exame de código), emails.ts,
-      bowling.ts, conducao.ts - os mini-jogos
+      bowling.ts, conducao.ts, troco.ts, comparar.ts, memoria.ts, arrumar.ts,
+      decidir.ts (publicidade e contrato), canos.ts - os mini-jogos
       tipos.ts, index.ts                  - interface comum e criação por tipo
     modo.ts       - o que todos os modos partilham (estado base e ações dos guiões)
     world/
@@ -362,9 +395,11 @@ src/
       Painel.tsx     - o painel d'O Mercado
       Intro.tsx      - introdução, nome e aspeto
       dialogo.tsx    - caixa de texto letra a letra e caixa de escolha
+      MapaMini.tsx   - o mapa da zona (menu da Vila, telemóvel e painel)
       StartMenu.tsx  - menu START
       MiniJogoView.tsx - mostra um mini-jogo na consola (título, jogo, resultado)
       ui.tsx         - escala, sprites em HTML, cursores
+    ResumoEducadores.tsx - resumo para pais e professores no fim de cada fase
     AgeGate.tsx, BotoesFim.tsx, FimDeJogo.tsx, FimCidade.tsx, FimMercado.tsx, FimCasa.tsx, FimNegocio.tsx, GrowthChart.tsx
 ```
 

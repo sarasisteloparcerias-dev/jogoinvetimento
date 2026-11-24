@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
+import type { Modo } from '../game/gravar'
 import { jingle, musica } from '../game/som'
+import { ResumoEducadores } from './ResumoEducadores'
 
 export interface PropsBotoesFim {
   onReiniciar: () => void
@@ -12,10 +14,13 @@ export interface PropsBotoesFim {
   situacao?: string
   onProximo?: () => void
   onRepetir?: () => void
+  /** Para o resumo dos pais e professores. */
+  modo?: Modo
+  estado?: unknown
 }
 
 /** Fim de uma fase: passar à seguinte (se o objetivo foi cumprido), repetir a fase ou começar de novo. */
-export function BotoesFim({ onReiniciar, seguinte, podePassar, regra, situacao, onProximo, onRepetir }: PropsBotoesFim) {
+export function BotoesFim({ onReiniciar, seguinte, podePassar, regra, situacao, onProximo, onRepetir, modo, estado }: PropsBotoesFim) {
   const venceu = !seguinte || !!podePassar
   useEffect(() => {
     musica(null)
@@ -25,6 +30,7 @@ export function BotoesFim({ onReiniciar, seguinte, podePassar, regra, situacao, 
 
   return (
     <>
+      {modo && !!estado && <ResumoEducadores modo={modo} estado={estado} />}
       {seguinte && (
         <div
           style={{

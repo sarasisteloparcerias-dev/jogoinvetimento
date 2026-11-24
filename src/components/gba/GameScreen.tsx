@@ -3,6 +3,7 @@ import type { ResultadoMiniJogo, TipoMiniJogo } from '../../game/minijogos/tipos
 import type { Dir } from '../../game/pixel/sprites'
 import { jingle, musica, sfx } from '../../game/som'
 import { ECRA_H, ECRA_W, Motor } from '../../game/world/motor'
+import type { MapaDef } from '../../game/world/tipos'
 import { Consola } from './Consola'
 import { CaixaDialogo, useDialogo, type Tecla } from './dialogo'
 import { MiniJogoView, type ControloMiniJogo } from './MiniJogoView'
@@ -10,6 +11,15 @@ import type { ControloMenu, CtxJogo, EstadoBase, ModoJogo } from './modo'
 import { PixelImg, u } from './ui'
 
 const DIRS: Partial<Record<Tecla, Dir>> = { UP: 'up', DOWN: 'down', LEFT: 'left', RIGHT: 'right' }
+
+function calcularSeta(mapas: Record<string, MapaDef>, mapaId: string, alvo: string | null) {
+  if (!alvo || mapaId === alvo || !mapas[alvo]) return null
+  const def = mapas[mapaId]
+  const texto = mapas[alvo].nome
+  if (def.tipo === 'interior') return def.saida ? { x: def.saida.x, y: def.saida.y, texto } : null
+  const e = def.edificios?.find((x) => x.interior === alvo)
+  return e ? { x: e.x + e.porta, y: e.y + e.h - 1, texto } : null
+}
 
 interface Props<S extends EstadoBase> {
   modo: ModoJogo<S>
@@ -31,8 +41,10 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
   const [banner, setBanner] = useState<{ nome: string; k: number } | null>(null)
   const [mini, setMini] = useState<{ tipo: TipoMiniJogo; k: number; resolver: (r: ResultadoMiniJogo) => void } | null>(null)
   const miniRef = useRef<ControloMiniJogo | null>(null)
-  const [interior, setInterior] = useState(() => modo.mapas[modo.inicio.mapa]?.tipo === 'interior')
+  const [mapaId, setMapaId] = useState(modo.inicio.mapa)
+  const interior = modo.mapas[mapaId]?.tipo === 'interior'
   const modoRef = useRef(modo)
+  const destinoRef = useRef<string | null>(null)
   const scriptAtivo = useRef(false)
   const iniciado = useRef(false)
   const callbacks = useRef({ onMudar, onFim })
@@ -92,6 +104,19 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     },
     som: sfx,
     jingle,
+    mapa() {
+      const m = motorRef.current!
+      const atual = m.mapa.def
+      const destino = destinoRef.current
+      if (atual.tipo === 'exterior') return { mapas: modo.mapas, exterior: atual.id, x: m.jogador.x, y: m.jogador.y, destino }
+      // dentro de um edifício: mostra a rua, com o "estás aqui" na porta
+      for (const def of Object.values(modo.mapas)) {
+        const e = def.edificios?.find((x) => x.interior === atual.id)
+        if (e) return { mapas: modo.mapas, exterior: def.id, x: e.x + e.porta, y: e.y + e.h, destino }
+      }
+      const fora = Object.values(modo.mapas).find((d) => d.tipo === 'exterior')!
+      return { mapas: modo.mapas, exterior: fora.id, x: -5, y: -5, destino }
+    },
   }))
 
   const correr = useCallback(
@@ -113,7 +138,7 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     const m = motorRef.current
     m.onEntrarMapa = (def) => {
       setBanner({ nome: def.nome, k: Date.now() })
-      setInterior(def.tipo === 'interior')
+      setMapaId(def.id)
       sfx('porta')
     }
     m.onInteragir = (i) => void correr((c) => modo.interagir(i, c))
@@ -147,6 +172,18 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     }
     return () => cancelAnimationFrame(raf)
   }, [correr, modo])
+
+  // seta de destino: aponta para o edifício da próxima conquista (ou para a saída, se estiver noutro interior)
+  const alvo = modo.destino ? modo.destino(estado) : (modo.conquistas.find((c) => !estado.crachas.includes(c.id) && c.onde)?.onde ?? null)
+  const seta = calcularSeta(modo.mapas, mapaId, alvo)
+  useLayoutEffect(() => {
+    destinoRef.current = alvo
+  })
+  useEffect(() => {
+    const m = motorRef.current
+    if (!m) return
+    m.destino = calcularSeta(modo.mapas, mapaId, alvo)
+  }, [alvo, mapaId, modo.mapas])
 
   // música: a da fase lá fora, uma mais calma dentro de casa e outra nos mini-jogos
   const musicaAgora = mini ? 'minijogo' : interior ? 'interior' : modo.musica
@@ -195,6 +232,16 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
       {banner && !dlg.dialogo && (
         <div key={banner.k} className="janela banner" style={{ position: 'absolute', left: u(4), top: u(4), padding: `${u(2)} ${u(7)}`, fontSize: u(9) }}>
           {banner.nome}
+        </div>
+      )}
+
+      {seta && !dlg.dialogo && !menuAberto && !mini && (
+        <div
+          className="janela"
+          data-testid="destino"
+          style={{ position: 'absolute', right: u(4), top: u(4), padding: `${u(1.5)} ${u(4)}`, fontSize: u(6), color: '#3a4262', opacity: 0.92 }}
+        >
+          <span style={{ color: '#d0a010' }}>▶</span> DESTINO: {seta.texto}
         </div>
       )}
 

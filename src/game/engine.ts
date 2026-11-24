@@ -83,6 +83,9 @@ export interface AvancoSemana {
   evento: GameEvent
 }
 
+/** Ração do gatinho, por semana. */
+export const CUSTO_GATO = 2
+
 export function avancarSemana(stateInicial: PlayerState): AvancoSemana {
   let state = { ...stateInicial }
 
@@ -103,8 +106,12 @@ export function avancarSemana(stateInicial: PlayerState): AvancoSemana {
     }
   }
 
+  // o gatinho come todas as semanas (e faz companhia)
+  const gato = state.flags.includes('gato')
+  if (gato) state.saldo = Math.max(0, state.saldo - CUSTO_GATO)
+
   state.stats = {
-    relacoes: clamp(state.stats.relacoes - DECAY_POR_SEMANA),
+    relacoes: clamp(state.stats.relacoes - DECAY_POR_SEMANA + (gato ? 1 : 0)),
     saude: clamp(state.stats.saude - DECAY_POR_SEMANA),
     educacao: clamp(state.stats.educacao - Math.round(DECAY_POR_SEMANA / 2)),
   }

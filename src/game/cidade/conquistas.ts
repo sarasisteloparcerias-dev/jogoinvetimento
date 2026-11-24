@@ -8,6 +8,7 @@ export interface ConquistaCidade extends Conquista {
 export const CONQUISTAS_CIDADE: ConquistaCidade[] = [
   {
     id: 'conta',
+    onde: 'banco',
     nome: 'Primeira Conta',
     objetivo: 'Abre a tua primeira conta no Banco Ponte.',
     licao: [
@@ -53,11 +54,21 @@ export const CONQUISTAS_CIDADE: ConquistaCidade[] = [
   },
   {
     id: 'emergencia',
+    onde: 'banco',
     nome: 'Fundo de Emergência',
     objetivo: 'Junta 100€ na conta poupança.',
     licao: [
       'Tens um fundo de emergência: dinheiro guardado só para imprevistos.',
       'Com ele, um ecrã partido ou uma doença não te obrigam a pedir emprestado nem a vender investimentos à pressa.',
+    ],
+  },
+  {
+    id: 'publicidade',
+    nome: 'Detetive de Anúncios',
+    objetivo: 'Mostra ao Kiko que sabes reconhecer publicidade (8 em 10 no jogo do feed).',
+    licao: [
+      'Nas redes sociais, muita publicidade parece um conselho de amigo.',
+      'Pistas: códigos de desconto, #parceria, "link na bio", "só hoje", produtos oferecidos pela marca. Quem ganha se comprares?',
     ],
   },
   {

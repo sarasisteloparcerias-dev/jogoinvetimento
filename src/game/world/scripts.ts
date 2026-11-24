@@ -1,6 +1,6 @@
 import { CRACHAS, META_OBJETIVO, objetivoAtual } from '../crachas'
 import { clamp } from '../data'
-import { avancarSemana, executarAcao, registarLog } from '../engine'
+import { avancarSemana, CUSTO_GATO, executarAcao, registarLog } from '../engine'
 import { MENTOR } from '../mentor'
 import { MARTA, TIAGO } from '../npcs'
 import type { CtxJogo } from '../modo'
@@ -102,6 +102,39 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
   },
 
   async avo(ctx) {
+    const quem = 'Avó Rosa'
+    const gato = ctx.estado().flags.includes('gato')
+    const r = await ctx.ask(`Olá, ${ctx.estado().name}! O que fazemos hoje?`, ['OUVIR UMA HISTÓRIA', 'JOGO DA MEMÓRIA', gato ? 'O MEU GATINHO' : 'OS GATINHOS', 'ADEUS'], quem, 3)
+    if (r === 3) return ctx.say('Volta sempre, meu amor!', quem)
+    if (r === 2) {
+      if (gato) return ctx.say(`O Bolinhas está ótimo! Lembra-te: come ${CUSTO_GATO} moedas de ração por semana. Ter um animal é para todas as semanas, não só para os dias bons.`, quem)
+      await ctx.say(
+        [
+          'A minha gata teve gatinhos! Queres ficar com um?',
+          `É muito giro... mas um animal precisa de comida todas as semanas: ${CUSTO_GATO} moedas, que saem da tua mesada.`,
+          'Ter coisas (e animais) também custa dinheiro depois de as termos. Pensa bem!',
+        ],
+        quem,
+      )
+      const a = await ctx.ask('Adotar um gatinho?', ['SIM, ADOTO!', 'AINDA NÃO'], quem, 1)
+      if (a !== 0) return ctx.say('Pensar antes de decidir é muito sensato. Eles ficam aqui comigo!', quem)
+      const s = ctx.estado()
+      ctx.definir({ ...s, flags: [...s.flags, 'gato'], stats: { ...s.stats, relacoes: clamp(s.stats.relacoes + 5) } })
+      return ctx.say(`Chama-se Bolinhas! Vai viver contigo. Relações +5, e a partir de agora ${CUSTO_GATO} moedas por semana para a ração.`, quem)
+    }
+    if (r === 1) {
+      await ctx.say('Vamos ver se conheces as moedas e as notas do euro! Encontra os pares.', quem)
+      const jogo = await ctx.jogar('memoria')
+      bonus(ctx, 'relacoes', jogo.pontos >= 6 ? 3 : jogo.pontos >= 3 ? 2 : 1)
+      return ctx.say(
+        [
+          `${jogo.texto}!`,
+          'As moedas vão de 1 cêntimo a 2 euros, e as notas começam nos 5 euros. 100 cêntimos fazem 1 euro!',
+          'Na Vila usamos moedas a fingir, mas quando cresceres vais usar estas. Passar o tempo com a avó também é um tesouro.',
+        ],
+        quem,
+      )
+    }
     await ctx.say(
       [
         `Olá, ${ctx.estado().name}! Senta-te, que eu conto-te uma história.`,
@@ -118,12 +151,38 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     const quem = 'Sr. Doce'
     if (!comFlag(ctx, 'loja')) {
       await ctx.say(
-        ['Bem-vindo à Loja do Sr. Doce!', 'Um conselho de amigo: antes de comprares, pensa se PRECISAS disso ou se só QUERES agora.'],
+        ['Boas-vindas à Loja do Sr. Doce!', 'Um conselho de amigo: antes de comprares, pensa se PRECISAS disso ou se só QUERES agora.'],
         quem,
       )
     }
-    const r = await ctx.ask('Um gelado gigante custa 10 moedas. Queres um?', ['SIM', 'NÃO'], quem, 1)
-    if (r !== 0) return ctx.say('Boa escolha também! Às vezes, a melhor compra é não comprar nada.', quem)
+    const escolha = await ctx.ask('O que vai ser?', ['GELADO (10 MOEDAS)', 'AJUDAR NA CAIXA', 'COMPARAR PREÇOS', 'ADEUS'], quem, 3)
+    if (escolha === 3) return ctx.say('Até à próxima!', quem)
+    if (escolha === 1) {
+      const s = ctx.estado()
+      if (comFlag(ctx, `caixa_${s.week}`)) return ctx.say('Já me ajudaste esta semana! Volta para a semana.', quem)
+      await ctx.say('Ficas na caixa registadora: dá o troco certo aos clientes. Pago 1 moeda por cada 3 clientes, até 4 moedas.', quem)
+      const jogo = await ctx.jogar('troco')
+      const ganhou = Math.min(4, Math.floor(jogo.pontos / 3))
+      const x = ctx.estado()
+      ctx.definir({ ...x, saldo: x.saldo + ganhou })
+      bonus(ctx, 'educacao', jogo.pontos >= 6 ? 2 : 1)
+      return ctx.say(
+        [
+          `${jogo.texto}.`,
+          ganhou ? `Aqui tens ${ganhou} ${ganhou === 1 ? 'moeda' : 'moedas'}: ganhaste-as a trabalhar!` : 'Hoje não deu para ganhar moedas, mas treinaste as contas.',
+          'Dar o troco é fazer contas de cabeça: o troco é o que o cliente pagou menos o preço.',
+        ],
+        quem,
+      )
+    }
+    if (escolha === 2) {
+      await ctx.say('Tenho pacotes grandes e pequenos. Qual compensa mais? Divide o preço pelo número de coisas!', quem)
+      const jogo = await ctx.jogar('comparar')
+      bonus(ctx, 'educacao', jogo.pontos >= 6 ? 2 : 1)
+      await ctx.say(`${jogo.texto}. ${jogo.pontos >= 6 ? 'És um comprador esperto!' : 'Treina mais um bocadinho: faz as contas por unidade.'}`, quem)
+      if (jogo.pontos >= 6) await ctx.cracha('comparar')
+      return
+    }
     const res = fazer(ctx, 'gastar')
     if (!res) return semMoedas(ctx, quem, 10)
     await ctx.say('Então anda, faz tu o teu gelado! Apanha as bolas com o cone e segue o pedido.', quem)
@@ -189,7 +248,17 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
         quem,
       )
     }
-    const r = await ctx.ask('Uma aula custa 8 moedas (livros e material). Queres estudar?', ['SIM', 'NÃO'], quem, 1)
+    const r = await ctx.ask('O que queres fazer?', ['ESTUDAR (8 MOEDAS)', 'CAMPANHA SOLIDÁRIA', 'NADA'], quem, 2)
+    if (r === 1) {
+      await ctx.say('Estamos a juntar moedas para comprar livros para a biblioteca de uma escola que ficou sem nada numa cheia.', quem)
+      const d = await ctx.ask('Queres dar 5 moedas?', ['SIM', 'NÃO'], quem, 1)
+      if (d !== 0) return ctx.say('Não faz mal. Ajudar também pode ser dar o teu tempo!', quem)
+      const s = ctx.estado()
+      if (s.saldo < 5) return semMoedas(ctx, quem, 5)
+      ctx.definir({ ...s, saldo: s.saldo - 5, stats: { ...s.stats, relacoes: clamp(s.stats.relacoes + 3) } })
+      await ctx.say('Obrigada! Os meninos dessa escola vão adorar os livros novos. Relações +3.', quem)
+      return ctx.cracha('ajudar')
+    }
     if (r !== 0) return ctx.say('Está bem. A escola está sempre aberta para ti!', quem)
     const res = fazer(ctx, 'estudar')
     if (!res) return semMoedas(ctx, quem, 8)
@@ -331,8 +400,10 @@ export async function manha(ctx: Ctx, antes: PlayerState, depois: PlayerState, e
   const semana = Math.min(depois.week, 20)
   await ctx.say(`Bom dia, ${depois.name}! ${depois.gameOver ? 'É a última manhã da aventura!' : `Começa a semana ${semana} de 20.`}`, mae)
 
-  const mesada = depois.saldo - antes.saldo
+  const gato = depois.flags.includes('gato')
+  const mesada = depois.saldo - antes.saldo + (gato ? CUSTO_GATO : 0)
   await ctx.say(`Aqui tens a tua mesada: ${fmt(mesada)} moedas.${mesada > 20 ? ' Como tens estudado, a tua mesada aumentou! Quem sabe mais, ganha mais.' : ''}`, mae)
+  if (gato) await ctx.say(`O Bolinhas comeu ${CUSTO_GATO} moedas de ração esta semana. Miau!`, mae)
 
   if (antes.poupanca > 0) {
     const ganho = depois.poupanca - antes.poupanca
