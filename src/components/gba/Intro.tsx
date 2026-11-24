@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AVATAR_PADRAO, CORES_CABELO, CORES_PELE, CORES_ROUPA } from '../../game/data'
 import { MENTOR } from '../../game/mentor'
-import { framesAdolescente, framesPersonagem } from '../../game/pixel/sprites'
+import { framesAdolescente, framesAdulto, framesPersonagem, framesSenior } from '../../game/pixel/sprites'
 import type { Modo } from '../../game/gravar'
 import type { AvatarConfig } from '../../game/types'
 import { Consola } from './Consola'
@@ -45,7 +45,7 @@ const TEXTOS = {
     ],
   },
   mercado: {
-    sprites: framesAdolescente,
+    sprites: framesAdulto,
     boasVindas: [
       'Olá! Boas-vindas à vida adulta!',
       'Sou o Mestre Moedas. Agora sou planeador financeiro no Banco Ponte.',
@@ -61,7 +61,7 @@ const TEXTOS = {
     ],
   },
   casa: {
-    sprites: framesAdolescente,
+    sprites: framesAdulto,
     boasVindas: [
       'Olá! Boas-vindas ao nível A Casa!',
       'Sou o Mestre Moedas. Este é o passo seguinte da vida adulta: comprar casa.',
@@ -76,7 +76,7 @@ const TEXTOS = {
     ],
   },
   negocio: {
-    sprites: framesAdolescente,
+    sprites: framesAdulto,
     boasVindas: [
       'Olá! Boas-vindas à fase final: O Negócio!',
       'Sou o Mestre Moedas. Desta vez não vais trabalhar para ninguém: vais criar a tua própria empresa.',
@@ -91,7 +91,7 @@ const TEXTOS = {
     ],
   },
   reforma: {
-    sprites: framesAdolescente,
+    sprites: framesSenior,
     boasVindas: [
       'Olá! Boas-vindas à última fase: A Reforma!',
       'Sou o Mestre Moedas, já com uns 100 anos. Passaram 35 anos de trabalho e agora tens 65.',

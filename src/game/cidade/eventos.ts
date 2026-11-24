@@ -3,6 +3,7 @@ import type { StatKey } from '../types'
 import { comprar, euros, round2 } from './economia'
 import { TRABALHOS_CIDADE } from './trabalhos'
 import type { EstadoCidade } from './tipos'
+import { deslocar } from '../variacao'
 
 export interface OpcaoEvento {
   label: string
@@ -47,6 +48,41 @@ const chefe = (s: EstadoCidade) => (s.emprego ? TRABALHOS_CIDADE[s.emprego].chef
 const SEM_DINHEIRO = (v: number) => `Não tens ${euros(v)} na conta. Às vezes é o próprio saldo que decide por nós!`
 
 export const EVENTOS_CIDADE: EventoCidade[] = [
+  {
+    id: 'carteira_achada',
+    titulo: 'Uma carteira no chão',
+    texto: () => 'Encontraste uma carteira com 40€ e o cartão de cidadão de uma senhora. O que fazes?',
+    opcoes: [
+      { label: 'ENTREGAR À POLÍCIA', aplicar: (s) => ({ estado: stats(dinheiro(s, 10), { relacoes: 4 }), texto: 'A senhora agradeceu muito e deu-te 10€ de recompensa. Ser honesto também conta.' }) },
+      { label: 'FICAR COM O DINHEIRO', aplicar: (s) => ({ estado: stats(dinheiro(s, 40), { relacoes: -6 }), texto: 'Ficaste com 40€... mas a senhora ficou sem o dinheiro das compras do mês. Isto não te deixa bem.' }) },
+    ],
+  },
+  {
+    id: 'skin',
+    titulo: 'Skin rara no jogo',
+    texto: (s) => `No teu jogo favorito há uma "caixa surpresa" a ${euros(5 * s.indicePrecos)}: pode sair uma skin rara! Os teus amigos já abriram várias.`,
+    opcoes: [
+      {
+        label: 'ABRIR 3 CAIXAS',
+        aplicar: (s) => {
+          const v = round2(15 * s.indicePrecos)
+          const n = pagar(s, v)
+          if (!n) return { estado: s, texto: SEM_DINHEIRO(v) }
+          return { estado: stats(n, { relacoes: 1 }), texto: `Saíram 3 skins repetidas. ${euros(v)} gastos. As caixas surpresa funcionam como apostas: é a sorte que decide, e quase sempre perdes.` }
+        },
+      },
+      { label: 'NÃO ABRIR', aplicar: (s) => ({ estado: stats(s, { educacao: 2 }), texto: 'Boa! Se quiseres mesmo uma skin, comprá-la diretamente sai mais barato do que tentar a sorte.' }) },
+    ],
+  },
+  {
+    id: 'explicador_amigo',
+    titulo: 'Um colega precisa de ajuda',
+    texto: () => 'Um colega da turma está com dificuldades a Matemática e pede-te ajuda antes do teste.',
+    opcoes: [
+      { label: 'AJUDAR DE GRAÇA', aplicar: (s) => ({ estado: stats(s, { relacoes: 5, educacao: 3 }), texto: 'Ensinar também é aprender: tu próprio percebeste melhor a matéria!' }) },
+      { label: 'COBRAR 5€', aplicar: (s) => ({ estado: stats(dinheiro(s, 5), { relacoes: -1, educacao: 2 }), texto: 'Ganhaste 5€ pela explicação. É o início de um negócio... mas entre amigos às vezes vale mais ajudar.' }) },
+    ],
+  },
   {
     id: 'streaming',
     semana: 2,
@@ -374,7 +410,8 @@ export const EVENTOS_CIDADE: EventoCidade[] = [
 
 export function escolherEventoCidade(s: EstadoCidade): EventoCidade {
   const vistos = new Set(s.flags.filter((f) => f.startsWith('ev_')).map((f) => f.slice(3)))
-  const fixo = EVENTOS_CIDADE.find((e) => e.semana === s.semana && !vistos.has(e.id))
+  const quando = (e: EventoCidade) => (e.semana === undefined || e.id === 'colega_lua' ? e.semana : deslocar(s, e.id, e.semana, 0, 3))
+  const fixo = EVENTOS_CIDADE.find((e) => quando(e) === s.semana && !vistos.has(e.id))
   if (fixo) return fixo
   const devolve = EVENTOS_CIDADE.find((e) => e.id === 'devolve')!
   if (devolve.condicao!(s)) return devolve

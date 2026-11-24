@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { AVATAR_PADRAO } from '../game/data'
-import { MENTOR } from '../game/mentor'
 import { faseDesbloqueada, type Gravacao, type Modo } from '../game/gravar'
 import { resumoGravacao, requisitoNivel } from '../game/niveis'
-import { framesAdolescente, framesPersonagem } from '../game/pixel/sprites'
+import { framesAdolescente, framesAdulto, framesPersonagem, framesSenior } from '../game/pixel/sprites'
 import type { AvatarConfig } from '../game/types'
 import { SpriteView } from './gba/ui'
+import { LogoAnimado } from './LogoAnimado'
 
 export type { Modo }
 
@@ -22,6 +22,17 @@ function modoParaIdade(idade: number): Modo | 'escolher' | 'escolher18' {
   if (idade <= 14) return 'escolher'
   if (idade <= 17) return 'cidade'
   return 'escolher18'
+}
+
+/** O aspeto da personagem guardada, conforme a idade da fase. */
+function spritesDaGravacao(g: Gravacao) {
+  const passa = g.fim && requisitoNivel(g.modo, g.estado)?.ok
+  const ordem: Modo[] = ['reino', 'cidade', 'mercado', 'casa', 'negocio', 'reforma']
+  const modo = passa ? ordem[Math.min(ordem.indexOf(g.modo) + 1, ordem.length - 1)] : g.modo
+  if (modo === 'reino') return framesPersonagem
+  if (modo === 'cidade') return framesAdolescente
+  if (modo === 'reforma') return framesSenior
+  return framesAdulto
 }
 
 export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: AgeGateProps) {
@@ -48,12 +59,12 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
               <span>Primeiro trabalho, conta no banco, ações, ETFs e cripto (12-17).</span>
             </button>
             <button className="cartao-modo" onClick={() => onEscolherModo('mercado')}>
-              <SpriteView avatar={AVATAR_PADRAO} escala="3px" sprites={framesAdolescente} />
+              <SpriteView avatar={AVATAR_PADRAO} escala="3px" sprites={framesAdulto} />
               <strong>O MERCADO</strong>
               <span>Primeiro emprego a sério: salário, renda, impostos, investir e tirar a carta.</span>
             </button>
             <button className="cartao-modo" onClick={() => onEscolherModo('casa')}>
-              <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#0ea5e9' }} escala="3px" sprites={framesAdolescente} />
+              <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#0ea5e9' }} escala="3px" sprites={framesAdulto} />
               <strong>A CASA</strong>
               <span>Comprar casa: crédito à habitação, taxa fixa ou variável, IMI, condomínio e obras.</span>
             </button>
@@ -63,7 +74,7 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
               onClick={() => negocio && onEscolherModo('negocio')}
               style={negocio ? undefined : { opacity: 0.55, cursor: 'not-allowed' }}
             >
-              <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#283040' }} escala="3px" sprites={framesAdolescente} />
+              <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#283040' }} escala="3px" sprites={framesAdulto} />
               <strong>{negocio ? 'O NEGÓCIO' : 'O NEGÓCIO (FECHADO)'}</strong>
               <span>
                 {negocio
@@ -77,7 +88,7 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
               onClick={() => reforma && onEscolherModo('reforma')}
               style={reforma ? undefined : { opacity: 0.55, cursor: 'not-allowed' }}
             >
-              <SpriteView avatar={{ ...AVATAR_PADRAO, cabelo: '#d8d8d8', roupa: '#8a6ad0' }} escala="3px" sprites={framesAdolescente} />
+              <SpriteView avatar={{ ...AVATAR_PADRAO, cabelo: '#d8d8d8', roupa: '#8a6ad0' }} escala="3px" sprites={framesSenior} />
               <strong>{reforma ? 'A REFORMA' : 'A REFORMA (FECHADA)'}</strong>
               <span>{reforma ? 'Aos 65, de volta à Vila Moeda: pensão, poupanças e 20 anos de reforma.' : 'Abre quando passares O Negócio com a mesma personagem.'}</span>
             </button>
@@ -130,12 +141,10 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
           else onEscolherModo(m)
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 16, marginBottom: 8 }}>
-          <SpriteView avatar={MENTOR.avatar} escala="4px" />
-          <SpriteView avatar={AVATAR_PADRAO} escala="4px" />
-          <SpriteView avatar={{ ...AVATAR_PADRAO, roupa: '#0ea5e9', cabeloComprido: true }} escala="3px" sprites={framesAdolescente} />
-        </div>
-        <h1 className="titulo-jogo">VILA MOEDA</h1>
+        <LogoAnimado />
+        <h1 className="titulo-jogo" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+          VILA MOEDA
+        </h1>
         <p style={{ color: '#5a6280', marginBottom: 20 }}>Uma aventura para aprender a poupar e a investir.</p>
 
         {gravacao && (
@@ -144,7 +153,7 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
               <SpriteView
                 avatar={(gravacao.estado as { avatar: AvatarConfig }).avatar}
                 escala="2px"
-                sprites={gravacao.modo === 'reino' && !(gravacao.fim && requisitoNivel('reino', gravacao.estado)?.ok) ? framesPersonagem : framesAdolescente}
+                sprites={spritesDaGravacao(gravacao)}
               />
               <span style={{ flex: 1 }}>
                 <strong style={{ display: 'block', marginBottom: 4 }}>

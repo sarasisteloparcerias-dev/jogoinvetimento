@@ -1,19 +1,7 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { AgeGate } from './components/AgeGate'
-import { FimCidade } from './components/FimCidade'
-import { FimDeJogo } from './components/FimDeJogo'
-import { FimCasa } from './components/FimCasa'
-import { FimMercado } from './components/FimMercado'
-import { FimNegocio } from './components/FimNegocio'
-import { FimReforma } from './components/FimReforma'
-import { GameScreen } from './components/gba/GameScreen'
 import { Intro } from './components/gba/Intro'
-import { MODO_CASA } from './components/gba/modoCasa'
-import { MODO_CIDADE } from './components/gba/modoCidade'
-import { MODO_MERCADO } from './components/gba/modoMercado'
-import { MODO_NEGOCIO } from './components/gba/modoNegocio'
-import { MODO_REFORMA } from './components/gba/modoReforma'
-import { MODO_VILA } from './components/gba/modoVila'
+import { carregarModo, type QualquerModo } from './components/gba/modos'
 import { novoEstadoCidade } from './game/cidade/economia'
 import type { EstadoCidade } from './game/cidade/tipos'
 import { novoJogador } from './game/data'
@@ -25,6 +13,25 @@ import { novoEstadoNegocio } from './game/negocio/economia'
 import { novoEstadoReforma, type EstadoReforma } from './game/reforma/economia'
 import { musica } from './game/som'
 import type { AvatarConfig, PlayerState } from './game/types'
+
+// o ecrã de jogo e os ecrãs finais só se descarregam quando são precisos
+const GameScreen = lazy(() => import('./components/gba/GameScreen').then((m) => ({ default: m.GameScreen })))
+const FimDeJogo = lazy(() => import('./components/FimDeJogo').then((m) => ({ default: m.FimDeJogo })))
+const FimCidade = lazy(() => import('./components/FimCidade').then((m) => ({ default: m.FimCidade })))
+const FimMercado = lazy(() => import('./components/FimMercado').then((m) => ({ default: m.FimMercado })))
+const FimCasa = lazy(() => import('./components/FimCasa').then((m) => ({ default: m.FimCasa })))
+const FimNegocio = lazy(() => import('./components/FimNegocio').then((m) => ({ default: m.FimNegocio })))
+const FimReforma = lazy(() => import('./components/FimReforma').then((m) => ({ default: m.FimReforma })))
+
+function ACarregar() {
+  return (
+    <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
+      <div className="janela" style={{ padding: 24 }}>
+        A carregar...
+      </div>
+    </div>
+  )
+}
 
 type Tela = 'idade' | 'intro' | 'jogo' | 'fim'
 
@@ -43,6 +50,15 @@ export default function App() {
   const [estado, setEstado] = useState<unknown>(null)
   const [continuacao, setContinuacao] = useState<Continuacao | null>(null)
   const [gravacao, setGravacao] = useState<Gravacao | null>(() => lerGravacao())
+  const [modos, setModos] = useState<Partial<Record<Modo, QualquerModo>>>({})
+
+  // carrega a fase quando é precisa (e a seguinte, em segundo plano, quando se chega ao fim)
+  useEffect(() => {
+    const precisa: Modo[] = []
+    if (tela === 'intro' || tela === 'jogo') precisa.push(modo)
+    if (tela === 'fim' && PROXIMO[modo]) precisa.push(PROXIMO[modo]!)
+    for (const m of precisa) if (!modos[m]) void carregarModo(m).then((def) => setModos((x) => ({ ...x, [m]: def })))
+  }, [tela, modo, modos])
 
   // música do título no ecrã da idade e na introdução (o jogo e o fim escolhem a sua)
   useEffect(() => {
@@ -149,18 +165,15 @@ export default function App() {
     <>
       {tela === 'idade' && <AgeGate onEscolherModo={handleEscolherModo} gravacao={gravacao} onContinuar={handleContinuar} onApagar={handleApagar} />}
       {tela === 'intro' && <Intro key={modo} modo={modo} existente={continuacao ?? undefined} onConcluir={handleStart} />}
-      {tela === 'jogo' && modo === 'reino' && <GameScreen modo={MODO_VILA} estadoInicial={estado as PlayerState} onMudar={setEstado} onFim={handleFim} />}
-      {tela === 'jogo' && modo === 'cidade' && <GameScreen modo={MODO_CIDADE} estadoInicial={estado as EstadoCidade} onMudar={setEstado} onFim={handleFim} />}
-      {tela === 'jogo' && modo === 'mercado' && <GameScreen modo={MODO_MERCADO} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
-      {tela === 'jogo' && modo === 'casa' && <GameScreen modo={MODO_CASA} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
-      {tela === 'jogo' && modo === 'negocio' && <GameScreen modo={MODO_NEGOCIO} estadoInicial={estado as EstadoMercado} onMudar={setEstado} onFim={handleFim} />}
-      {tela === 'jogo' && modo === 'reforma' && <GameScreen modo={MODO_REFORMA} estadoInicial={estado as EstadoReforma} onMudar={setEstado} onFim={handleFim} />}
-      {tela === 'fim' && modo === 'reino' && <FimDeJogo state={estado as PlayerState} {...fimProps} />}
-      {tela === 'fim' && modo === 'cidade' && <FimCidade state={estado as EstadoCidade} {...fimProps} />}
-      {tela === 'fim' && modo === 'mercado' && <FimMercado state={estado as EstadoMercado} {...fimProps} />}
-      {tela === 'fim' && modo === 'casa' && <FimCasa state={estado as EstadoMercado} {...fimProps} />}
-      {tela === 'fim' && modo === 'negocio' && <FimNegocio state={estado as EstadoMercado} {...fimProps} />}
-      {tela === 'fim' && modo === 'reforma' && <FimReforma state={estado as EstadoReforma} {...fimProps} />}
+      <Suspense fallback={<ACarregar />}>
+        {tela === 'jogo' && (modos[modo] ? <GameScreen key={modo} modo={modos[modo]!} estadoInicial={estado as PlayerState} onMudar={setEstado} onFim={handleFim} /> : <ACarregar />)}
+        {tela === 'fim' && modo === 'reino' && <FimDeJogo state={estado as PlayerState} {...fimProps} />}
+        {tela === 'fim' && modo === 'cidade' && <FimCidade state={estado as EstadoCidade} {...fimProps} />}
+        {tela === 'fim' && modo === 'mercado' && <FimMercado state={estado as EstadoMercado} {...fimProps} />}
+        {tela === 'fim' && modo === 'casa' && <FimCasa state={estado as EstadoMercado} {...fimProps} />}
+        {tela === 'fim' && modo === 'negocio' && <FimNegocio state={estado as EstadoMercado} {...fimProps} />}
+        {tela === 'fim' && modo === 'reforma' && <FimReforma state={estado as EstadoReforma} {...fimProps} />}
+      </Suspense>
     </>
   )
 }

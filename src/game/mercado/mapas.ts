@@ -214,7 +214,7 @@ export const ESCOLA_CONDUCAO: MapaDef = {
 export const MAPAS_MERCADO: Record<string, MapaDef> = {
   rua: RUA,
   casa: QUARTO,
-  cafe: CAFE,
+  cafe: { ...CAFE, npcs: (CAFE.npcs ?? []).map((n) => (n.id === 'cliente_cafe' ? { ...n, nome: 'Joana', avatar: { pele: '#f1c27d', cabelo: '#2d1b0e', roupa: '#d04880', cabeloComprido: true } } : n)) },
   banco: BANCO_PONTE,
   escritorio: ESCRITORIO,
   financas: FINANCAS,

@@ -1,6 +1,8 @@
 import { CONQUISTAS_CASA } from '../../game/mercado/conquistas'
 import { executarInteracaoCasa, tutorialCasa } from '../../game/mercado/scripts'
 import type { EstadoMercado } from '../../game/mercado/tipos'
+import { HISTORIA_SILVA } from '../../game/historiasFases'
+import { MAPAS_MERCADO, SUPERMERCADO } from '../../game/mercado/mapas'
 import type { ModoJogo } from './modo'
 import { MODO_MERCADO } from './modoMercado'
 
@@ -10,5 +12,7 @@ export const MODO_CASA: ModoJogo<EstadoMercado> = {
   conquistas: CONQUISTAS_CASA,
   tutorial: tutorialCasa,
   interagir: executarInteracaoCasa,
+  historias: [HISTORIA_SILVA],
+  mapas: { ...MAPAS_MERCADO, supermercado: { ...SUPERMERCADO, npcs: (SUPERMERCADO.npcs ?? []).map((n) => (n.id === 'cliente_super' ? { ...n, nome: 'Sr. Silva' } : n)) } },
   musica: 'casa',
 }

@@ -2,7 +2,7 @@ import { CONQUISTAS_MERCADO } from '../game/mercado/conquistas'
 import { carteiraM, euros, META_CASA, patrimonioM } from '../game/mercado/economia'
 import type { EstadoMercado } from '../game/mercado/tipos'
 import { iconeCracha } from '../game/pixel/cenario'
-import { framesAdolescente } from '../game/pixel/sprites'
+import { framesAdulto } from '../game/pixel/sprites'
 import { PixelImg, SpriteView } from './gba/ui'
 import { BotoesFim, type PropsBotoesFim } from './BotoesFim'
 import { GrowthChart } from './GrowthChart'
@@ -24,7 +24,7 @@ export function FimMercado({ state: s, ...botoes }: FimMercadoProps) {
   return (
     <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
       <div className="janela" style={{ maxWidth: 560, width: '100%', padding: 24, textAlign: 'center' }}>
-        <SpriteView avatar={s.avatar} escala="4px" sprites={framesAdolescente} />
+        <SpriteView avatar={s.avatar} escala="4px" sprites={framesAdulto} />
         <h2 style={{ fontSize: 20, margin: '8px 0 4px' }}>Dois anos depois, {s.name}!</h2>
         <p style={{ color: '#5a6280', marginBottom: 16 }}>{mensagem}</p>
 

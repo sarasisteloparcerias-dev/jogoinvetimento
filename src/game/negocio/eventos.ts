@@ -1,5 +1,6 @@
 import { clamp } from '../data'
 import type { EstadoMercado } from '../mercado/tipos'
+import { deslocar } from '../variacao'
 import { euros, NEGOCIOS, round2, type EstadoNegocio } from './economia'
 
 /** Um acontecimento na empresa, com escolhas. */
@@ -204,10 +205,17 @@ export function escolherEventoNegocio(s: EstadoMercado): EventoNegocio | null {
   const n = s.negocio!
   const mes = s.mes
   // alguns têm mês certo, para a história fazer sentido
-  const fixos: Record<number, string> = { 2: 'formacao', 4: 'fatura', 5: 'festa', 7: 'concorrente', 9: 'inspecao' }
-  const fixo = EVENTOS_NEGOCIO.find((e) => e.id === fixos[mes] && !s.flags.includes(`evn_${e.id}`))
+  // a altura de cada um muda de jogo para jogo (a formação vem sempre antes da inspeção)
+  const fixos: Record<string, number> = {
+    formacao: deslocar(s, 'formacao', 2, 0, 1),
+    fatura: deslocar(s, 'fatura', 4, -1, 3),
+    festa: deslocar(s, 'festa', 5, 0, 3),
+    concorrente: deslocar(s, 'concorrente', 7, -1, 2),
+    inspecao: deslocar(s, 'inspecao', 9, 0, 2),
+  }
+  const fixo = EVENTOS_NEGOCIO.find((e) => fixos[e.id] === mes && !s.flags.includes(`evn_${e.id}`))
   if (fixo && (!fixo.quando || fixo.quando(n, mes))) return fixo
-  const livres = EVENTOS_NEGOCIO.filter((e) => !Object.values(fixos).includes(e.id) && !s.flags.includes(`evn_${e.id}`) && (!e.quando || e.quando(n, mes)))
+  const livres = EVENTOS_NEGOCIO.filter((e) => !(e.id in fixos) && !s.flags.includes(`evn_${e.id}`) && (!e.quando || e.quando(n, mes)))
   if (!livres.length || Math.random() < 0.25) return null
   return livres[Math.floor(Math.random() * livres.length)]
 }

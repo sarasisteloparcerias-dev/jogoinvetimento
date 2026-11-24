@@ -133,7 +133,8 @@ export function custoSupermercado(s: EstadoMercado) {
 export function custoTransportes(s: EstadoMercado) {
   // com carro já não precisa do passe: fica só o telemóvel
   const longe = s.hipoteca ? (casaVenda(s.hipoteca.casa)?.transportes ?? 0) : 0
-  return round2(((s.carro ? 25 : 65) + longe) * s.indicePrecos)
+  // com carro, só o telemóvel; com a bicicleta da Cidade, passe só no inverno
+  return round2(((s.carro ? 25 : s.flags.includes('passado_bicicleta') ? 45 : 65) + longe) * s.indicePrecos)
 }
 
 /** As despesas fixas de um mês (sem investimentos nem extras). */

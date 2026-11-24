@@ -2,6 +2,7 @@ import { clamp } from '../data'
 import { comprarM, euros, round2 } from './economia'
 import { PROFISSOES } from './profissoes'
 import type { EstadoMercado, StatsAdulto } from './tipos'
+import { deslocar } from '../variacao'
 
 export interface OpcaoEventoM {
   label: string
@@ -50,6 +51,33 @@ function pagarOuNao(v: (s: EstadoMercado) => number, ok: string, m: Partial<Stat
 }
 
 export const EVENTOS_MERCADO: EventoMercado[] = [
+  {
+    id: 'aniversario_amigo',
+    titulo: 'Aniversário de um amigo',
+    texto: () => 'Um amigo faz 30 anos e o grupo combina oferecer uma viagem. A tua parte são 120€.',
+    opcoes: [
+      { label: 'ENTRAR', aplicar: pagarOuNao(() => 120, 'Foi uma surpresa incrível! As relações também se constroem com estes momentos.', { relacoes: 6 }) },
+      { label: 'PRENDA MAIS BARATA', aplicar: pagarOuNao(() => 30, 'Ofereceste um livro com uma dedicatória. Ele adorou: o valor não está no preço.', { relacoes: 3 }) },
+    ],
+  },
+  {
+    id: 'reembolso_seguro',
+    titulo: 'Telemóvel avariado',
+    texto: () => 'O telemóvel deixou de carregar. Ainda está na garantia de 3 anos, mas a loja diz que "foi mau uso" e quer cobrar 150€.',
+    opcoes: [
+      { label: 'RECLAMAR (GARANTIA)', aplicar: (s) => ({ estado: stats(s, { carreira: 1 }), texto: 'Escreveste no livro de reclamações e pediste a análise técnica: era defeito de fábrica. Arranjaram de graça! Conhecer os teus direitos poupa dinheiro.' }) },
+      { label: 'PAGAR 150€', aplicar: pagarOuNao(() => 150, 'Pagaste para não te chatear. Mas os bens têm 3 anos de garantia: valia a pena reclamar.') },
+    ],
+  },
+  {
+    id: 'carro_amigo',
+    titulo: 'Fiador?',
+    texto: () => 'Um amigo pede-te para seres fiador do crédito do carro dele. "É só uma assinatura!"',
+    opcoes: [
+      { label: 'ASSINAR', aplicar: (s) => ({ estado: stats(flag(s, 'fiador'), { relacoes: 3 }), texto: 'Assinaste. Atenção: se ele deixar de pagar, o banco pode exigir-te a dívida a ti. Ser fiador é assumir o risco de outra pessoa.' }) },
+      { label: 'RECUSAR COM CALMA', aplicar: (s) => ({ estado: s, texto: 'Explicaste que ser fiador é ficar responsável pela dívida. Ele percebeu e pediu ajuda aos pais.' }) },
+    ],
+  },
   {
     id: 'subscricoes',
     mes: 2,
@@ -418,10 +446,14 @@ export const EVENTOS_CASA: EventoMercado[] = [
   { ...reutilizar('black_friday'), mes: 11 },
 ]
 
+const FIXOS = ['layoff', 'colega_lua', 'black_friday']
+
 export function escolherEventoMercado(s: EstadoMercado): EventoMercado {
   const lista = s.nivel === 'casa' ? EVENTOS_CASA : EVENTOS_MERCADO
   const vistos = new Set(s.flags.filter((f) => f.startsWith('ev_')).map((f) => f.slice(3)))
-  const fixo = lista.find((e) => e.mes === s.mes && !vistos.has(e.id))
+  // a maior parte dos acontecimentos com mês marcado muda de altura de jogo para jogo (os que contam a história do mercado não)
+  const quando = (e: EventoMercado) => (e.mes === undefined || FIXOS.includes(e.id) ? e.mes : deslocar(s, e.id, e.mes, 0, 2))
+  const fixo = lista.find((e) => quando(e) === s.mes && !vistos.has(e.id))
   if (fixo) return fixo
   const livres = lista.filter((e) => e.mes === undefined && !vistos.has(e.id) && (e.condicao?.(s) ?? true))
   if (livres.length) return livres[Math.floor(Math.random() * livres.length)]

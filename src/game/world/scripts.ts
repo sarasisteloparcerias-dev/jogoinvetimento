@@ -302,6 +302,22 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     ])
   },
 
+  async feirante(ctx) {
+    const quem = 'Sr. Manel (feira)'
+    const r = await ctx.ask('Feira de domingo! Tudo em segunda mão. Queres treinar a regatear comigo? (a fingir)', ['VAMOS!', 'SÓ VER'], quem, 1)
+    if (r !== 0) return ctx.say('Na feira, o preço que se pede nem sempre é o preço final. Mas é preciso pedir com educação!', quem)
+    const jogo = await ctx.jogar('regatear')
+    bonus(ctx, 'educacao', jogo.pontos >= 20 ? 2 : 1)
+    await ctx.say(
+      [
+        `${jogo.texto}.`,
+        'Regatear é normal nas feiras e em coisas usadas. Começa por oferecer menos, mas sem ofender: se a pessoa se zangar, não há negócio.',
+        'E lembra-te: um bom preço numa coisa de que não precisas continua a ser dinheiro gasto!',
+      ],
+      quem,
+    )
+  },
+
   async marta(ctx) {
     await ctx.say(MARTA.topicos[0].linhas, 'Marta')
   },

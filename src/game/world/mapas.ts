@@ -94,6 +94,7 @@ export const VILA: MapaDef = {
     { id: 'marta', nome: 'Marta', avatar: { ...MARTA.avatar, cabeloComprido: true }, x: 5, y: 8, dir: 'down', script: 'marta', vaguear: { x0: 1, y0: 7, x1: 11, y1: 9 } },
     { id: 'tiago', nome: 'Tiago', avatar: TIAGO.avatar, x: 24, y: 8, dir: 'down', script: 'tiago', vaguear: { x0: 16, y0: 7, x1: 28, y1: 9 } },
     { id: 'treinador', nome: 'Treinador Zé', avatar: AVATARES.treinador, x: 20, y: 18, dir: 'down', script: 'treinador' },
+    { id: 'feirante', nome: 'Sr. Manel (feira)', avatar: { pele: '#c68642', cabelo: '#2d1b0e', roupa: '#e8a020' }, x: 9, y: 22, dir: 'up', script: 'feirante' },
     { id: 'leo', nome: 'Leo', avatar: AVATARES.leo, x: 24, y: 18, dir: 'right', script: 'amigos' },
     { id: 'bia', nome: 'Bia', avatar: AVATARES.bia, x: 25, y: 18, dir: 'left', script: 'amigos' },
   ],

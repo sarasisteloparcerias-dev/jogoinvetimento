@@ -5,7 +5,7 @@ import { CONQUISTAS_NEGOCIO } from '../game/negocio/conquistas'
 import { NEGOCIOS } from '../game/negocio/economia'
 import { NOME_MODO } from '../game/niveis'
 import { iconeCracha } from '../game/pixel/cenario'
-import { framesAdolescente } from '../game/pixel/sprites'
+import { framesAdulto } from '../game/pixel/sprites'
 import { BotoesFim, type PropsBotoesFim } from './BotoesFim'
 import { GrowthChart } from './GrowthChart'
 import { PixelImg, SpriteView } from './gba/ui'
@@ -27,7 +27,7 @@ export function FimNegocio({ state: s, ...botoes }: FimNegocioProps) {
   return (
     <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
       <div className="janela" style={{ maxWidth: 580, width: '100%', padding: 24, textAlign: 'center' }}>
-        <SpriteView avatar={s.avatar} escala="4px" sprites={framesAdolescente} />
+        <SpriteView avatar={s.avatar} escala="4px" sprites={framesAdulto} />
         <h2 style={{ fontSize: 20, margin: '8px 0 4px' }}>
           {n ? `${NEGOCIOS[n.tipo].nome} de ${s.name}` : `A empresa de ${s.name}`}
         </h2>

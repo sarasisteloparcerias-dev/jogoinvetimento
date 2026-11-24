@@ -2,6 +2,7 @@ import type { EstadoMercado } from '../../game/mercado/tipos'
 import { CONQUISTAS_NEGOCIO } from '../../game/negocio/conquistas'
 import { MAPAS_NEGOCIO } from '../../game/negocio/mapas'
 import { executarInteracaoNegocio, TRANSITO_NEGOCIO_SCRIPTS, tutorialNegocio } from '../../game/negocio/scripts'
+import { HISTORIA_DUARTE } from '../../game/historiasFases'
 import type { ModoJogo } from './modo'
 import { MODO_MERCADO } from './modoMercado'
 
@@ -14,6 +15,7 @@ export const MODO_NEGOCIO: ModoJogo<EstadoMercado> = {
   interagir: executarInteracaoNegocio,
   transito: TRANSITO_NEGOCIO_SCRIPTS,
   musica: 'negocio',
+  historias: [HISTORIA_DUARTE],
   // o dinheiro da empresa também faz som (vendas a entrar, salários a sair)
   dinheiro: (s) => MODO_MERCADO.dinheiro!(s) + (s.negocio?.caixa ?? 0),
 }

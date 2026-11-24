@@ -1,7 +1,7 @@
 import { lerPercurso } from '../game/gravar'
 import { NOME_MODO } from '../game/niveis'
 import { iconeCracha } from '../game/pixel/cenario'
-import { framesAdolescente } from '../game/pixel/sprites'
+import { framesSenior } from '../game/pixel/sprites'
 import { CONQUISTAS_REFORMA } from '../game/reforma/conquistas'
 import { ANOS_REFORMA, euros, IDADE_REFORMA, patrimonioR, poupancas, type EstadoReforma } from '../game/reforma/economia'
 import { BotoesFim, type PropsBotoesFim } from './BotoesFim'
@@ -24,7 +24,7 @@ export function FimReforma({ state: s, ...botoes }: FimReformaProps) {
   return (
     <div className="pagina-pixel" style={{ ['--s' as string]: 2 }}>
       <div className="janela" style={{ maxWidth: 600, width: '100%', padding: 24, textAlign: 'center' }}>
-        <SpriteView avatar={s.avatar} escala="4px" sprites={framesAdolescente} />
+        <SpriteView avatar={s.avatar} escala="4px" sprites={framesSenior} />
         <h2 style={{ fontSize: 20, margin: '8px 0 4px' }}>A vida de {s.name}</h2>
         <p style={{ color: '#5a6280', marginBottom: 16 }}>{mensagem}</p>
 

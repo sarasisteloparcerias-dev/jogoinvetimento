@@ -7,6 +7,9 @@ import { Comparar } from './comparar'
 import { CONFIG_ANUNCIOS, CONFIG_CONTRATO, Decidir } from './decidir'
 import { Memoria } from './memoria'
 import { Pesca } from './pesca'
+import { Orcamento } from './orcamento'
+import { Regatear } from './regatear'
+import { Bolsa } from './bolsa'
 import { Troco } from './troco'
 import { Bicicleta } from './bicicleta'
 import { Bowling } from './bowling'
@@ -69,5 +72,11 @@ export function criarMiniJogo(tipo: TipoMiniJogo, avatar: AvatarConfig, sprites:
       return new Canos()
     case 'pesca':
       return new Pesca()
+    case 'orcamento':
+      return new Orcamento()
+    case 'regatear':
+      return new Regatear()
+    case 'bolsa':
+      return new Bolsa()
   }
 }

@@ -20,6 +20,7 @@ const NPCS: Record<string, (n: NpcDef) => NpcDef | null> = {
   mestre: (n) => ({ ...n, nome: 'Mestre Moedas', avatar: { ...MENTOR.avatar, cabelo: '#ffffff' }, script: 'mestre_r' }),
   prof: (n) => ({ ...n, nome: 'Diretora Inês', avatar: { ...AVATARES.prof, cabelo: '#2d1b0e' }, script: 'voluntariado' }),
   aluno: (n) => ({ ...n, nome: 'Aluno', script: 'aluno_r' }),
+  feirante: (n) => ({ ...n, avatar: velho(n.avatar) }),
 }
 
 function reformar(def: MapaDef): MapaDef {
@@ -32,7 +33,8 @@ export const MAPAS_REFORMA: Record<string, MapaDef> = {
   ...Object.fromEntries(Object.entries(MAPAS).map(([id, def]) => [id, reformar(def)])),
   vila: {
     ...VILA_R,
-    npcs: [...(VILA_R.npcs ?? []), { id: 'pescador', nome: 'Sr. Alberto', avatar: { pele: '#c68642', cabelo: GRISALHO, roupa: '#3a6a4a' }, x: 8, y: 18, dir: 'left', script: 'pescar' }],
+    npcs: [...(VILA_R.npcs ?? []), { id: 'antigo_cliente', nome: 'Sr. Rogério', avatar: { pele: '#f1c27d', cabelo: GRISALHO, roupa: '#4a7ad0' }, x: 15, y: 20, dir: 'left', script: 'antigo_cliente' },
+      { id: 'pescador', nome: 'Sr. Alberto', avatar: { pele: '#c68642', cabelo: GRISALHO, roupa: '#3a6a4a' }, x: 8, y: 19, dir: 'left', script: 'pescar' }],
   },
   casa: { ...reformar(MAPAS.casa), nome: 'A TUA CASA (DE SEMPRE)' },
   avo: { ...reformar(MAPAS.avo), nome: 'CASA DA D. GRAÇA' },

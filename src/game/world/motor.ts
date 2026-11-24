@@ -47,7 +47,31 @@ interface Ator {
   ms: number
   npc?: NpcDef
   espera: number
+  /** O jogador estava perto (para acenar só quando chega). */
+  perto?: boolean
+  /** Milissegundos de aceno que faltam. */
+  acenar?: number
 }
+
+/** Tempo (estação e chuva) do mapa exterior. */
+export interface Ambiente {
+  /** 0 primavera, 1 verão, 2 outono, 3 inverno (null: sem estações). */
+  estacao: number | null
+  chuva: boolean
+}
+
+interface Particula {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  cor: string
+  w: number
+  h: number
+}
+
+/** Um dia dura 5 minutos de jogo: dia, pôr do sol, noite e amanhecer. */
+const CICLO_DIA = 300000
 
 export type Interacao =
   | { tipo: 'npc'; npc: NpcDef }
@@ -164,6 +188,12 @@ export class Motor {
   onForaPassadeira: () => void = () => {}
   carros: Carro[] = []
   private atropelado = false
+  ambiente: Ambiente = { estacao: null, chuva: false }
+  /** Personagens com uma história nova para contar (mostram "!"). */
+  novidades = new Set<string>()
+  private particulas: Particula[] = []
+  /** A porta por onde se acabou de entrar (abre-se durante a transição). */
+  private porta: { mapa: string; x: number; y: number } | null = null
   /** Para onde aponta a seta de destino (tile no mapa atual), ou nada. */
   destino: { x: number; y: number; texto: string } | null = null
 
@@ -309,8 +339,10 @@ export class Motor {
 
   private async warp(d: Destino) {
     this.transicao = true
+    if (this.mapa.def.tipo === 'exterior') this.porta = { mapa: this.mapa.def.id, x: this.jogador.x, y: this.jogador.y }
     await this.fadeTo(1, 180)
     this.carregar(d.mapa, d.x, d.y, d.dir)
+    this.porta = null
     await this.fadeTo(0, 180)
     this.transicao = false
   }
@@ -432,7 +464,14 @@ export class Motor {
       }
     }
 
+    this.atualizarAmbiente(dt)
+
     for (const a of this.npcs) {
+      // acenar quando o jogador se aproxima
+      const perto = Math.abs(a.x - j.x) + Math.abs(a.y - j.y) <= 2
+      if (perto && !a.perto && !this.bloqueado) a.acenar = 1400
+      a.perto = perto
+      if (a.acenar && a.acenar > 0) a.acenar -= dt
       if (a.movendo) {
         a.t += dt / a.ms
         if (a.t >= 1) {
@@ -482,6 +521,16 @@ export class Motor {
     ctx.fillRect(0, 0, ECRA_W, ECRA_H)
     ctx.drawImage(this.mapa.camadas[Math.floor(this.agora / 650) % 2], -cx, -cy)
 
+    // porta aberta enquanto se entra
+    if (this.porta && this.porta.mapa === this.mapa.def.id) {
+      const px = this.porta.x * TILE - cx
+      const py = this.porta.y * TILE - cy
+      ctx.fillStyle = '#1a1410'
+      ctx.fillRect(px + 3, py + 1, 10, 15)
+      ctx.fillStyle = '#a86a3c'
+      ctx.fillRect(px + 1, py + 1, 2, 15)
+    }
+
     for (const c of this.carros) {
       const rc = retCarro(c)
       if (c.faixa.eixo === 'h') desenharCarroH(ctx, Math.round(rc.x - cx), Math.round(rc.y - cy), c.cor, c.faixa.sentido)
@@ -497,13 +546,110 @@ export class Motor {
       ctx.fillStyle = 'rgba(0,0,0,0.18)'
       ctx.fillRect(x + 3, y + img.height - 2, 10, 2)
       ctx.drawImage(img, x, y)
+      if (a.npc && this.novidades.has(a.npc.id) && !this.bloqueado) {
+        // balão com "!" a saltitar
+        const by = y - 11 + Math.round(Math.sin(this.agora / 200))
+        ctx.fillStyle = '#283040'
+        ctx.fillRect(x + 4, by, 9, 10)
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(x + 5, by + 1, 7, 8)
+        ctx.fillStyle = '#e04848'
+        ctx.fillRect(x + 8, by + 2, 1, 4)
+        ctx.fillRect(x + 8, by + 7, 1, 1)
+      }
+      if (a.npc && a.acenar && a.acenar > 0) {
+        // mão no ar a acenar
+        const lado = Math.floor(this.agora / 180) % 2
+        const mx = x + 13 + lado
+        const my = y + 3
+        ctx.fillStyle = '#2a2a36'
+        ctx.fillRect(mx - 1, my - 1, 5, 5)
+        ctx.fillRect(mx + 1, my + 3, 1, 4)
+        ctx.fillStyle = a.npc.avatar.pele
+        ctx.fillRect(mx, my, 3, 3)
+      }
     }
+
+    if (this.mapa.def.tipo === 'exterior') this.desenharAmbiente(ctx, cx, cy)
 
     if (this.destino && !this.bloqueado) this.desenharSeta(ctx, this.destino, cx, cy)
 
     if (this.fade > 0) {
       ctx.fillStyle = `rgba(0,0,0,${this.fade})`
       ctx.fillRect(0, 0, ECRA_W, ECRA_H)
+    }
+  }
+
+  /** 0 de dia, 1 de noite (com pôr do sol e amanhecer pelo meio). */
+  noite() {
+    const t = this.agora % CICLO_DIA
+    const f = t / CICLO_DIA
+    if (f < 0.66) return 0
+    if (f < 0.76) return (f - 0.66) / 0.1
+    if (f < 0.92) return 1
+    return 1 - (f - 0.92) / 0.08
+  }
+
+  private atualizarAmbiente(dt: number) {
+    const a = this.ambiente
+    const exterior = this.mapa.def.tipo === 'exterior'
+    const p = this.particulas
+    if (exterior) {
+      const gerar = (n: number, f: () => Particula) => {
+        let quantos = n * dt
+        while (quantos > 0 && p.length < 320) {
+          if (quantos < 1 && Math.random() > quantos) break
+          p.push(f())
+          quantos -= 1
+        }
+      }
+      const rx = () => Math.random() * (ECRA_W + 40) - 20
+      if (a.chuva && a.estacao !== 3) gerar(0.22, () => ({ x: rx() + 30, y: -6, vx: -0.06, vy: 0.32, cor: 'rgba(170,200,240,0.7)', w: 1, h: 4 }))
+      if (a.estacao === 3) gerar(a.chuva ? 0.06 : 0.02, () => ({ x: rx(), y: -4, vx: 0, vy: 0.025 + Math.random() * 0.02, cor: '#ffffff', w: 2, h: 2 }))
+      if (a.estacao === 2) gerar(0.006, () => ({ x: rx(), y: -4, vx: 0.012, vy: 0.02, cor: ['#e8743a', '#c8502a', '#e0a020'][Math.floor(Math.random() * 3)], w: 2, h: 2 }))
+      if (a.estacao === 0) gerar(0.003, () => ({ x: rx(), y: -4, vx: 0.01, vy: 0.015, cor: '#f8c0d8', w: 2, h: 1 }))
+    }
+    for (const q of p) {
+      q.x += q.vx * dt + (q.w === 2 ? Math.sin((this.agora + q.y * 40) / 500) * 0.15 : 0)
+      q.y += q.vy * dt
+    }
+    this.particulas = exterior ? p.filter((q) => q.y < ECRA_H + 6 && q.x > -30 && q.x < ECRA_W + 30) : []
+  }
+
+  private desenharAmbiente(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+    const a = this.ambiente
+    for (const q of this.particulas) {
+      ctx.fillStyle = q.cor
+      ctx.fillRect(Math.round(q.x), Math.round(q.y), q.w, q.h)
+    }
+    const tons = ['rgba(255,240,250,0.04)', 'rgba(255,210,90,0.07)', 'rgba(210,120,40,0.1)', 'rgba(210,225,255,0.16)']
+    if (a.estacao !== null) {
+      ctx.fillStyle = tons[a.estacao]
+      ctx.fillRect(0, 0, ECRA_W, ECRA_H)
+    }
+    if (a.chuva) {
+      ctx.fillStyle = 'rgba(40,50,80,0.16)'
+      ctx.fillRect(0, 0, ECRA_W, ECRA_H)
+    }
+    const n = this.noite()
+    if (n > 0) {
+      ctx.fillStyle = `rgba(18,24,70,${0.42 * n})`
+      ctx.fillRect(0, 0, ECRA_W, ECRA_H)
+      // os candeeiros acendem-se
+      ctx.save()
+      ctx.globalCompositeOperation = 'lighter'
+      for (const p of this.mapa.def.props ?? []) {
+        if (p.tipo !== 'candeeiro') continue
+        const x = p.x * TILE + 8 - cx
+        const y = p.y * TILE - 2 - cy
+        if (x < -30 || x > ECRA_W + 30 || y < -30 || y > ECRA_H + 30) continue
+        const g = ctx.createRadialGradient(x, y, 1, x, y, 26)
+        g.addColorStop(0, `rgba(255,220,130,${0.55 * n})`)
+        g.addColorStop(1, 'rgba(255,220,130,0)')
+        ctx.fillStyle = g
+        ctx.fillRect(x - 26, y - 26, 52, 52)
+      }
+      ctx.restore()
     }
   }
 

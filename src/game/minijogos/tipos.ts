@@ -22,6 +22,9 @@ export type TipoMiniJogo =
   | 'contrato'
   | 'canos'
   | 'pesca'
+  | 'orcamento'
+  | 'regatear'
+  | 'bolsa'
 
 export type TeclaJogo = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'A' | 'B'
 

@@ -703,8 +703,13 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
   },
 
   async pc(ctx) {
-    const r = await ctx.ask('O teu computador. O que queres fazer?', ['VER O ORÇAMENTO', 'PROCURAR EMPREGO', 'NADA'], undefined, 2)
+    const r = await ctx.ask('O teu computador. O que queres fazer?', ['VER O ORÇAMENTO', 'PROCURAR EMPREGO', 'JOGO DO ORÇAMENTO', 'NADA'], undefined, 3)
     if (r === 1) return procurarEmprego(ctx)
+    if (r === 2) {
+      const jogo = await ctx.jogar('orcamento')
+      stats(ctx, { carreira: jogo.pontos >= 12 ? 2 : 0 })
+      return ctx.say([`${jogo.texto}.`, 'Primeiro o essencial, depois a poupança (pelo menos 10%), e só no fim os extras. Funciona com qualquer salário.'])
+    }
     if (r !== 0) return
     const s = ctx.estado()
     const sal = salarioLiquido(s)
@@ -737,6 +742,15 @@ const ACOES_OBJETO: Record<string, (ctx: Ctx) => Promise<void>> = {
       return `${a.curto}: ${euros(s.precos[a.id])} (${pct(s.precos[a.id] / ant - 1)})`
     })
     await ctx.say(['Cotações deste mês:', ...linhas])
+    const r = await ctx.ask('Experimentar o simulador de bolsa? (a fingir)', ['SIM', 'NÃO'], undefined, 1)
+    if (r === 0) {
+      const jogo = await ctx.jogar('bolsa')
+      await ctx.say([
+        `${jogo.texto}.`,
+        'Repara: as notícias chegam a toda a gente ao mesmo tempo e o preço muda logo. Quem compra e vende muito paga comissões e raramente ganha a quem compra e espera.',
+        'Os rumores e os influencers não mudam nada... a não ser a tua carteira, se acreditares neles.',
+      ])
+    }
   },
 
   async cofre(ctx) {

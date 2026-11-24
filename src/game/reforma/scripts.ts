@@ -1,5 +1,6 @@
 import { clamp } from '../data'
 import type { CtxJogo } from '../modo'
+import { deslocar } from '../variacao'
 import type { Interacao } from '../world/motor'
 import { CONQUISTAS_REFORMA } from './conquistas'
 import {
@@ -323,6 +324,29 @@ const ACOES_NPC: Record<string, (ctx: Ctx) => Promise<void>> = {
     await ctx.say([`${jogo.texto}!`, 'Na reforma, os amigos são o melhor investimento. Relações +6.'], quem)
   },
 
+  async antigo_cliente(ctx) {
+    const quem = 'Sr. Rogério'
+    const f = ctx.estado().flags
+    const linhas: string[] = []
+    if (f.includes('passado_negocio_cafe')) linhas.push('Eu conheço-o! Tomava o pequeno-almoço no seu café todos os dias, há 35 anos. Aquelas torradas!')
+    else if (f.includes('passado_negocio_gelados')) linhas.push('Lembra-se de mim? Os meus filhos iam à sua gelataria todos os verões. Ainda falam do gelado de morango!')
+    else if (f.includes('passado_negocio_entregas')) linhas.push('Eu era cliente da sua empresa de estafetas! As minhas encomendas chegavam sempre a horas, de bicicleta.')
+    else linhas.push('Bom dia! Mudei-me para a vila há pouco tempo. Dizem que cresceu aqui!')
+    if (f.includes('passado_empregos')) linhas.push('E sabe que mais? A minha filha teve o primeiro emprego na sua empresa. Ainda diz que aprendeu muito consigo.')
+    if (f.includes('passado_lucro')) linhas.push('Uma empresa bem gerida deixa marcas na terra. Obrigado!')
+    if (f.includes('passado_gato')) linhas.push('Ah, e aquele gato laranja no seu quintal... é bisneto do Bolinhas, não é?')
+    await ctx.say(linhas, quem)
+  },
+
+  async feirante(ctx) {
+    const quem = 'Sr. Manel (feira)'
+    const r = await ctx.ask('Ainda me lembro de ti pequeno! Regateamos como antigamente?', ['VAMOS!', 'SÓ VER'], quem, 1)
+    if (r !== 0) return ctx.say('Os anos passam e a feira continua. Volta quando quiseres!', quem)
+    const jogo = await ctx.jogar('regatear')
+    stats(ctx, 1, 3)
+    await ctx.say([`${jogo.texto}!`, 'Na reforma, cada euro conta: comprar em segunda mão e regatear com simpatia ajuda a esticar a pensão.'], quem)
+  },
+
   async pescar(ctx) {
     const quem = 'Sr. Alberto'
     const r = await ctx.ask('O lago está calmo hoje. Pescamos um bocado? Tenho uma cana a mais.', ['PESCAR', 'SÓ CONVERSAR'], quem)
@@ -600,7 +624,9 @@ const EVENTOS: EventoReforma[] = [
 
 function escolherEvento(s: EstadoReforma): EventoReforma | null {
   const visto = (e: EventoReforma) => s.flags.includes(`evr_${e.id}`)
-  const fixo = EVENTOS.find((e) => e.ano === s.ano && !visto(e) && (!e.quando || e.quando(s)))
+  // a altura muda de jogo para jogo (a queda da bolsa não: vem sempre logo no início)
+  const ano = (e: EventoReforma) => (e.ano === undefined || e.id === 'crash' ? e.ano : deslocar(s, e.id, e.ano, 0, 2))
+  const fixo = EVENTOS.find((e) => ano(e) === s.ano && !visto(e) && (!e.quando || e.quando(s)))
   if (fixo) return fixo
   const livres = EVENTOS.filter((e) => e.ano === undefined && !visto(e) && (!e.quando || e.quando(s)))
   if (!livres.length || Math.random() < 0.35) return null

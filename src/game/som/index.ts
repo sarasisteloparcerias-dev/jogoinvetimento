@@ -1,8 +1,28 @@
 import { agora, aTocarJingle, tocarNota, tocarRuido } from './audio'
-import './musicas'
+import { registarFaixas } from './audio'
+import { temaMiniJogo } from './musicas'
 
 export { alternarSom, desbloquear, instalarDesbloqueio, jingle, musica, somLigado, subscreverSom } from './audio'
 export type { NomeJingle, NomeMusica } from './musicas'
+
+const temas = new Set<string>()
+
+/** O nome da música de um mini-jogo (cada um tem o seu tema, criado na primeira vez). */
+export function musicaMiniJogo(tipo: string) {
+  const nome = `mj_${tipo}`
+  if (!temas.has(nome)) {
+    temas.add(nome)
+    registarFaixas({ [nome]: temaMiniJogo(tipo) })
+  }
+  return nome
+}
+
+/** Interiores com música própria; os outros usam a música calma de interior. */
+const MUSICA_SITIO: Record<string, string> = { banco: 'banco', hospital: 'hospital', loja: 'loja', supermercado: 'loja', megastore: 'loja', imobiliaria: 'banco', financas: 'banco' }
+
+export function musicaInterior(mapa: string) {
+  return MUSICA_SITIO[mapa] ?? 'interior'
+}
 
 export type Efeito =
   | 'texto'

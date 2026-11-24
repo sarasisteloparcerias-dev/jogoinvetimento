@@ -120,6 +120,10 @@ export async function tutorialNegocio(ctx: Ctx) {
       `${def.nome}: ${euros(def.investimento)} de obras e equipamento, mais ${euros(FUNDO_MANEIO)} de fundo de maneio (dinheiro na caixa para os primeiros meses). Total: ${euros(total)}.`,
       `Tens ${euros(s.conta + s.poupanca)} entre conta e depósito. Deixa sempre algum para ti: aqui contam ${euros(disponivel)}.`,
       `O resto pede-se ao banco: ${pctN(TAXA_EMPRESTIMO)} ao ano, a ${PRAZO_EMPRESTIMO / 12} anos. Quanto mais pedires, maior a prestação todos os meses.`,
+      ...(s.hipoteca
+        ? ['Como compraste casa, o banco vai pedir uma garantia pessoal: se a empresa falhar, a dívida pode cair sobre ti. Por isso, não arrisques mais do que podes perder.']
+        : []),
+      ...(s.flags.includes('passado_bebe') ? ['E com um filho pequeno em casa, convém não pôr todas as poupanças na empresa.'] : []),
     ],
     MESTRE,
   )

@@ -83,6 +83,11 @@ export function repetirNivel(modo: Modo, estado: unknown): unknown {
   return novoEstadoCasa(name, avatar)
 }
 
+/** O que a personagem traz das fases anteriores (fica nas flags "passado_..." até ao fim do jogo). */
+function passado(flags: string[], novos: Record<string, boolean>) {
+  return [...flags.filter((f) => f.startsWith('passado_')), ...Object.entries(novos).filter(([f, v]) => v && !flags.includes(f)).map(([f]) => f)]
+}
+
 /** Passa a mesma personagem para o nível seguinte, levando parte do que juntou. Devolve o novo estado e o que o Mestre Moedas explica. */
 export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: unknown; linhas: string[] } | null {
   if (modo === 'reino') {
@@ -90,28 +95,55 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
     const moedas = s.saldo + s.poupanca + s.investimento.amount
     const trazes = Math.round(moedas / 4)
     const n = novoEstadoCidade(s.name, s.avatar)
+    const p = passado(s.flags, { passado_gato: s.flags.includes('gato'), passado_solidario: s.crachas.includes('ajudar'), passado_comparar: s.crachas.includes('comparar') })
+    const linhas = [
+      `${s.name}! Cresceste e agora vives na Cidade.`,
+      `Das ${Math.round(moedas)} moedas que juntaste na Vila Moeda, a tua família guardou ${euros(trazes)} para ti. Já estão na tua carteira!`,
+    ]
+    if (p.includes('passado_gato')) linhas.push('E o Bolinhas, o teu gato, veio contigo! Agora és tu que pagas a ração: 2€ por semana.')
+    if (p.includes('passado_solidario')) linhas.push('Na escola nova já sabem que ajudaste na campanha solidária da Vila. Começas com mais amigos!')
+    if (p.includes('passado_comparar')) linhas.push('E continuas a comparar preços antes de comprar: isso vai poupar-te muito dinheiro aqui.')
+    linhas.push('Aqui o dinheiro é a sério (a fingir, claro): euros, contas no banco, ações e um primeiro trabalho.')
     return {
       modo: 'cidade',
-      estado: { ...n, dinheiro: n.dinheiro + trazes, flags: ['veio_da_vila'] },
-      linhas: [
-        `${s.name}! Cresceste e agora vives na Cidade.`,
-        `Das ${Math.round(moedas)} moedas que juntaste na Vila Moeda, a tua família guardou ${euros(trazes)} para ti. Já estão na tua carteira!`,
-        'Aqui o dinheiro é a sério (a fingir, claro): euros, contas no banco, ações e um primeiro trabalho.',
-      ],
+      estado: {
+        ...n,
+        dinheiro: n.dinheiro + trazes,
+        flags: ['veio_da_vila', ...p],
+        stats: { ...n.stats, relacoes: n.stats.relacoes + (p.includes('passado_solidario') ? 8 : 0) },
+        pagamentos: p.includes('passado_gato') ? [{ id: 'bolinhas', nome: 'Ração do Bolinhas', valor: 2, restam: null, cancelavel: false }] : [],
+      },
+      linhas,
     }
   }
   if (modo === 'cidade') {
     const s = estado as EstadoCidade
     const trazes = Math.max(0, Math.round(patrimonio(s)))
     const n = novoEstadoMercado(s.name, s.avatar)
+    const p = passado(s.flags, {
+      passado_bicicleta: s.flags.includes('bicicleta'),
+      passado_negociou: s.flags.includes('mesada_extra'),
+      passado_anti_anuncios: s.crachas.includes('publicidade'),
+      passado_anti_burla: s.crachas.includes('anti_burla'),
+    })
+    const linhas = [
+      `${s.name}, passaram uns anos: acabaste os estudos e começa a vida adulta!`,
+      `Os ${euros(trazes)} que juntaste na Cidade continuam contigo: somam-se aos 800€ que tens na conta.`,
+    ]
+    if (p.includes('passado_negociou')) linhas.push('Como aprendeste a negociar a mesada, negociaste também o primeiro salário: mais 60€ brutos por mês!')
+    if (p.includes('passado_bicicleta')) linhas.push('Ainda tens a bicicleta: em vez do passe completo, gastas menos em transportes.')
+    if (p.includes('passado_anti_burla') || p.includes('passado_anti_anuncios')) linhas.push('E já sabes reconhecer burlas e publicidade escondida: vais precisar disso!')
+    linhas.push('Agora há salário, renda, impostos, cartão de crédito... e o objetivo de juntar a entrada para uma casa.')
     return {
       modo: 'mercado',
-      estado: { ...n, conta: n.conta + trazes, history: [{ week: 0, saldo: n.conta + trazes, poupanca: 0, investimento: 0 }], flags: ['veio_da_cidade'] },
-      linhas: [
-        `${s.name}, passaram uns anos: acabaste os estudos e começa a vida adulta!`,
-        `Os ${euros(trazes)} que juntaste na Cidade continuam contigo: somam-se aos 800€ que tens na conta.`,
-        'Agora há salário, renda, impostos, cartão de crédito... e o objetivo de juntar a entrada para uma casa.',
-      ],
+      estado: {
+        ...n,
+        conta: n.conta + trazes,
+        salarioBruto: n.salarioBruto + (p.includes('passado_negociou') ? 60 : 0),
+        history: [{ week: 0, saldo: n.conta + trazes, poupanca: 0, investimento: 0 }],
+        flags: ['veio_da_cidade', ...p],
+      },
+      linhas,
     }
   }
   if (modo === 'mercado') {
@@ -125,7 +157,7 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
       salarioBruto: Math.round(s.salarioBruto * 1.1),
       turnos: 0,
       movimentos: [],
-      flags: [...s.flags.filter((f) => f === 'investir'), 'veio_do_mercado'],
+      flags: [...s.flags.filter((f) => f === 'investir'), 'veio_do_mercado', ...passado(s.flags, { passado_carta: s.carta === 'carta', passado_contrato: s.crachas.includes('contrato') })],
       noticias: [{ semana: 1, titulo: 'Começa um novo ano', texto: 'Fala-se muito de juros e de casas.' }],
       history: [{ week: 0, saldo: s.conta, poupanca: s.poupanca + s.ppr, investimento: 0 }],
     }
@@ -135,6 +167,7 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
       linhas: [
         `${s.name}, juntaste ${euros(patrimonioM(s))}. Chegou a hora de pensar em comprar casa!`,
         `Com a experiência dos últimos anos, o teu salário subiu para ${euros(n.salarioBruto)} brutos.`,
+        ...(s.carta === 'carta' ? ['Já tens carta de condução: não precisas de voltar à escola de condução.'] : []),
       ],
     }
   }
@@ -148,7 +181,7 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
       crachas: [],
       turnos: 0,
       movimentos: [],
-      flags: [...s.flags.filter((f) => f === 'investir'), 'veio_da_casa'],
+      flags: [...s.flags.filter((f) => f === 'investir'), 'veio_da_casa', ...passado(s.flags, { passado_casa: !!s.hipoteca, passado_bebe: s.flags.includes('bebe') })],
       noticias: [{ semana: 1, titulo: 'Começa um novo ano', texto: 'Abrem muitas empresas novas na cidade.' }],
       history: [{ week: 0, saldo: s.conta, poupanca: s.poupanca + s.ppr, investimento: 0 }],
     }
@@ -157,15 +190,22 @@ export function passarNivel(modo: Modo, estado: unknown): { modo: Modo; estado: 
       estado: n,
       linhas: [
         `${s.name}, passaste todas as fases! Tens ${euros(patrimonioM(s))} de património.`,
-        'Desbloqueaste a fase final: O NEGÓCIO. Vais criar a tua própria empresa e ser tu a pagar os ordenados!',
+        'Desbloqueaste uma fase nova: O NEGÓCIO. Vais criar a tua própria empresa e ser tu a pagar os ordenados!',
       ],
     }
   }
   if (modo === 'negocio') {
     const s = estado as EstadoMercado
+    const r = daVidaAtivaParaReforma(s)
+    const n = s.negocio
+    const p = passado(s.flags, {
+      [`passado_negocio_${n?.tipo ?? 'nenhum'}`]: !!n,
+      passado_empregos: !!n && n.funcionarios.length >= 2,
+      passado_lucro: !!n && n.lucroAno > 0,
+    })
     return {
       modo: 'reforma',
-      estado: daVidaAtivaParaReforma(s),
+      estado: { ...r, flags: [...r.flags, ...p] },
       linhas: [`${s.name}, a tua empresa aguentou o primeiro ano!`, 'Agora, uma viagem no tempo: passam 35 anos de trabalho, poupança e investimento...'],
     }
   }

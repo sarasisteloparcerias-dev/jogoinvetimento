@@ -324,6 +324,156 @@ const reforma = faixa(
   0.28,
 )
 
+/** Banco: elegante e pausada, com baixo a andar (si bemol maior). */
+const BAN_AC = acordes('Bb Gm Eb F Bb Gm Cm:8 F:8 Bb')
+const banco = faixa(
+  104,
+  [
+    voz(
+      'pulso50',
+      0.32,
+      melodia(`
+        F5:4 D5 Bb4 D5:4 F5:4
+        G5:6 F5 D5:8
+        Eb5 G5 Bb5:4 G5 Eb5 G5:4
+        A5:4 C6:4 F5:8
+        F5:4 D5 F5 Bb5:4 A5:4
+        G5:6 A5 Bb5:8
+        G5 Eb5 C5 Eb5 F5 A5 C6 A5
+        Bb5:12 r:4`),
+      { vibrato: true },
+    ),
+    voz('pulso12', 0.14, arpejo(BAN_AC, 4, [0, 2, 1, 2], 2), { staccato: true }),
+    voz('tri', 0.65, baixo(BAN_AC, 'andante')),
+  ],
+  '....h.......h...',
+  0.25,
+)
+
+/** Hospital: calma e lenta, para descansar (dó maior com lá menor). */
+const HOS_AC = acordes('C Am F G C Am Dm:8 G:8 C')
+const hospital = faixa(
+  76,
+  [
+    voz(
+      'pulso50',
+      0.28,
+      melodia(`
+        E5:8 G5:8
+        A5:8 E5:8
+        F5:6 E5:2 C5:8
+        D5:12 r:4
+        E5:8 G5:8
+        C6:6 B5:2 A5:8
+        A5:4 F5:4 D5:4 B4:4
+        C5:12 r:4`),
+      { vibrato: true },
+    ),
+    voz('tri', 0.5, baixo(HOS_AC, 'longo')),
+  ],
+)
+
+/** Lojas e supermercados: saltitante, como música de loja (fá maior). */
+const LOJ_AC = acordes('F Dm Gm C F Dm Gm:8 C:8 F')
+const loja = faixa(
+  150,
+  [
+    voz(
+      'pulso25',
+      0.38,
+      melodia(`
+        C5 F5 A5 C6 A5:4 F5:4
+        D5 F5 A5 D6 C6:4 A5:4
+        Bb5 A5 G5 Bb5 D6:4 Bb5:4
+        C6:4 E5 G5 C6:8
+        C5 F5 A5 C6 F6:4 C6:4
+        A5 D6 F6 D6 C6:4 A5:4
+        G5 Bb5 D6 Bb5 C6 E5 G5 Bb5
+        A5:4 F5:4 F5:4 r:4`),
+    ),
+    voz('pulso12', 0.16, arpejo(LOJ_AC, 4, [0, 1, 2, 1], 2), { staccato: true }),
+    voz('tri', 0.7, baixo(LOJ_AC, 'oitavas')),
+  ],
+  'k.h.s.h.k.h.s.h.',
+  0.38,
+)
+
+// ---------------------------------------------------------------------------
+// Um tema para cada mini-jogo: gerado a partir do nome, sempre igual para o mesmo jogo
+
+function aleatorioDe(texto: string) {
+  let h = 2166136261
+  for (const c of texto) h = Math.imul(h ^ c.charCodeAt(0), 16777619)
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507)
+    h = Math.imul(h ^ (h >>> 13), 3266489909)
+    h ^= h >>> 16
+    return (h >>> 0) / 4294967296
+  }
+}
+
+const TONS = ['C', 'D', 'E', 'F', 'G', 'A', 'Bb']
+const PROGRESSOES_MAIOR = [
+  [0, 7, 9, 5],
+  [0, 5, 7, 5],
+  [9, 5, 0, 7],
+  [0, 9, 5, 7],
+]
+const PROGRESSOES_MENOR = [
+  [0, 8, 3, 10],
+  [0, 5, 10, 3],
+  [0, 10, 8, 7],
+]
+const RITMOS = [
+  [2, 2, 2, 2, 2, 2, 2, 2],
+  [3, 1, 2, 2, 4, 2, 2],
+  [4, 2, 2, 4, 4],
+  [2, 2, 4, 2, 2, 4],
+  [1, 1, 2, 2, 2, 4, 2, 2],
+]
+const BATERIAS = ['k.hhs.hhk.hks.hh', 'k.h.s.hkk.h.s.ho', 'k...s.k.k...s...', 'khhhskhhkhhhskhs']
+
+export function temaMiniJogo(tipo: string): Faixa {
+  const r = aleatorioDe(tipo)
+  const escolher = <T,>(l: T[]) => l[Math.floor(r() * l.length)]
+  const menor = r() < 0.45
+  const raiz = midi(`${escolher(TONS)}3`)
+  const prog = escolher(menor ? PROGRESSOES_MENOR : PROGRESSOES_MAIOR)
+  const escala = menor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11]
+  const ritmos = [escolher(RITMOS), escolher(RITMOS)]
+  const acs: Acorde[] = []
+  const lead: Nota[] = []
+  let grau = 7
+  for (let compasso = 0; compasso < 8; compasso++) {
+    const intervalo = prog[compasso % 4]
+    // o acorde: maior ou menor conforme a nota cai na escala
+    const terca = escala.includes((intervalo + 4) % 12) ? 4 : 3
+    acs.push({ passo: compasso * 16, dur: 16, raiz: raiz - 12 + intervalo, intervalos: [0, terca, 7] })
+    const ritmo = compasso === 7 ? [4, 4, 8] : ritmos[compasso % 2]
+    let passo = compasso * 16
+    for (const dur of ritmo) {
+      // passeio pela escala, com tendência para as notas do acorde
+      grau += Math.floor(r() * 5) - 2
+      grau = Math.max(3, Math.min(13, grau))
+      if (compasso === 7 && passo >= compasso * 16 + 8) grau = 7
+      const oit = Math.floor(grau / 7)
+      lead.push({ passo, dur, midi: raiz + 24 + oit * 12 + escala[grau % 7] })
+      passo += dur
+    }
+  }
+  const tempo = 136 + Math.floor(r() * 40)
+  return faixa(
+    tempo,
+    [
+      voz(escolher<Instrumento>(['pulso25', 'pulso50', 'pulso25']), 0.4, lead, { vibrato: r() < 0.5 }),
+      voz('pulso12', 0.17, arpejo(acs, 4, escolher([[0, 1, 2, 1], [0, 2, 1, 2], [0, 1, 2, 3]]))),
+      voz('tri', 0.75, baixo(acs, escolher(['oitavas', 'quintas', 'andante'] as const))),
+    ],
+    escolher(BATERIAS),
+    0.5,
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Melodias curtas (tocam uma vez)
 
@@ -369,7 +519,7 @@ const vitoria = faixa(
   0.45,
 )
 
-registarFaixas({ vila, interior, cidade, mercado, casa, negocio, reforma, minijogo, titulo, cracha, dormir, fanfarra, triste, vitoria })
+registarFaixas({ vila, interior, cidade, mercado, casa, negocio, reforma, banco, hospital, loja, minijogo, titulo, cracha, dormir, fanfarra, triste, vitoria })
 
-export type NomeMusica = 'vila' | 'interior' | 'cidade' | 'mercado' | 'casa' | 'negocio' | 'reforma' | 'minijogo' | 'titulo'
+export type NomeMusica = 'vila' | 'interior' | 'banco' | 'hospital' | 'loja' | 'cidade' | 'mercado' | 'casa' | 'negocio' | 'reforma' | 'minijogo' | 'titulo'
 export type NomeJingle = 'cracha' | 'dormir' | 'fanfarra' | 'triste' | 'vitoria'

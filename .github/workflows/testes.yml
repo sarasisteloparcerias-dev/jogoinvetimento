@@ -1,0 +1,30 @@
+name: Testes
+
+on:
+  push:
+    branches:
+      - main
+      - claude/life-finance-sim-game-860spa
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc -b
+      - name: Testes da lógica (economia, fases, histórias, mini-jogos)
+        run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Testes do jogo no browser
+        run: npm run test:e2e

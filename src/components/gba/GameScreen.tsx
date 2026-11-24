@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ResultadoMiniJogo, TipoMiniJogo } from '../../game/minijogos/tipos'
 import type { Dir } from '../../game/pixel/sprites'
-import { jingle, musica, sfx } from '../../game/som'
+import { jingle, musica, musicaInterior, musicaMiniJogo, sfx } from '../../game/som'
 import { ECRA_H, ECRA_W, Motor } from '../../game/world/motor'
 import type { MapaDef } from '../../game/world/tipos'
+import { contarHistoria, temNovidade } from '../../game/historias'
+import { novaSemente, semente } from '../../game/variacao'
 import { Consola } from './Consola'
 import { CaixaDialogo, useDialogo, type Tecla } from './dialogo'
 import { MiniJogoView, type ControloMiniJogo } from './MiniJogoView'
@@ -141,7 +143,10 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
       setMapaId(def.id)
       sfx('porta')
     }
-    m.onInteragir = (i) => void correr((c) => modo.interagir(i, c))
+    m.onInteragir = (i) => {
+      const h = i.tipo === 'npc' ? modo.historias?.find((x) => x.npc === i.npc.id) : undefined
+      void correr((c) => (h ? contarHistoria(c, h) : modo.interagir(i, c)))
+    }
     m.onAtropelado = () => {
       const t = modo.transito
       if (!t) return
@@ -152,6 +157,8 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
       const t = modo.transito
       if (t) void correr((c) => t.foraPassadeira(c))
     }
+    // gancho para os testes automáticos (só em desenvolvimento ou com ?teste no endereço)
+    if (import.meta.env.DEV || location.search.includes('teste')) Object.assign(window, { __vilaMoeda: { motor: m, ctx } })
     const g = canvasRef.current!.getContext('2d')!
     g.imageSmoothingEnabled = false
     let ultimo = performance.now()
@@ -168,14 +175,28 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
     if (!iniciado.current) {
       iniciado.current = true
       setBanner({ nome: m.mapa.def.nome, k: Date.now() })
+      // cada jogo tem uma semente: os acontecimentos mudam de altura de jogo para jogo
+      if (!semente(estadoRef.current)) definir({ ...estadoRef.current, flags: [...estadoRef.current.flags, novaSemente()] })
       if (!estadoRef.current.flags.includes('tutorial')) void correr(modo.tutorial)
     }
     return () => cancelAnimationFrame(raf)
-  }, [correr, modo])
+  }, [correr, modo, ctx, definir])
 
   // seta de destino: aponta para o edifício da próxima conquista (ou para a saída, se estiver noutro interior)
   const alvo = modo.destino ? modo.destino(estado) : (modo.conquistas.find((c) => !estado.crachas.includes(c.id) && c.onde)?.onde ?? null)
+  // estação do ano e chuva, conforme a semana/mês/ano
+  useEffect(() => {
+    const m = motorRef.current
+    const a = modo.ambiente?.(estado)
+    if (m && a && (m.ambiente.estacao !== a.estacao || m.ambiente.chuva !== a.chuva)) m.ambiente = a
+  }, [estado, modo])
+
   const seta = calcularSeta(modo.mapas, mapaId, alvo)
+  const novidades = (modo.historias ?? []).filter((h) => temNovidade(estado, h)).map((h) => h.npc).join(',')
+  useEffect(() => {
+    const m = motorRef.current
+    if (m) m.novidades = new Set(novidades ? novidades.split(',') : [])
+  }, [novidades])
   useLayoutEffect(() => {
     destinoRef.current = alvo
   })
@@ -186,7 +207,7 @@ export function GameScreen<S extends EstadoBase>({ modo, estadoInicial, onMudar,
   }, [alvo, mapaId, modo.mapas])
 
   // música: a da fase lá fora, uma mais calma dentro de casa e outra nos mini-jogos
-  const musicaAgora = mini ? 'minijogo' : interior ? 'interior' : modo.musica
+  const musicaAgora = mini ? musicaMiniJogo(mini.tipo) : interior ? musicaInterior(mapaId) : modo.musica
   useEffect(() => {
     musica(musicaAgora)
   }, [musicaAgora])

@@ -283,3 +283,88 @@ export function framesAdolescente(a: AvatarConfig): FramesPersonagem {
   cacheTeen.set(chave, frames)
   return frames
 }
+
+// ---------- adultos e seniores: a mesma base, mais alta e com outros pormenores ----------
+
+/** Adulto: um pixel mais alto, ombros mais largos e camisa com gola. */
+function topoAdulto(topo: string[], dir: 'frente' | 'costas' | 'lado'): string[] {
+  const t = topo.slice(1)
+  if (dir !== 'lado') {
+    t[13] = dir === 'frente' ? '....OOWCCWOO....' : '....OOCCCCOO....'
+    t[14] = '..OCCCCCCCCCCO..'
+  }
+  // mais uma fila de tronco (fica mais alto)
+  t.splice(17, 0, t[16])
+  return t
+}
+
+/** Sénior: óculos e uma bengala. */
+function topoSenior(topo: string[], dir: 'frente' | 'costas' | 'lado'): string[] {
+  const t = topoAdulto(topo, dir)
+  if (dir === 'frente') {
+    t[7] = trocar(t[7], { 5: 'G', 7: 'G', 8: 'G', 10: 'G' })
+  } else if (dir === 'lado') {
+    t[7] = trocar(t[7], { 9: 'G', 11: 'G' })
+  }
+  return t
+}
+
+function comBengala(linhas: string[], col: number, de: number): string[] {
+  return linhas.map((l, y) => (y >= de && l[col] === '.' ? trocar(l, { [col]: 'K' }) : l))
+}
+
+function gerarFrames(
+  a: AvatarConfig,
+  pal: Paleta,
+  topo: (t: string[], dir: 'frente' | 'costas' | 'lado') => string[],
+  bengala: boolean,
+): FramesPersonagem {
+  const cabelo = (t: string[], d: 'frente' | 'costas' | 'lado') => (a.cabeloComprido ? cabeloCompridoTeen(t, d) : t)
+  const frente = topo(cabelo(TEEN_FRENTE, 'frente'), 'frente')
+  const costas = topo(cabelo(TEEN_COSTAS, 'costas'), 'costas')
+  const lado = topo(cabelo(TEEN_LADO, 'lado'), 'lado')
+  const f = (t: string[], pernas: string[], col = -1) => grelha(col >= 0 ? comBengala([...t, ...pernas], col, 18) : [...t, ...pernas], pal)
+  const cf = bengala ? 14 : -1
+  const cl = bengala ? 12 : -1
+  const direita: [HTMLCanvasElement, HTMLCanvasElement, HTMLCanvasElement] = [
+    f(lado, TEEN_PERNAS_LADO.parado, cl),
+    f(lado, TEEN_PERNAS_LADO.passo, cl),
+    f(lado, TEEN_PERNAS_LADO.passo, cl),
+  ]
+  return {
+    down: [f(frente, TEEN_PERNAS_FRENTE.parado, cf), f(frente, TEEN_PERNAS_FRENTE.a, cf), f(frente, TEEN_PERNAS_FRENTE.b, cf)],
+    up: [f(costas, TEEN_PERNAS_FRENTE.parado, bengala ? 1 : -1), f(costas, TEEN_PERNAS_FRENTE.a, bengala ? 1 : -1), f(costas, TEEN_PERNAS_FRENTE.b, bengala ? 1 : -1)],
+    right: direita,
+    left: [espelhar(direita[0]), espelhar(direita[1]), espelhar(direita[2])],
+  }
+}
+
+const cacheAdulto = new Map<string, FramesPersonagem>()
+const cacheSenior = new Map<string, FramesPersonagem>()
+
+/** Sprites de adulto (O Mercado, A Casa, O Negócio). */
+export function framesAdulto(a: AvatarConfig): FramesPersonagem {
+  const chave = JSON.stringify(a)
+  let fr = cacheAdulto.get(chave)
+  if (!fr) {
+    fr = gerarFrames(a, { ...paletaPersonagem(a), P: '#2a3250', B: '#3a2a1a', W: '#f4f6fb' }, topoAdulto, false)
+    cacheAdulto.set(chave, fr)
+  }
+  return fr
+}
+
+/** Sprites de sénior (A Reforma): óculos, bengala e calças claras. */
+export function framesSenior(a: AvatarConfig): FramesPersonagem {
+  const chave = JSON.stringify(a)
+  let fr = cacheSenior.get(chave)
+  if (!fr) {
+    fr = gerarFrames(a, { ...paletaPersonagem(a), P: '#8a7a5a', B: '#5a3a22', W: '#f4f6fb', G: '#4a4a5a', K: '#7a4a1e' }, topoSenior, true)
+    cacheSenior.set(chave, fr)
+  }
+  return fr
+}
+
+/** N'A Reforma, quem tem cabelo branco é sénior; os mais novos (a neta, os alunos) são adultos jovens. */
+export function framesReforma(a: AvatarConfig): FramesPersonagem {
+  return a.cabelo === '#d8d8d8' || a.cabelo === '#ffffff' || a.cabelo === '#e8e0d5' ? framesSenior(a) : framesAdulto(a)
+}

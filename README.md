@@ -22,6 +22,16 @@ npm run dev
 
 Abre o URL indicado pelo Vite (por omissão `http://localhost:5173`).
 
+Testes:
+
+```bash
+npm test            # lógica: economia de cada fase, passagens de nível, histórias, mini-jogos
+npm run test:e2e    # o jogo no browser (Playwright): cada fase arranca, passa o tempo, sem erros
+```
+
+Os testes do browser precisam do Chromium do Playwright (`npx playwright install chromium`), ou de
+`PW_CHROMIUM=/caminho/para/chromium`. Correm também no GitHub, em cada envio (workflow "Testes").
+
 Para produção:
 
 ```bash
@@ -82,6 +92,53 @@ todo** da mesma personagem, fase a fase.
 | As letras pequenas | Mercado: contrato ao mudar de casa (conquista Letras Pequenas) | cláusulas abusivas |
 | Compara as ofertas | Mercado: Rita, no banco (conquista Comparador) | TAEG, custo total, mensal contra anual |
 | Fugas de água | Casa: obras na canalização, "tentar sozinho" | reparar em vez de pagar |
+
+| O orçamento do mês | Cidade e Mercado: computador de casa | essencial primeiro, poupar 10%, só depois os extras |
+| Regatear na feira | Vila e Reforma: o Sr. Manel da feira | propor um preço sem ofender |
+| Simulador de bolsa | Cidade e Mercado: painel de cotações do banco | notícias, rumores, comissões; comparar com "comprar e esperar" |
+| Pesca no lago | Reforma: o Sr. Alberto | paciência |
+
+### Histórias com capítulos
+
+Em cada fase há uma personagem com uma história que avança com o tempo do jogo. Quando há um
+capítulo novo aparece um **"!"** por cima dela, e as escolhas ficam registadas (os capítulos
+seguintes lembram-se do que disseste):
+
+| Fase | História |
+|---|---|
+| Vila Moeda | O Tomás e a consola (poupar ou pedir emprestado, segunda mão) |
+| A Cidade | A Beatriz e as apostas online (perder, pedir dinheiro, contar aos pais) |
+| O Mercado | A Joana e o cartão de crédito (pagar só o mínimo, consolidar créditos) |
+| A Casa | Os vizinhos Silva e a taxa variável (a Euribor sobe, renegociar) |
+| O Negócio | O Duarte e a hamburgueria (sem plano, o IVA, emprestar dinheiro a um amigo) |
+| A Reforma | A D. Graça contra as burlas (burla romântica, formação, ensinar as amigas) |
+
+### Cada jogo é diferente, e as escolhas contam entre fases
+
+- **Acontecimentos que mudam de altura**: cada jogo tem uma "semente"; a burla, a festa, a
+  inspeção ou a universidade da neta chegam em semanas/meses/anos diferentes de jogo para jogo.
+  Há também acontecimentos novos (carteira achada, caixas surpresa, fiador, garantia...).
+- **O passado vem contigo**: o gatinho da Vila vai contigo para a Cidade (e paga-se a ração);
+  quem negociou a mesada negoceia o primeiro salário (+60€); a bicicleta baixa os transportes
+  n'O Mercado; a carta de condução continua n'A Casa; a casa e os filhos entram nas contas do
+  Negócio; e na Reforma aparece um antigo cliente do teu café, gelataria ou estafetas.
+
+### Mais "Game Boy"
+
+- **A personagem cresce**: sprites de criança, adolescente, adulto (mais alto, com gola) e
+  sénior (cabelo branco, óculos e bengala).
+- **Animações**: as pessoas acenam quando te aproximas, as portas abrem-se ao entrar, chove,
+  neva no inverno, caem folhas no outono, e há um ciclo de dia e noite com os candeeiros acesos.
+- **Música**: faixas próprias para o banco, o hospital e as lojas, e um tema diferente para cada
+  mini-jogo (gerado a partir do nome do jogo).
+- **Ecrã de título animado**: o logótipo com moedas a cair e a vida inteira a passear.
+
+### App e desempenho
+
+- **Instalar como app e jogar sem internet** (PWA): no telemóvel, "Adicionar ao ecrã principal".
+  O jogo fica guardado no aparelho e funciona sem rede.
+- **Carregamento por fases**: o arranque descarrega só o essencial (de 708 kB para 244 kB);
+  cada fase e cada ecrã final vêm quando são precisos.
 
 ### Outras novidades por fase
 
@@ -387,7 +444,8 @@ src/
       futebol.ts, bicicleta.ts, gelado.ts, cafe.ts, supermercado.ts, ginasio.ts,
       entregas.ts, babysitting.ts, explicacoes.ts (e exame de código), emails.ts,
       bowling.ts, conducao.ts, troco.ts, comparar.ts, memoria.ts, arrumar.ts,
-      decidir.ts (publicidade e contrato), canos.ts, pesca.ts - os mini-jogos
+      decidir.ts (publicidade e contrato), canos.ts, pesca.ts, orcamento.ts, regatear.ts,
+      bolsa.ts - os mini-jogos
       tipos.ts, index.ts                  - interface comum e criação por tipo
     modo.ts       - o que todos os modos partilham (estado base e ações dos guiões)
     world/
@@ -411,6 +469,8 @@ src/
     negocio/
       economia.ts   - tipos de negócio, procura, capacidade, salários, TSU, IVA, IRC e o mês da empresa
       eventos.ts, conquistas.ts, mapas.ts, scripts.ts - acontecimentos, conquistas, a loja e as conversas
+    historias.ts, historiasFases.ts - histórias com capítulos (uma por fase)
+    variacao.ts   - a semente de cada jogo (acontecimentos em alturas diferentes)
     gravar.ts, niveis.ts - jogo guardado no browser, percurso, passagem de um nível para o seguinte
     som/
       audio.ts    - sintetizador ao estilo Game Boy (ondas de pulso, triangular, ruído) e sequenciador
