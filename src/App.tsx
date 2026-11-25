@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { AgeGate } from './components/AgeGate'
 import { Intro } from './components/gba/Intro'
+import type { AbaEscolas } from './components/Escolas'
 import { carregarModo, type QualquerModo } from './components/gba/modos'
 import { novoEstadoCidade } from './game/cidade/economia'
 import type { EstadoCidade } from './game/cidade/tipos'
@@ -22,6 +23,14 @@ const FimMercado = lazy(() => import('./components/FimMercado').then((m) => ({ d
 const FimCasa = lazy(() => import('./components/FimCasa').then((m) => ({ default: m.FimCasa })))
 const FimNegocio = lazy(() => import('./components/FimNegocio').then((m) => ({ default: m.FimNegocio })))
 const FimReforma = lazy(() => import('./components/FimReforma').then((m) => ({ default: m.FimReforma })))
+const Escolas = lazy(() => import('./components/Escolas').then((m) => ({ default: m.Escolas })))
+
+/** A área das escolas abre por endereço (#escolas, #fichas, #desafio, #certificado), para se poder partilhar o link. */
+const ABAS: AbaEscolas[] = ['escolas', 'fichas', 'desafio', 'certificado']
+function abaDoEndereco(): AbaEscolas | null {
+  const h = window.location.hash.slice(1) as AbaEscolas
+  return ABAS.includes(h) ? h : null
+}
 
 function ACarregar() {
   return (
@@ -51,6 +60,17 @@ export default function App() {
   const [continuacao, setContinuacao] = useState<Continuacao | null>(null)
   const [gravacao, setGravacao] = useState<Gravacao | null>(() => lerGravacao())
   const [modos, setModos] = useState<Partial<Record<Modo, QualquerModo>>>({})
+  const [aba, setAba] = useState<AbaEscolas | null>(abaDoEndereco)
+
+  useEffect(() => {
+    const mudou = () => setAba(abaDoEndereco())
+    window.addEventListener('hashchange', mudou)
+    return () => window.removeEventListener('hashchange', mudou)
+  }, [])
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [aba])
 
   // carrega a fase quando é precisa (e a seguinte, em segundo plano, quando se chega ao fim)
   useEffect(() => {
@@ -161,19 +181,35 @@ export default function App() {
     estado,
   }
 
+  // durante o jogo e a introdução, a área das escolas não se sobrepõe
+  const escolas = aba && tela !== 'jogo' && tela !== 'intro' ? aba : null
+  function sairEscolas() {
+    window.history.pushState(null, '', window.location.pathname + window.location.search)
+    setAba(null)
+    // os dados podem ter sido apagados na área das escolas
+    setGravacao(lerGravacao())
+  }
+
   return (
     <>
-      {tela === 'idade' && <AgeGate onEscolherModo={handleEscolherModo} gravacao={gravacao} onContinuar={handleContinuar} onApagar={handleApagar} />}
-      {tela === 'intro' && <Intro key={modo} modo={modo} existente={continuacao ?? undefined} onConcluir={handleStart} />}
-      <Suspense fallback={<ACarregar />}>
-        {tela === 'jogo' && (modos[modo] ? <GameScreen key={modo} modo={modos[modo]!} estadoInicial={estado as PlayerState} onMudar={setEstado} onFim={handleFim} /> : <ACarregar />)}
-        {tela === 'fim' && modo === 'reino' && <FimDeJogo state={estado as PlayerState} {...fimProps} />}
-        {tela === 'fim' && modo === 'cidade' && <FimCidade state={estado as EstadoCidade} {...fimProps} />}
-        {tela === 'fim' && modo === 'mercado' && <FimMercado state={estado as EstadoMercado} {...fimProps} />}
-        {tela === 'fim' && modo === 'casa' && <FimCasa state={estado as EstadoMercado} {...fimProps} />}
-        {tela === 'fim' && modo === 'negocio' && <FimNegocio state={estado as EstadoMercado} {...fimProps} />}
-        {tela === 'fim' && modo === 'reforma' && <FimReforma state={estado as EstadoReforma} {...fimProps} />}
-      </Suspense>
+      {escolas && (
+        <Suspense fallback={<ACarregar />}>
+          <Escolas aba={escolas} onVoltar={sairEscolas} />
+        </Suspense>
+      )}
+      <div style={escolas ? { display: 'none' } : undefined}>
+        {tela === 'idade' && <AgeGate onEscolherModo={handleEscolherModo} gravacao={gravacao} onContinuar={handleContinuar} onApagar={handleApagar} />}
+        {tela === 'intro' && <Intro key={modo} modo={modo} existente={continuacao ?? undefined} onConcluir={handleStart} />}
+        <Suspense fallback={<ACarregar />}>
+          {tela === 'jogo' && (modos[modo] ? <GameScreen key={modo} modo={modos[modo]!} estadoInicial={estado as PlayerState} onMudar={setEstado} onFim={handleFim} /> : <ACarregar />)}
+          {tela === 'fim' && modo === 'reino' && <FimDeJogo state={estado as PlayerState} {...fimProps} />}
+          {tela === 'fim' && modo === 'cidade' && <FimCidade state={estado as EstadoCidade} {...fimProps} />}
+          {tela === 'fim' && modo === 'mercado' && <FimMercado state={estado as EstadoMercado} {...fimProps} />}
+          {tela === 'fim' && modo === 'casa' && <FimCasa state={estado as EstadoMercado} {...fimProps} />}
+          {tela === 'fim' && modo === 'negocio' && <FimNegocio state={estado as EstadoMercado} {...fimProps} />}
+          {tela === 'fim' && modo === 'reforma' && <FimReforma state={estado as EstadoReforma} {...fimProps} />}
+        </Suspense>
+      </div>
     </>
   )
 }

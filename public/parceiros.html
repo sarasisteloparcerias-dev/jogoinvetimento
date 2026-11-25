@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vila Moeda · Escolas e parceiros</title>
+    <meta name="description" content="Vila Moeda: um jogo gratuito de literacia financeira, dos 8 anos à reforma, alinhado com o Referencial de Educação Financeira. Saiba como usar na escola ou apoiar o projeto." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <style>
+      :root {
+        --tinta: #283040;
+        --texto: #2d3448;
+        --suave: #5a6280;
+        --laranja: #e8743a;
+        --verde: #2a8a5a;
+        --azul: #2a5ab0;
+        --papel: #fffdf7;
+        --linha: #c8cee0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        color: var(--texto);
+        background: var(--papel);
+        line-height: 1.6;
+        font-size: 17px;
+      }
+      a {
+        color: var(--azul);
+      }
+      .largura {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      header {
+        background: var(--tinta);
+        color: #fff;
+        padding: 48px 0 40px;
+      }
+      header .marca {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      header img.icone {
+        width: 56px;
+        height: 56px;
+        image-rendering: pixelated;
+        border-radius: 10px;
+      }
+      h1 {
+        font-size: clamp(30px, 6vw, 46px);
+        margin: 0;
+        letter-spacing: 1px;
+        color: #f8d860;
+        text-shadow: 3px 3px 0 #11151f;
+      }
+      header p.lema {
+        font-size: clamp(18px, 3vw, 22px);
+        max-width: 680px;
+        margin: 16px 0 24px;
+        color: #e6eaf5;
+      }
+      .botoes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .botao {
+        display: inline-block;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 2px solid #11151f;
+        box-shadow: 0 3px 0 #11151f;
+      }
+      .botao.principal {
+        background: var(--laranja);
+        color: #fff;
+      }
+      .botao.secundario {
+        background: #fff;
+        color: var(--tinta);
+      }
+      section {
+        padding: 40px 0;
+        border-bottom: 1px solid #ece8dc;
+      }
+      h2 {
+        font-size: 26px;
+        margin: 0 0 14px;
+        color: var(--tinta);
+      }
+      h3 {
+        font-size: 18px;
+        margin: 0 0 6px;
+        color: var(--tinta);
+      }
+      .grelha {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+      }
+      .fase {
+        background: #fff;
+        border: 2px solid var(--tinta);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 3px 0 var(--tinta);
+      }
+      .fase img {
+        width: 100%;
+        display: block;
+        image-rendering: pixelated;
+        aspect-ratio: 3 / 2;
+        object-fit: cover;
+        border-bottom: 2px solid var(--tinta);
+      }
+      .fase div {
+        padding: 12px 14px;
+        font-size: 15px;
+      }
+      .fase .idade {
+        color: var(--laranja);
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .selos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 14px;
+      }
+      .selo {
+        background: #fff;
+        border: 1px solid var(--linha);
+        border-left: 6px solid var(--verde);
+        border-radius: 6px;
+        padding: 12px 14px;
+        font-size: 15px;
+      }
+      .selo strong {
+        display: block;
+        font-size: 16px;
+        color: var(--tinta);
+      }
+      .tabela {
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        min-width: 640px;
+        font-size: 14px;
+        background: #fff;
+      }
+      th,
+      td {
+        border: 1px solid var(--linha);
+        padding: 8px;
+      }
+      thead th {
+        background: var(--tinta);
+        color: #fff;
+        font-weight: 600;
+      }
+      tbody th {
+        text-align: left;
+        white-space: nowrap;
+      }
+      td.s {
+        text-align: center;
+        color: var(--verde);
+        font-weight: 700;
+      }
+      ul.lista li {
+        margin-bottom: 6px;
+      }
+      .apoio {
+        background: #fff;
+        border: 2px solid var(--tinta);
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 3px 0 var(--tinta);
+      }
+      .apoio .etiqueta {
+        display: inline-block;
+        background: var(--laranja);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        border-radius: 4px;
+        padding: 2px 8px;
+        margin-bottom: 8px;
+        letter-spacing: 1px;
+      }
+      .nota {
+        background: #eef4ff;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: 15px;
+      }
+      footer {
+        padding: 28px 0 40px;
+        font-size: 14px;
+        color: var(--suave);
+      }
+      @media print {
+        header {
+          background: #fff;
+          color: var(--tinta);
+        }
+        h1 {
+          color: var(--laranja);
+          text-shadow: none;
+        }
+        header p.lema {
+          color: var(--texto);
+        }
+        .botoes {
+          display: none;
+        }
+        section {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="largura">
+        <div class="marca">
+          <img class="icone" src="icone-192.png" alt="" />
+          <h1>VILA MOEDA</h1>
+        </div>
+        <p class="lema">Um jogo gratuito de literacia financeira, ao estilo Game Boy, que acompanha a mesma personagem dos 8 anos até à reforma.</p>
+        <div class="botoes">
+          <a class="botao principal" href="./">Jogar agora</a>
+          <a class="botao secundario" href="./#escolas">Área para escolas</a>
+          <a class="botao secundario" href="#apoiar">Como apoiar</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="largura">
+          <h2>Porquê um jogo?</h2>
+          <p>
+            A literacia financeira é uma das prioridades do Plano Nacional de Formação Financeira 2026–2030, que reforça a educação financeira nas escolas. Mas orçamentos, juros,
+            impostos e crédito são temas abstratos para quem tem 10 ou 16 anos.
+          </p>
+          <p>
+            No Vila Moeda aprende-se a fazer: quem joga recebe a mesada, poupa no mealheiro, abre conta no banco, recebe o primeiro salário, compra casa, cria uma empresa e faz as
+            poupanças durar na reforma. As decisões de cada fase passam para a seguinte, e cada erro custa dinheiro a fingir, não dinheiro a sério.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <div class="largura">
+          <h2>Seis fases, uma vida inteira</h2>
+          <div class="grelha">
+            <article class="fase">
+              <img src="imagens/vila.png" alt="A Vila Moeda: uma vila com banco, loja e escola" loading="lazy" />
+              <div>
+                <span class="idade">8–11 anos</span>
+                <h3>Vila Moeda</h3>
+                Gastar, poupar e investir. Juro composto, comparar preços, dar o troco e solidariedade.
+              </div>
+            </article>
+            <article class="fase">
+              <img src="imagens/cidade.png" alt="A Cidade: ruas com trânsito, escola e banco" loading="lazy" />
+              <div>
+                <span class="idade">12–17 anos</span>
+                <h3>A Cidade</h3>
+                Conta bancária, primeiro trabalho, ações, ETFs e cripto, inflação, burlas e publicidade escondida.
+              </div>
+            </article>
+            <article class="fase">
+              <img src="imagens/mercado.png" alt="O Mercado: o escritório do primeiro emprego" loading="lazy" />
+              <div>
+                <span class="idade">15+ anos</span>
+                <h3>O Mercado</h3>
+                Salário bruto e líquido, IRS, orçamento, fundo de emergência, TAEG, cartão de crédito e contratos.
+              </div>
+            </article>
+            <article class="fase">
+              <img src="imagens/casa.png" alt="A Casa: a imobiliária onde se escolhe a casa" loading="lazy" />
+              <div>
+                <span class="idade">15+ anos</span>
+                <h3>A Casa</h3>
+                Crédito à habitação, taxa fixa e variável, Euribor, taxa de esforço, IMI, seguros e obras.
+              </div>
+            </article>
+            <article class="fase">
+              <img src="imagens/negocio.png" alt="O Negócio: o interior da empresa de quem joga" loading="lazy" />
+              <div>
+                <span class="idade">15+ anos</span>
+                <h3>O Negócio</h3>
+                Criar uma empresa: preços, salários, TSU, IVA, IRC, lucro contra caixa e faturas falsas.
+              </div>
+            </article>
+            <article class="fase">
+              <img src="imagens/reforma.png" alt="A Reforma: de volta à vila, junto ao lago" loading="lazy" />
+              <div>
+                <span class="idade">Todas as idades</span>
+                <h3>A Reforma</h3>
+                Pensão, regra dos 4%, inflação, quedas da bolsa, burlas a seniores e herança.
+              </div>
+            </article>
+          </div>
+          <div class="grelha" style="margin-top: 24px; align-items: center">
+            <img src="imagens/minijogo.png" alt="Mini-jogo de regatear na feira: propor um preço sem ofender o vendedor" loading="lazy" style="width: 100%; image-rendering: pixelated; border: 2px solid var(--tinta); border-radius: 8px" />
+            <p style="margin: 0">
+              <strong>Mais de 20 mini-jogos</strong>: regatear na feira, simulador de bolsa, fazer o orçamento, dar o troco, comparar créditos, ler um contrato... Há também
+              personagens com histórias em várias partes (as apostas online, o cartão de crédito, as burlas a seniores) e acontecimentos que mudam de jogo para jogo.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="largura">
+          <h2>Pronto para a sala de aula</h2>
+          <div class="selos">
+            <div class="selo"><strong>Grátis e sem anúncios</strong>Sem compras nem publicidade dentro do jogo.</div>
+            <div class="selo"><strong>Não recolhe dados</strong>Sem contas nem registos. Tudo fica no dispositivo.</div>
+            <div class="selo"><strong>Funciona sem internet</strong>Depois da primeira visita, e instala-se como app.</div>
+            <div class="selo"><strong>Em português de Portugal</strong>Com impostos, salários e regras portuguesas.</div>
+            <div class="selo"><strong>Fichas de aula</strong>Objetivos, perguntas e uma atividade para cada fase.</div>
+            <div class="selo"><strong>Mede a aprendizagem</strong>Desafio de 10 perguntas antes e depois, e certificado.</div>
+          </div>
+
+          <h3 style="margin-top: 28px">Alinhado com o Referencial de Educação Financeira</h3>
+          <p>Os temas do documento que as escolas usam (Direção-Geral da Educação, ANQEP e Conselho Nacional de Supervisores Financeiros), fase a fase:</p>
+          <div class="tabela">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Fase</th>
+                  <th scope="col">Planeamento e gestão do orçamento</th>
+                  <th scope="col">Sistema e produtos financeiros básicos</th>
+                  <th scope="col">Poupança</th>
+                  <th scope="col">Crédito</th>
+                  <th scope="col">Ética</th>
+                  <th scope="col">Direitos e deveres</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Vila Moeda</th><td class="s">✔</td><td class="s">✔</td><td class="s">✔</td><td></td><td class="s">✔</td><td></td></tr>
+                <tr><th scope="row">A Cidade</th><td class="s">✔</td><td class="s">✔</td><td class="s">✔</td><td></td><td></td><td class="s">✔</td></tr>
+                <tr><th scope="row">O Mercado</th><td class="s">✔</td><td class="s">✔</td><td></td><td class="s">✔</td><td></td><td class="s">✔</td></tr>
+                <tr><th scope="row">A Casa</th><td class="s">✔</td><td class="s">✔</td><td></td><td class="s">✔</td><td></td><td class="s">✔</td></tr>
+                <tr><th scope="row">O Negócio</th><td class="s">✔</td><td></td><td></td><td class="s">✔</td><td class="s">✔</td><td class="s">✔</td></tr>
+                <tr><th scope="row">A Reforma</th><td class="s">✔</td><td class="s">✔</td><td class="s">✔</td><td></td><td class="s">✔</td><td class="s">✔</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin-top: 28px">Como funciona numa aula</h3>
+          <ol class="lista">
+            <li><strong>Desafio inicial</strong> (5 minutos): 10 perguntas para ver o ponto de partida.</li>
+            <li><strong>Jogar</strong> uma fase, com missões e uma pergunta de abertura da ficha. O jogo grava sozinho entre aulas.</li>
+            <li><strong>Debater</strong> com o resumo para docentes que aparece no fim de cada fase.</li>
+            <li><strong>Desafio final e certificado</strong>, para ver quanto se aprendeu.</li>
+          </ol>
+          <p>Serve também o ensino profissional, a formação de adultos e as universidades seniores (a fase A Reforma).</p>
+        </div>
+      </section>
+
+      <section id="apoiar">
+        <div class="largura">
+          <h2>Como apoiar</h2>
+          <p>O Vila Moeda procura parceiros para chegar a mais escolas e manter o jogo gratuito e sem anúncios.</p>
+          <div class="grelha">
+            <div class="apoio">
+              <span class="etiqueta">FUNDAÇÕES E EMPRESAS</span>
+              <h3>Apoio principal</h3>
+              Financia o desenvolvimento e a publicação na App Store e no Google Play. Aparece como "Com o apoio de" no ecrã inicial, na área das escolas e nos certificados.
+            </div>
+            <div class="apoio">
+              <span class="etiqueta">FUNDAÇÕES E EMPRESAS</span>
+              <h3>Apoio a uma fase</h3>
+              Por exemplo, A Reforma para universidades seniores, ou O Negócio para o ensino profissional: novos conteúdos e divulgação junto desse público.
+            </div>
+            <div class="apoio">
+              <span class="etiqueta">ESCOLAS E MUNICÍPIOS</span>
+              <h3>Turmas-piloto</h3>
+              Usar o jogo em turmas, com o desafio antes e depois, para medir resultados e melhorar o jogo com a ajuda de docentes.
+            </div>
+            <div class="apoio">
+              <span class="etiqueta">ENTIDADES DE FORMAÇÃO FINANCEIRA</span>
+              <h3>Divulgação</h3>
+              Revisão de conteúdos e recomendação do jogo como recurso de educação financeira para escolas e famílias.
+            </div>
+          </div>
+          <p class="nota" style="margin-top: 20px">
+            <strong>Neutralidade.</strong> Os apoios não mudam os conteúdos nem aparecem dentro do jogo: não há marcas, produtos nem links nas fases. O jogo segue os Princípios
+            Orientadores das Iniciativas de Formação Financeira do Plano Nacional de Formação Financeira e as regras para apps dirigidas a crianças.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <div class="largura">
+          <h2>Experimentar</h2>
+          <p>O jogo funciona no browser de qualquer computador, tablet ou telemóvel, sem instalar nada.</p>
+          <div class="botoes">
+            <a class="botao principal" href="./">Jogar o Vila Moeda</a>
+            <a class="botao secundario" href="./#fichas">Ver as fichas de aula</a>
+            <a class="botao secundario" href="./#desafio">Fazer o desafio</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="largura">
+        Vila Moeda · jogo gratuito de literacia financeira · <a href="privacidade.html">Política de privacidade</a>
+      </div>
+    </footer>
+  </body>
+</html>

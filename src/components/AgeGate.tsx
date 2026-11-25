@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AVATAR_PADRAO } from '../game/data'
 import { faseDesbloqueada, type Gravacao, type Modo } from '../game/gravar'
 import { resumoGravacao, requisitoNivel } from '../game/niveis'
+import { PARCEIROS } from '../game/parceiros'
 import { framesAdolescente, framesAdulto, framesPersonagem, framesSenior } from '../game/pixel/sprites'
 import type { AvatarConfig } from '../game/types'
 import { SpriteView } from './gba/ui'
@@ -186,6 +187,28 @@ export function AgeGate({ onEscolherModo, gravacao, onContinuar, onApagar }: Age
         <button type="submit" disabled={idade === ''} className="botao-pixel" style={{ width: '100%', fontSize: 18, padding: 10 }}>
           Começar
         </button>
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <a href="#desafio" className="cartao-modo" style={{ flex: 1, textDecoration: 'none', padding: '10px 8px' }}>
+            <strong style={{ fontSize: 10 }}>DESAFIO</strong>
+            <span>Quanto sabes de dinheiro?</span>
+          </a>
+          <a href="#escolas" className="cartao-modo" style={{ flex: 1, textDecoration: 'none', padding: '10px 8px' }}>
+            <strong style={{ fontSize: 10 }}>ESCOLAS</strong>
+            <span>Para docentes e famílias</span>
+          </a>
+        </div>
+
+        {PARCEIROS.length > 0 && (
+          <div style={{ marginTop: 14, fontSize: 9, color: '#8890a8' }}>
+            <p style={{ marginBottom: 6 }}>COM O APOIO DE</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', alignItems: 'center' }}>
+              {PARCEIROS.map((p) =>
+                p.logo ? <img key={p.nome} src={`${import.meta.env.BASE_URL}${p.logo}`} alt={p.nome} style={{ height: 28 }} /> : <span key={p.nome}>{p.nome}</span>,
+              )}
+            </div>
+          </div>
+        )}
       </form>
     </div>
   )

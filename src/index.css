@@ -347,3 +347,170 @@ body {
     display: none;
   }
 }
+
+/* ---------- área para escolas e famílias ---------- */
+
+.texto-legivel {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #2d3448;
+}
+
+.texto-legivel .titulo-jogo,
+.texto-legivel h2,
+.texto-legivel .botao-pixel,
+.texto-legivel .cartao-modo {
+  font-family: 'Press Start 2P', monospace;
+}
+
+.texto-legivel p {
+  margin: 0 0 10px;
+}
+
+.texto-legivel ul,
+.texto-legivel ol {
+  margin: 0 0 10px;
+  padding-left: 22px;
+}
+
+.texto-legivel ul {
+  list-style: disc;
+}
+
+.texto-legivel ol {
+  list-style: decimal;
+}
+
+.texto-legivel li {
+  margin-bottom: 4px;
+}
+
+.texto-legivel a:not(.botao-pixel) {
+  color: #2a5ab0;
+  text-decoration: underline;
+}
+
+.tabela-referencial {
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 620px;
+}
+
+.tabela-referencial th,
+.tabela-referencial td {
+  border: 1px solid #c8cee0;
+  padding: 6px;
+  vertical-align: middle;
+}
+
+.tabela-referencial thead th {
+  background: #283040;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.tabela-referencial tbody th {
+  text-align: left;
+  background: #f4f7fc;
+  white-space: nowrap;
+}
+
+.tabela-referencial td {
+  color: #2a8a5a;
+  font-weight: 700;
+}
+
+.tabela-referencial td.idade {
+  color: #2d3448;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.chip-tema {
+  display: inline-block;
+  background: #e6eefb;
+  color: #283040;
+  border: 1px solid #b6cbe6;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+.opcao-desafio {
+  font: inherit;
+  text-align: left;
+  padding: 12px 14px;
+  border: 2px solid var(--contorno);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--contorno);
+  color: inherit;
+  cursor: pointer;
+}
+
+.opcao-desafio:not(:disabled):hover,
+.opcao-desafio:not(:disabled):focus-visible {
+  background: #fffbe6 !important;
+}
+
+.opcao-desafio:disabled {
+  cursor: default;
+}
+
+.certificado {
+  text-align: center;
+  border: 6px double #283040;
+  border-radius: 8px;
+  padding: 28px 20px;
+  background: #fffdf4;
+}
+
+.lista-fases {
+  list-style: none;
+  padding: 0 !important;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  font-weight: 600;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .nao-imprimir,
+  .comandos,
+  .ajuda {
+    display: none !important;
+  }
+
+  .pagina-pixel {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .janela {
+    border: none;
+    box-shadow: none;
+  }
+
+  body.imprimir-certificado * {
+    visibility: hidden;
+  }
+
+  body.imprimir-certificado .certificado,
+  body.imprimir-certificado .certificado * {
+    visibility: visible;
+  }
+
+  body.imprimir-certificado .certificado {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

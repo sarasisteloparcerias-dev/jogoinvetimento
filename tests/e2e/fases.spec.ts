@@ -107,3 +107,38 @@ test('histórias: o Tomás tem novidades e conta o primeiro capítulo', async ({
   expect(await page.evaluate(() => (window as unknown as V).__vilaMoeda.motor.novidades.has('aluno'))).toBe(false)
   expect(erros).toEqual([])
 })
+
+test('área para escolas: fichas, desafio antes e depois e certificado', async ({ page }) => {
+  const erros = vigiarErros(page)
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.goto('/')
+  await page.click('a[href="#escolas"]')
+  await expect(page.getByText('PARA ESCOLAS E FAMÍLIAS')).toBeVisible()
+  await expect(page.locator('table.tabela-referencial tbody tr')).toHaveCount(6)
+
+  await page.click('nav a[href="#fichas"]')
+  await page.click('button[role=tab] >> nth=5')
+  await expect(page.locator('article.ficha')).toContainText('universidades seniores')
+
+  // desafio: a primeira vez é o "antes" (tudo errado), a segunda o "depois" (tudo certo)
+  await page.click('nav a[href="#desafio"]')
+  for (const certas of [false, true]) {
+    await page.click('button.cartao-modo >> nth=1')
+    for (let i = 0; i < 10; i++) {
+      await page.click(certas ? 'button[data-certa]' : 'button.opcao-desafio:not([data-certa]) >> nth=0')
+      await page.click('text=/SEGUINTE|VER RESULTADO/')
+    }
+    if (!certas) await page.click('text=VOLTAR')
+  }
+  await expect(page.getByText('Melhoraste 100 pontos percentuais!')).toBeVisible()
+
+  await page.click('text=VER CERTIFICADO')
+  await page.fill('input', 'Sam')
+  await expect(page.locator('.certificado')).toContainText('Sam')
+  await expect(page.locator('.certificado')).toContainText('0/10 antes de jogar e 10/10 depois')
+
+  await page.click('text=◀ JOGO')
+  await expect(page.locator('#idade')).toBeVisible()
+  expect(erros).toEqual([])
+})

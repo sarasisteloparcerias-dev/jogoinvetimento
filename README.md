@@ -148,6 +148,20 @@ seguintes lembram-se do que disseste):
 - **A Casa**: vender a casa (comissão, amortização antecipada e mais-valias) e um bebé na
   família (creche ou avós, abono de família).
 
+## Escolas, famílias e parceiros
+
+O jogo está preparado para ser usado nas aulas e apresentado a escolas, fundações e entidades de formação financeira:
+
+- **Área para escolas e famílias** (botão ESCOLAS no ecrã inicial, ou o endereço `#escolas`): como usar numa aula, o que o jogo guarda, botão para apagar os dados num computador partilhado e a tabela das fases com os temas do **Referencial de Educação Financeira** (planeamento e gestão do orçamento, sistema e produtos financeiros básicos, poupança, crédito, ética, direitos e deveres).
+- **Fichas para a aula** (`#fichas`): para cada fase, idade, níveis de ensino, objetivos, pergunta para abrir a aula, missões, perguntas para o debate e uma atividade fora do ecrã. Imprimem-se.
+- **Desafio do dinheiro** (`#desafio`): 10 perguntas (8-14 anos ou 15+), com explicação a cada resposta. A primeira vez conta como "antes de jogar" e as seguintes como "depois"; o jogo mostra quanto se melhorou.
+- **Certificado** (`#certificado`): nome, fases concluídas e resultado do desafio antes e depois, pronto a imprimir.
+- O resumo para pais e professores no fim de cada fase mostra os temas do Referencial e tem ligações para o desafio, o certificado e as fichas.
+- **Com o apoio de**: os parceiros acrescentam-se em `src/game/parceiros.ts` (nome e logótipo em `public/parceiros/`). Aparecem só no ecrã inicial, na área das escolas e no certificado: nunca dentro do jogo e sem links.
+- **Página para parceiros** (`public/parceiros.html`, publicada em `/parceiros.html`): o jogo, as fases com capturas de ecrã, porque serve as escolas, o alinhamento com o Referencial e as formas de apoiar.
+- **Política de privacidade** (`public/privacidade.html`): o jogo não recolhe dados, não tem anúncios nem ferramentas de análise e guarda tudo no dispositivo. Também é precisa para a App Store e o Google Play.
+- As capturas de ecrã geram-se com `node scripts/gerar-capturas.mjs` (com `npx vite --port 5190` a correr).
+
 ## Som e música
 
 Todo o som é gerado no próprio jogo com WebAudio, como num chip de Game Boy: duas ondas quadradas
