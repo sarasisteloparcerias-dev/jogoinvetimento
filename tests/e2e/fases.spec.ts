@@ -134,7 +134,7 @@ test('área para escolas: fichas, desafio antes e depois e certificado', async (
   await expect(page.getByText('Melhoraste 100 pontos percentuais!')).toBeVisible()
 
   await page.click('text=VER CERTIFICADO')
-  await page.fill('input', 'Sam')
+  await page.fill('#nome-certificado', 'Sam')
   await expect(page.locator('.certificado')).toContainText('Sam')
   await expect(page.locator('.certificado')).toContainText('0/10 antes de jogar e 10/10 depois')
 

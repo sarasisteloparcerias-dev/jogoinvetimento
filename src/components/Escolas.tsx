@@ -431,7 +431,7 @@ function Certificado() {
     <div className="texto-legivel">
       <label className="nao-imprimir" style={{ display: 'block', marginBottom: 12 }}>
         Nome para o certificado:{' '}
-        <input className="input-pixel" value={nome} maxLength={40} onChange={(e) => setNome(e.target.value)} style={{ padding: 6, fontSize: 12, width: 260, maxWidth: '100%' }} />
+        <input id="nome-certificado" className="input-pixel" value={nome} maxLength={40} onChange={(e) => setNome(e.target.value)} style={{ padding: 6, fontSize: 12, width: 260, maxWidth: '100%' }} />
       </label>
       <section className="certificado" aria-label="Certificado">
         <p style={{ fontSize: 10, letterSpacing: 2, color: '#5a6280', fontFamily: "'Press Start 2P', monospace" }}>VILA MOEDA</p>
